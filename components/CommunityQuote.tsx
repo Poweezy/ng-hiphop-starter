@@ -300,13 +300,14 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 </div>
             </div>
 
-            <style>{`
+            <style dangerouslySetInnerHTML={{
+                __html: `
         @media (max-width: 768px) {
           #community-quotes .container > div {
             grid-template-columns: 1fr !important;
           }
         }
-      `}</style>
+      `}} />
         </section>
     );
 }

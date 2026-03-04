@@ -331,13 +331,14 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
                 </div>
             </div>
 
-            <style>{`
+            <style dangerouslySetInnerHTML={{
+                __html: `
         @media (max-width: 768px) {
           #graffiti .container > div:last-child {
             grid-template-columns: 1fr !important;
           }
         }
-      `}</style>
+      `}} />
         </section>
     );
 }

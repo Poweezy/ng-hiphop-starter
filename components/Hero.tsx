@@ -94,6 +94,7 @@ export default function Hero({ slogan }: HeroProps) {
             src="/images/graffiti.png"
             alt="Nerd Gauge Graffiti Logo"
             fill
+            sizes="100vw"
             style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))' }}
             priority
           />
