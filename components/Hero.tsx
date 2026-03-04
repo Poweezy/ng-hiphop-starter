@@ -91,46 +91,78 @@ export default function Hero({ slogan }: HeroProps) {
         <h1
           style={{
             display: 'flex',
-            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+            alignItems: 'baseline',
             justifyContent: 'center',
-            gap: '4px',
+            gap: '16px',
             lineHeight: 1,
+            marginBottom: '8px',
           }}
         >
-          {/* "NG" in cursive Dancing Script with gradient */}
-          <span
-            style={{
-              fontFamily: 'var(--font-cursive)',
-              fontSize: 'clamp(5rem, 14vw, 11rem)',
-              background: 'linear-gradient(135deg, #a855f7 0%, #6A0DAD 40%, #3b82f6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: 0.9,
-              position: 'relative',
-              display: 'inline-block',
-              filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))',
-            }}
-          >
-            NG
-            {/* Paint drip effect under G */}
-            <DripsEffect />
-          </span>
-        </h1>
+          {/* First word: Nerd */}
+          <div style={{ display: 'flex', alignItems: 'baseline' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-cursive)',
+                fontSize: 'clamp(4rem, 10vw, 8rem)',
+                background: 'linear-gradient(135deg, #a855f7 0%, #6A0DAD 40%, #3b82f6 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                lineHeight: 0.9,
+                position: 'relative',
+                display: 'inline-block',
+                filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))',
+              }}
+            >
+              N
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                letterSpacing: '0.05em',
+                color: '#fff',
+                textTransform: 'uppercase',
+              }}
+            >
+              erd
+            </span>
+          </div>
 
-        {/* NATION subtitle */}
-        <div
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.2rem, 3.5vw, 2.2rem)',
-            letterSpacing: '0.5em',
-            color: 'rgba(255,255,255,0.55)',
-            marginTop: '-10px',
-            textTransform: 'uppercase',
-          }}
-        >
-          Nation
-        </div>
+          {/* Second word: Guage */}
+          <div style={{ display: 'flex', alignItems: 'baseline' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-cursive)',
+                fontSize: 'clamp(4rem, 10vw, 8rem)',
+                background: 'linear-gradient(135deg, #a855f7 0%, #6A0DAD 40%, #3b82f6 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                lineHeight: 0.9,
+                position: 'relative',
+                display: 'inline-block',
+                filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))',
+              }}
+            >
+              G
+              {/* Paint drip effect under G */}
+              <DripsEffect />
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                letterSpacing: '0.05em',
+                color: '#fff',
+                textTransform: 'uppercase',
+              }}
+            >
+              uage
+            </span>
+          </div>
+        </h1>
       </div>
 
       {/* Slogan */}
