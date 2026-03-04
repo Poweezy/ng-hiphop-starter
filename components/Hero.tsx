@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 interface HeroProps {
   slogan: string;
@@ -88,81 +89,15 @@ export default function Hero({ slogan }: HeroProps) {
           marginBottom: '8px',
         }}
       >
-        <h1
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'baseline',
-            justifyContent: 'center',
-            gap: '16px',
-            lineHeight: 1,
-            marginBottom: '8px',
-          }}
-        >
-          {/* First word: Nerd */}
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-cursive)',
-                fontSize: 'clamp(4rem, 10vw, 8rem)',
-                background: 'linear-gradient(135deg, #a855f7 0%, #6A0DAD 40%, #3b82f6 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                lineHeight: 0.9,
-                position: 'relative',
-                display: 'inline-block',
-                filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))',
-              }}
-            >
-              N
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                letterSpacing: '0.05em',
-                color: '#fff',
-                textTransform: 'uppercase',
-              }}
-            >
-              erd
-            </span>
-          </div>
-
-          {/* Second word: Guage */}
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-cursive)',
-                fontSize: 'clamp(4rem, 10vw, 8rem)',
-                background: 'linear-gradient(135deg, #a855f7 0%, #6A0DAD 40%, #3b82f6 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                lineHeight: 0.9,
-                position: 'relative',
-                display: 'inline-block',
-                filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))',
-              }}
-            >
-              G
-              {/* Paint drip effect under G */}
-              <DripsEffect />
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                letterSpacing: '0.05em',
-                color: '#fff',
-                textTransform: 'uppercase',
-              }}
-            >
-              uage
-            </span>
-          </div>
-        </h1>
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9' }}>
+          <Image
+            src="/images/graffiti.png"
+            alt="Nerd Gauge Graffiti Logo"
+            fill
+            style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))' }}
+            priority
+          />
+        </div>
       </div>
 
       {/* Slogan */}
@@ -258,25 +193,3 @@ export default function Hero({ slogan }: HeroProps) {
   );
 }
 
-function DripsEffect() {
-  return (
-    <svg
-      aria-hidden="true"
-      style={{
-        position: 'absolute',
-        bottom: '-14px',
-        right: '8px',
-        width: '40px',
-        height: '20px',
-        overflow: 'visible',
-      }}
-      viewBox="0 0 40 20"
-      fill="none"
-    >
-      {/* Paint drips */}
-      <path d="M8 0 Q8 8 6 14 Q5 18 7 19 Q9 20 10 17 Q11 12 10 0" fill="#6A0DAD" opacity="0.9" />
-      <path d="M20 0 Q19 10 18 16 Q17 20 19 20 Q21 20 21 16 Q21 10 20 0" fill="#3b82f6" opacity="0.8" />
-      <path d="M32 0 Q33 6 35 12 Q36 17 34 18 Q32 19 31 15 Q30 10 31 0" fill="#a855f7" opacity="0.7" />
-    </svg>
-  );
-}
