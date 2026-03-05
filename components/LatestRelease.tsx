@@ -79,9 +79,18 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                         style={{
                             position: 'relative',
                             aspectRatio: '1/1',
-                            borderRadius: '8px',
+                            borderRadius: '20px',
                             overflow: 'hidden',
-                            boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 30px rgba(106,13,173,0.2)',
+                            boxShadow: '0 25px 80px rgba(0,0,0,0.8), 0 0 40px rgba(139,92,246,0.3)',
+                            transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.05) rotate(2deg)';
+                            e.currentTarget.style.boxShadow = '0 30px 100px rgba(0,0,0,0.9), 0 0 60px rgba(139,92,246,0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                            e.currentTarget.style.boxShadow = '0 25px 80px rgba(0,0,0,0.8), 0 0 40px rgba(139,92,246,0.3)';
                         }}
                     >
                         <Image
@@ -98,9 +107,22 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                             style={{
                                 position: 'absolute',
                                 inset: 0,
-                                background: 'linear-gradient(135deg, rgba(106,13,173,0.15) 0%, transparent 50%)',
+                                background: 'linear-gradient(135deg, rgba(139,92,246,0.2) 0%, transparent 50%, rgba(236,72,153,0.2) 100%)',
+                                mixBlendMode: 'overlay',
                             }}
                         />
+                        {isPlaying && (
+                            <div
+                                aria-hidden="true"
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    border: '3px solid rgba(16,185,129,0.6)',
+                                    borderRadius: '20px',
+                                    animation: 'glow 2s ease-in-out infinite',
+                                }}
+                            />
+                        )}
                     </div>
 
                     {/* Song Info */}
@@ -148,17 +170,19 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                     letterSpacing: '0.15em',
                                     textTransform: 'uppercase',
                                     color: 'var(--color-grey-blue)',
-                                    marginBottom: '10px',
+                                    marginBottom: '12px',
                                 }}
                             >
-                                Stream Preview
+                                {isPlaying ? '▶ Now Playing' : '⏸ Stream Preview'}
                             </p>
                             <div
                                 style={{
-                                    background: 'rgba(255,255,255,0.04)',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    borderRadius: '50px',
-                                    padding: '8px 16px',
+                                    background: 'rgba(17, 24, 39, 0.6)',
+                                    border: '1px solid rgba(139, 92, 246, 0.2)',
+                                    borderRadius: '16px',
+                                    padding: '16px',
+                                    backdropFilter: 'blur(16px)',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                                 }}
                             >
                                 <audio

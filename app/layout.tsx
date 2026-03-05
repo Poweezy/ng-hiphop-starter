@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Navigation from '@/components/Navigation';
 
 export const metadata: Metadata = {
     title: 'NG — Built From Bars. Raised By Beats.',
@@ -21,6 +22,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
+                <Navigation />
                 <main>{children}</main>
 
                 {/* Permanent Legal Disclaimer – Sticky Footer */}
