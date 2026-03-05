@@ -6,7 +6,9 @@ import { prisma } from '@/app/db';
 
 export default async function AdminPage() {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any)?.role !== 'ADMIN') {
+    const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+    
+    if (!session || userRole !== 'ADMIN') {
         redirect('/admin/login');
     }
 
@@ -22,10 +24,10 @@ export default async function AdminPage() {
     return (
         <AdminDashboard
             initialSlogan={slogan?.text ?? ''}
-            initialSongs={songs as any}
-            initialQuotes={quotes as any}
-            initialGraffiti={graffiti as any}
-            initialLyrics={lyrics as any}
+            initialSongs={songs}
+            initialQuotes={quotes}
+            initialGraffiti={graffiti}
+            initialLyrics={lyrics}
         />
     );
 }

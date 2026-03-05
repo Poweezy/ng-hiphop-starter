@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { sloganUpdateSchema } from '@/lib/validations';
 
 export async function GET() {
   try {
@@ -15,21 +16,32 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any)?.role !== 'ADMIN') {
+    const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+    
+    if (!session || userRole !== 'ADMIN') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
+    
     const body = await req.json();
-    const text = typeof body.slogan === 'string' ? body.slogan.trim() : '';
-    if (!text || text.length > 200) {
-      return NextResponse.json({ message: 'Invalid slogan' }, { status: 400 });
+    const validation = sloganUpdateSchema.safeParse(body);
+    
+    if (!validation.success) {
+      return NextResponse.json({ 
+        message: 'Invalid input', 
+        errors: validation.error.errors 
+      }, { status: 400 });
     }
+    
+    const { slogan } = validation.data;
+    
     const updated = await prisma.slogan.upsert({
       where: { id: 1 },
-      update: { text },
-      create: { id: 1, text },
+      update: { text: slogan },
+      create: { id: 1, text: slogan },
     });
     return NextResponse.json({ message: 'Slogan updated', text: updated.text });
-  } catch {
+  } catch (error) {
+    console.error('Slogan update error:', error);
     return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

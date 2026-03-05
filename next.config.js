@@ -4,7 +4,15 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: '**',
+                hostname: 'open.spotify.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'music.apple.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'actions.google.com',
             },
         ],
     },

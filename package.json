@@ -1,6 +1,11 @@
 {
   "name": "ng-hiphop",
+  "version": "1.0.0",
+  "description": "Modern hip-hop music platform with streaming, community engagement, and admin dashboard",
   "private": true,
+  "author": "NG Platform",
+  "license": "UNLICENSED",
+  "keywords": ["nextjs", "hip-hop", "music", "streaming", "prisma", "typescript"],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -21,7 +26,8 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "sharp": "^0.33.1",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

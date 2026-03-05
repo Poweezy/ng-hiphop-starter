@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { quoteSubmissionSchema, quoteUpdateSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 // Simple in-memory rate limiter per IP
 const submissionLog = new Map<string, number[]>();
@@ -19,14 +21,30 @@ function isRateLimited(ip: string): boolean {
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        const isAdmin = (session?.user as any)?.role === 'ADMIN';
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        const isAdmin = userRole === 'ADMIN';
 
         if (isAdmin) {
-            const quotes = await prisma.quoteSubmission.findMany({ orderBy: { createdAt: 'desc' } });
-            return NextResponse.json(quotes);
-        }
+            const { searchParams } = new URL(req.url);
+            const page = parseInt(searchParams.get('page') || '1');
+            const limit = parseInt(searchParams.get('limit') || '20');
+            const skip = (page - 1) * limit;
 
-        // Public: only featured approved quote
+            const [quotes, total] = await Promise.all([
+                prisma.quoteSubmission.findMany({ 
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take: limit,
+                }),
+                prisma.quoteSubmission.count(),
+            ]);
+            
+            return NextResponse.json({ 
+                quotes, 
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) } 
+            });
+        }
+        
         const featured = await prisma.quoteSubmission.findFirst({
             where: {
                 approved: true,
@@ -35,7 +53,8 @@ export async function GET(req: NextRequest) {
             },
         });
         return NextResponse.json(featured);
-    } catch {
+    } catch (error) {
+        console.error('Quote fetch error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
@@ -48,24 +67,24 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { name, quote } = body;
-
-        const sanitize = (s: string) =>
-            String(s).replace(/[<>]/g, '').trim().slice(0, 280);
-
-        const cleanName = sanitize(name ?? '');
-        const cleanQuote = sanitize(quote ?? '');
-
-        if (!cleanName || cleanName.length < 2 || !cleanQuote || cleanQuote.length < 5) {
-            return NextResponse.json({ message: 'Name and quote are required' }, { status: 400 });
+        const validation = quoteSubmissionSchema.safeParse(body);
+        
+        if (!validation.success) {
+            return NextResponse.json({ 
+                message: 'Invalid input', 
+                errors: validation.error.errors 
+            }, { status: 400 });
         }
 
+        const { name, quote } = validation.data;
+
         await prisma.quoteSubmission.create({
-            data: { quote_text: cleanQuote, submitted_by: cleanName },
+            data: { quote_text: quote, submitted_by: name },
         });
 
         return NextResponse.json({ message: 'Quote submitted for approval' }, { status: 201 });
-    } catch {
+    } catch (error) {
+        console.error('Quote submission error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
@@ -73,14 +92,23 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || (session.user as any)?.role !== 'ADMIN') {
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        
+        if (!session || userRole !== 'ADMIN') {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await req.json();
-        const { id, approved, is_featured, display_until } = body;
+        const validation = quoteUpdateSchema.safeParse(body);
+        
+        if (!validation.success) {
+            return NextResponse.json({ 
+                message: 'Invalid input', 
+                errors: validation.error.errors 
+            }, { status: 400 });
+        }
 
-        if (!id) return NextResponse.json({ message: 'ID required' }, { status: 400 });
+        const { id, approved, is_featured, display_until } = validation.data;
 
         // If featuring, unfeatured others first
         if (is_featured) {
@@ -97,7 +125,28 @@ export async function PATCH(req: NextRequest) {
         });
 
         return NextResponse.json(updated);
-    } catch {
+    } catch (error) {
+        console.error('Quote update error:', error);
+        return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        
+        if (!session || userRole !== 'ADMIN') {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await req.json();
+        const { id } = z.object({ id: z.string().cuid() }).parse(body);
+
+        await prisma.quoteSubmission.delete({ where: { id } });
+        return NextResponse.json({ message: 'Quote deleted' });
+    } catch (error) {
+        console.error('Quote delete error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }

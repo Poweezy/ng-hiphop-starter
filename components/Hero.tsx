@@ -16,8 +16,14 @@ export default function Hero({ slogan }: HeroProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(true);
-      // Generate particles only on the client
-      const newParticles = [...Array(12)].map((_, i) => (
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    // Generate particles only once when visible
+    const newParticles = [...Array(12)].map((_, i) => (
         <span
           key={i}
           style={{
@@ -35,15 +41,14 @@ export default function Hero({ slogan }: HeroProps) {
         />
       ));
       setParticles(newParticles);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  }, [visible]);
 
   return (
     <section
       id="hero"
       style={{
         minHeight: '100vh',
+        minHeight: '100dvh', // Dynamic viewport height for mobile
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -56,46 +61,32 @@ export default function Hero({ slogan }: HeroProps) {
       }}
       ref={ref}
     >
-      {/* Graffiti Texture Overlay */}
-      <div className="graffiti-overlay" aria-hidden="true" />
-
-      {/* Radial glow behind logo */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -60%)',
-          width: '600px',
-          height: '600px',
-          background:
-            'radial-gradient(ellipse, rgba(106,13,173,0.35) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* Living particles */}
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         {particles}
       </div>
 
-      {/* NG LOGO */}
+      {/* NG LOGO - Background */}
       <div
         style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0)' : 'translateY(-30px)',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          opacity: visible ? 0.5 : 0,
           transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-          marginBottom: '8px',
+          width: '100vw',
+          height: '100%',
+          zIndex: 1,
         }}
       >
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9' }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           <Image
             src="/images/graffiti.png"
             alt="Nerd Gauge Graffiti Logo"
             fill
             sizes="100vw"
-            style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))' }}
+            style={{ objectFit: 'cover', filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))' }}
             priority
           />
         </div>
@@ -109,12 +100,15 @@ export default function Hero({ slogan }: HeroProps) {
           fontWeight: 600,
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.85)',
+          color: 'rgba(255,255,255,0.95)',
           maxWidth: '600px',
           marginTop: '28px',
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(20px)',
           transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s',
+          position: 'relative',
+          zIndex: 10,
+          textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6)',
         }}
       >
         {slogan}
@@ -129,6 +123,8 @@ export default function Hero({ slogan }: HeroProps) {
           margin: '20px auto',
           transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s',
           boxShadow: '0 0 10px var(--color-green)',
+          position: 'relative',
+          zIndex: 10,
         }}
         aria-hidden="true"
       />
@@ -144,12 +140,29 @@ export default function Hero({ slogan }: HeroProps) {
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(20px)',
           transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s',
+          position: 'relative',
+          zIndex: 10,
         }}
       >
-        <a href="#latest-release" className="btn btn-primary">
+        <a 
+          href="#latest-release" 
+          className="btn btn-primary"
+          style={{
+            background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+            boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)',
+          }}
+        >
           <span>🎵</span> Listen Now
         </a>
-        <a href="#latest-release" className="btn btn-secondary">
+        <a 
+          href="#latest-release" 
+          className="btn btn-secondary"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+          }}
+        >
           <span>🔥</span> Latest Drop
         </a>
       </div>
