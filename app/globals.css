@@ -436,16 +436,24 @@ select:focus-visible {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  line-height: 1;
-  letter-spacing: 0.02em;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
   margin-bottom: 12px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FFFFFF 0%, #8B5CF6 50%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
 }
 
 .section-subtitle {
   color: var(--color-grey-blue);
-  font-size: 1rem;
-  max-width: 480px;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  max-width: 600px;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 /* ===================================
@@ -593,6 +601,14 @@ select:focus-visible {
 
 .animate-glow-pulse {
   animation: glowPulse 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }
 
 .delay-1 {
