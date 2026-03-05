@@ -1,12 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Quote { id: string; quote_text: string; submitted_by: string; approved: boolean; is_featured: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialQuotes: Quote[]; }
 
 export default function QuotesPanel({ initialQuotes }: Props) {
     const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
+    const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; action: () => void; title: string; message: string }>({ 
+        isOpen: false, 
+        action: () => {}, 
+        title: '', 
+        message: '' 
+    });
 
     const handlePatch = async (id: string, patch: Partial<Quote>) => {
         const res = await fetch('/api/quotes', {
@@ -21,6 +28,27 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 return q.id === id ? { ...q, ...updated } : q;
             }));
         }
+    };
+
+    const handleDelete = async (id: string) => {
+        const res = await fetch('/api/quotes', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+        });
+        if (res.ok) {
+            setQuotes(quotes.filter(q => q.id !== id));
+        }
+        setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' });
+    };
+
+    const confirmDelete = (id: string, quoteName: string) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Delete Quote',
+            message: `Are you sure you want to delete the quote by "${quoteName}"? This action cannot be undone.`,
+            action: () => handleDelete(id),
+        });
     };
 
     const pending = quotes.filter(q => !q.approved);
@@ -49,7 +77,10 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                         <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn-admin" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>⭐ Feature</button>
                     )}
                     {q.approved && (
-                        <button onClick={() => handlePatch(q.id, { approved: false, is_featured: false })} className="btn-danger" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>✗ Reject</button>
+                        <>
+                            <button onClick={() => handlePatch(q.id, { approved: false, is_featured: false })} className="btn-danger" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>✗ Reject</button>
+                            <button onClick={() => confirmDelete(q.id, q.submitted_by)} className="btn-danger" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>🗑️ Delete</button>
+                        </>
                     )}
                 </div>
             </div>
@@ -77,6 +108,16 @@ export default function QuotesPanel({ initialQuotes }: Props) {
             </div>
 
             <style>{`@media(max-width:768px){div[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important}}`}</style>
+            
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmText="Delete"
+                onConfirm={confirmDialog.action}
+                onCancel={() => setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' })}
+                variant="danger"
+            />
         </div>
     );
 }

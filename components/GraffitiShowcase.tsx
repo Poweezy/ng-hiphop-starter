@@ -44,9 +44,15 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
     }, [items.length]);
 
     useEffect(() => {
+        if (items.length <= 1) return;
         startCarousel();
-        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-    }, [startCarousel]);
+        return () => { 
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+    }, [items.length, startCarousel]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
@@ -185,10 +191,14 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
                                                 key={i}
                                                 onClick={() => {
                                                     setCurrentIndex(i);
-                                                    if (intervalRef.current) clearInterval(intervalRef.current);
+                                                    if (intervalRef.current) {
+                                                        clearInterval(intervalRef.current);
+                                                        intervalRef.current = null;
+                                                    }
                                                     startCarousel();
                                                 }}
                                                 aria-label={`Show graffiti ${i + 1}`}
+                                                aria-current={i === currentIndex ? 'true' : 'false'}
                                                 style={{
                                                     width: i === currentIndex ? '24px' : '8px',
                                                     height: '8px',

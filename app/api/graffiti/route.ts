@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, unlink } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { graffitiUpdateSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -21,11 +23,28 @@ function isRateLimited(ip: string): boolean {
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        const isAdmin = (session?.user as any)?.role === 'ADMIN';
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        const isAdmin = userRole === 'ADMIN';
 
         if (isAdmin) {
-            const all = await prisma.graffitiSubmission.findMany({ orderBy: { createdAt: 'desc' } });
-            return NextResponse.json(all);
+            const { searchParams } = new URL(req.url);
+            const page = parseInt(searchParams.get('page') || '1');
+            const limit = parseInt(searchParams.get('limit') || '20');
+            const skip = (page - 1) * limit;
+
+            const [items, total] = await Promise.all([
+                prisma.graffitiSubmission.findMany({ 
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take: limit,
+                }),
+                prisma.graffitiSubmission.count(),
+            ]);
+            
+            return NextResponse.json({ 
+                items, 
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) } 
+            });
         }
 
         const approved = await prisma.graffitiSubmission.findMany({
@@ -34,7 +53,8 @@ export async function GET(req: NextRequest) {
             take: 10,
         });
         return NextResponse.json(approved);
-    } catch {
+    } catch (error) {
+        console.error('Graffiti fetch error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
@@ -84,12 +104,23 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || (session.user as any)?.role !== 'ADMIN') {
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        
+        if (!session || userRole !== 'ADMIN') {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, approved, display_until } = await req.json();
-        if (!id) return NextResponse.json({ message: 'ID required' }, { status: 400 });
+        const body = await req.json();
+        const validation = graffitiUpdateSchema.safeParse(body);
+        
+        if (!validation.success) {
+            return NextResponse.json({ 
+                message: 'Invalid input', 
+                errors: validation.error.errors 
+            }, { status: 400 });
+        }
+
+        const { id, approved, display_until } = validation.data;
 
         const updated = await prisma.graffitiSubmission.update({
             where: { id },
@@ -100,7 +131,39 @@ export async function PATCH(req: NextRequest) {
         });
 
         return NextResponse.json(updated);
-    } catch {
+    } catch (error) {
+        console.error('Graffiti update error:', error);
+        return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        
+        if (!session || userRole !== 'ADMIN') {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await req.json();
+        const { id } = z.object({ id: z.string().cuid() }).parse(body);
+
+        const graffiti = await prisma.graffitiSubmission.findUnique({ where: { id } });
+        if (graffiti) {
+            // Delete file from filesystem
+            const filePath = path.join(process.cwd(), 'public', graffiti.image_url);
+            try {
+                await unlink(filePath);
+            } catch (err) {
+                console.error('File deletion error:', err);
+            }
+        }
+
+        await prisma.graffitiSubmission.delete({ where: { id } });
+        return NextResponse.json({ message: 'Graffiti deleted' });
+    } catch (error) {
+        console.error('Graffiti delete error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }

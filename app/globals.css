@@ -4,31 +4,38 @@
    CSS CUSTOM PROPERTIES – BRAND SYSTEM
    =================================== */
 :root {
-  /* Primary Brand Colors */
-  --color-purple: #6A0DAD;
-  --color-blue: #1E3A8A;
-  --color-green: #047857;
-  --color-black: #000000;
+  /* Primary Brand Colors - Modern Music Palette */
+  --color-purple: #8B5CF6;
+  --color-blue: #3B82F6;
+  --color-green: #10B981;
+  --color-black: #0A0A0F;
+  --color-dark: #111827;
 
   /* Secondary Colors */
   --color-white: #FFFFFF;
-  --color-yellow: #FACC15;
-  --color-grey-blue: #64748B;
+  --color-yellow: #FBBF24;
+  --color-grey-blue: #94A3B8;
+  --color-accent: #EC4899;
 
   /* Extended Palette */
-  --color-purple-light: #8B1FC8;
-  --color-purple-dark: #4A0880;
-  --color-green-light: #059669;
-  --color-green-glow: rgba(4, 120, 87, 0.4);
-  --color-blue-dark: #0F1F5C;
-  --color-bg-card: rgba(15, 15, 25, 0.85);
-  --color-bg-glass: rgba(255, 255, 255, 0.05);
+  --color-purple-light: #A78BFA;
+  --color-purple-dark: #6D28D9;
+  --color-green-light: #34D399;
+  --color-green-glow: rgba(16, 185, 129, 0.4);
+  --color-blue-dark: #1E40AF;
+  --color-bg-card: rgba(17, 24, 39, 0.8);
+  --color-bg-glass: rgba(255, 255, 255, 0.08);
+  --color-overlay: rgba(10, 10, 15, 0.85);
 
-  /* Gradients */
-  --gradient-hero: linear-gradient(135deg, var(--color-purple) 0%, #2D1B69 40%, var(--color-blue) 100%);
-  --gradient-card: linear-gradient(145deg, rgba(106, 13, 173, 0.3) 0%, rgba(30, 58, 138, 0.3) 100%);
-  --gradient-green: linear-gradient(135deg, var(--color-green) 0%, var(--color-green-light) 100%);
-  --gradient-dark: linear-gradient(180deg, #0a0a14 0%, #000000 100%);
+  /* Gradients - Modern & Vibrant */
+  --gradient-hero: linear-gradient(135deg, #0A0A0F 0%, #1E1B4B 50%, #312E81 100%);
+  --gradient-card: linear-gradient(145deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+  --gradient-green: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  --gradient-dark: linear-gradient(180deg, #0A0A0F 0%, #111827 100%);
+  --gradient-accent: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  --gradient-mesh: radial-gradient(at 40% 20%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
+                   radial-gradient(at 80% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
+                   radial-gradient(at 0% 50%, rgba(16, 185, 129, 0.2) 0px, transparent 50%);
 
   /* Typography */
   --font-display: 'Bebas Neue', 'Impact', sans-serif;
@@ -45,11 +52,17 @@
   --transition-med: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Shadows */
-  --shadow-glow-green: 0 0 20px rgba(4, 120, 87, 0.6), 0 0 40px rgba(4, 120, 87, 0.3);
-  --shadow-glow-purple: 0 0 20px rgba(106, 13, 173, 0.6), 0 0 40px rgba(106, 13, 173, 0.3);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-deep: 0 20px 60px rgba(0, 0, 0, 0.8);
+  /* Shadows - Modern Depth */
+  --shadow-glow-green: 0 0 30px rgba(16, 185, 129, 0.5), 0 0 60px rgba(16, 185, 129, 0.2);
+  --shadow-glow-purple: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.2);
+  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-deep: 0 25px 80px rgba(0, 0, 0, 0.8);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+
+  /* Blur Effects */
+  --blur-sm: blur(8px);
+  --blur-md: blur(16px);
+  --blur-lg: blur(24px);
 }
 
 /* ===================================
@@ -71,6 +84,8 @@ html {
 body {
   font-family: var(--font-body);
   background: var(--color-black);
+  background-image: var(--gradient-mesh);
+  background-attachment: fixed;
   color: var(--color-white);
   line-height: 1.6;
   overflow-x: hidden;
@@ -86,6 +101,23 @@ img {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* ===================================
+   FOCUS STYLES FOR ACCESSIBILITY
+   =================================== */
+*:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 2px;
 }
 
 /* ===================================
@@ -132,6 +164,7 @@ a {
   align-items: center;
   gap: 10px;
   padding: 14px 32px;
+  min-height: 44px;
   font-family: var(--font-condensed);
   font-weight: 700;
   font-size: 1rem;
@@ -161,12 +194,27 @@ a {
 .btn-primary {
   background: var(--gradient-green);
   color: var(--color-white);
-  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.3);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.btn-primary:hover::after {
+  transform: translateX(100%);
 }
 
 .btn-primary:hover {
   box-shadow: var(--shadow-glow-green);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.05);
 }
 
 .btn-secondary {
@@ -265,21 +313,38 @@ a {
 }
 
 /* ===================================
-   CARD SYSTEM
+   CARD SYSTEM - Modern Glassmorphism
    =================================== */
 .card {
-  background: var(--color-bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   padding: 24px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-glass);
+  transition: all var(--transition-med);
+}
+
+.card:hover {
+  background: rgba(17, 24, 39, 0.7);
+  border-color: rgba(139, 92, 246, 0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-deep);
 }
 
 .card-glass {
-  background: var(--color-bg-glass);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  transition: all var(--transition-med);
+}
+
+.card-glass:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px) scale(1.02);
 }
 
 /* ===================================
@@ -646,18 +711,35 @@ a {
   gap: 16px;
 }
 
+@media (max-width: 1280px) {
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 1024px) {
+  .grid-3,
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-
   .grid-2,
   .grid-3,
   .grid-4 {
     grid-template-columns: 1fr;
+  }
+  
+  /* Improve touch targets on mobile */
+  .btn {
+    min-height: 48px;
+    padding: 16px 28px;
+  }
+  
+  /* Better spacing on mobile */
+  .section {
+    padding: clamp(40px, 8vw, 80px) 0;
   }
 }
 
@@ -687,5 +769,32 @@ img[loading="lazy"] {
 
   100% {
     background-position: 200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(139, 92, 246, 0.8));
   }
 }

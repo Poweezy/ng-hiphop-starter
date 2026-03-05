@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, unlink } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { songUpdateSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 const ALLOWED_AUDIO = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4'];
 const ALLOWED_IMAGE = ['image/jpeg', 'image/png', 'image/webp'];
@@ -14,15 +16,34 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;  // 5MB
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        const isAdmin = (session?.user as any)?.role === 'ADMIN';
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        const isAdmin = userRole === 'ADMIN';
 
         if (isAdmin) {
-            const songs = await prisma.song.findMany({ orderBy: { createdAt: 'desc' } });
-            return NextResponse.json(songs);
+            const { searchParams } = new URL(req.url);
+            const page = parseInt(searchParams.get('page') || '1');
+            const limit = parseInt(searchParams.get('limit') || '10');
+            const skip = (page - 1) * limit;
+
+            const [songs, total] = await Promise.all([
+                prisma.song.findMany({ 
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take: limit,
+                }),
+                prisma.song.count(),
+            ]);
+            
+            return NextResponse.json({ 
+                songs, 
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) } 
+            });
         }
+        
         const song = await prisma.song.findFirst({ where: { is_active: true }, orderBy: { updatedAt: 'desc' } });
         return NextResponse.json(song);
-    } catch {
+    } catch (error) {
+        console.error('Song fetch error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
@@ -101,12 +122,23 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || (session.user as any)?.role !== 'ADMIN') {
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        
+        if (!session || userRole !== 'ADMIN') {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, is_active } = await req.json();
-        if (!id) return NextResponse.json({ message: 'ID required' }, { status: 400 });
+        const body = await req.json();
+        const validation = songUpdateSchema.safeParse(body);
+        
+        if (!validation.success) {
+            return NextResponse.json({ 
+                message: 'Invalid input', 
+                errors: validation.error.errors 
+            }, { status: 400 });
+        }
+
+        const { id, is_active } = validation.data;
 
         // Only one song active at a time
         if (is_active) {
@@ -115,7 +147,42 @@ export async function PATCH(req: NextRequest) {
 
         const updated = await prisma.song.update({ where: { id }, data: { is_active } });
         return NextResponse.json(updated);
-    } catch {
+    } catch (error) {
+        console.error('Song update error:', error);
+        return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        
+        if (!session || userRole !== 'ADMIN') {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await req.json();
+        const { id } = z.object({ id: z.string().cuid() }).parse(body);
+
+        const song = await prisma.song.findUnique({ where: { id } });
+        if (song) {
+            // Delete files from filesystem
+            const audioPath = path.join(process.cwd(), 'public', song.file_url);
+            const coverPath = path.join(process.cwd(), 'public', song.cover_url);
+            
+            try {
+                await unlink(audioPath);
+                await unlink(coverPath);
+            } catch (err) {
+                console.error('File deletion error:', err);
+            }
+        }
+
+        await prisma.song.delete({ where: { id } });
+        return NextResponse.json({ message: 'Song deleted' });
+    } catch (error) {
+        console.error('Song delete error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }

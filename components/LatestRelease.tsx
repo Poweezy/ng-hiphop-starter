@@ -3,20 +3,13 @@
 import Image from 'next/image';
 import { useState } from 'react';
 
-interface DistributionLinks {
-    spotify?: string;
-    apple?: string;
-    distro?: string;
-    publisher?: string;
-}
-
 interface Song {
     id: string;
     title: string;
     description?: string | null;
     file_url: string;
     cover_url: string;
-    distribution_links?: DistributionLinks | null;
+    distribution_links?: string | null;
     publisher_link?: string | null;
 }
 
@@ -40,11 +33,9 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
         );
     }
 
-    let links: DistributionLinks = {};
-    if (typeof song.distribution_links === 'string') {
+    let links: { spotify?: string; apple?: string; distro?: string; publisher?: string } = {};
+    if (typeof song.distribution_links === 'string' && song.distribution_links) {
         try { links = JSON.parse(song.distribution_links); } catch { }
-    } else if (song.distribution_links) {
-        links = song.distribution_links as DistributionLinks;
     }
 
     return (

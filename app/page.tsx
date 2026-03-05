@@ -5,7 +5,8 @@ import CommunityQuote from '@/components/CommunityQuote';
 import GraffitiShowcase from '@/components/GraffitiShowcase';
 import LyricGame from '@/components/LyricGame';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 60 seconds
+export const revalidate = 60;
 
 const DEFAULT_SLOGAN = 'Built From Bars. Raised By Beats.';
 
@@ -40,7 +41,7 @@ export default async function Home() {
   return (
     <>
       <Hero slogan={slogan} />
-      <LatestRelease song={activeSong as any} />
+      <LatestRelease song={activeSong} />
       <CommunityQuote featuredQuote={featuredQuote ? {
         id: featuredQuote.id,
         quote_text: featuredQuote.quote_text,
