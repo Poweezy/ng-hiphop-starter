@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface GraffitiItem {
     id: string;
@@ -23,18 +24,8 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
     const [honeypot, setHoneypot] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
-    const [visible, setVisible] = useState(false);
-    const sectionRef = useRef<HTMLElement>(null);
+    const { ref, isVisible } = useScrollReveal(0.15);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-            { threshold: 0.15 }
-        );
-        if (sectionRef.current) observer.observe(sectionRef.current);
-        return () => observer.disconnect();
-    }, []);
 
     const startCarousel = useCallback(() => {
         if (items.length <= 1) return;
@@ -102,7 +93,7 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
     return (
         <section
             id="graffiti"
-            ref={sectionRef}
+            ref={ref}
             className="section"
             style={{
                 background: 'linear-gradient(135deg, #0a0a14 50%, #1a0a2e 100%)',
@@ -140,13 +131,7 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
                     }}
                 >
                     {/* Carousel */}
-                    <div
-                        style={{
-                            opacity: visible ? 1 : 0,
-                            transform: visible ? 'translateY(0)' : 'translateY(30px)',
-                            transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1)',
-                        }}
-                    >
+                    <div className={`scroll-reveal ${isVisible ? 'visible' : ''}`}>
                         {items.length > 0 ? (
                             <div style={{ position: 'relative' }}>
                                 <div
@@ -235,13 +220,7 @@ export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
                     </div>
 
                     {/* Upload Form */}
-                    <div
-                        style={{
-                            opacity: visible ? 1 : 0,
-                            transform: visible ? 'translateX(0)' : 'translateX(40px)',
-                            transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s',
-                        }}
-                    >
+                    <div className={`scroll-reveal-right ${isVisible ? 'visible' : ''}`}>
                         <div
                             style={{
                                 background: 'rgba(255,255,255,0.03)',

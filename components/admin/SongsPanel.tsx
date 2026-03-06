@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import ConfirmDialog from '../ConfirmDialog';
 
 interface Song { id: string; title: string; description?: string; file_url: string; cover_url: string; is_active: boolean; distribution_links: any; publisher_link?: string; }
 interface Props { initialSongs: Song[]; }
@@ -51,6 +52,14 @@ export default function SongsPanel({ initialSongs }: Props) {
     const toggleActive = async (id: string, current: boolean) => {
         const res = await fetch('/api/songs', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !current }) });
         if (res.ok) setSongs(songs.map(s => ({ ...s, is_active: s.id === id ? !current : false })));
+    };
+
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        const res = await fetch('/api/songs', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteId }) });
+        if (res.ok) setSongs(songs.filter(s => s.id !== deleteId));
+        setDeleteId(null);
     };
 
     return (
@@ -112,12 +121,15 @@ export default function SongsPanel({ initialSongs }: Props) {
                                         <div style={{ fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
                                         {song.is_active && <span className="badge-approved" style={{ marginTop: '4px', display: 'inline-block' }}>ACTIVE</span>}
                                     </div>
-                                    <button
-                                        onClick={() => toggleActive(song.id, song.is_active)}
-                                        style={{ padding: '6px 14px', borderRadius: '3px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-condensed)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'all 0.2s ease', background: song.is_active ? 'rgba(220,38,38,0.2)' : 'rgba(4,120,87,0.2)', color: song.is_active ? '#F87171' : 'var(--color-green-light)' }}
-                                    >
-                                        {song.is_active ? 'Deactivate' : 'Set Active'}
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                        <button
+                                            onClick={() => toggleActive(song.id, song.is_active)}
+                                            style={{ padding: '6px 14px', borderRadius: '3px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-condensed)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'all 0.2s ease', background: song.is_active ? 'rgba(220,38,38,0.2)' : 'rgba(4,120,87,0.2)', color: song.is_active ? '#F87171' : 'var(--color-green-light)' }}
+                                        >
+                                            {song.is_active ? 'Deactivate' : 'Set Active'}
+                                        </button>
+                                        <button onClick={() => setDeleteId(song.id)} className="btn-danger" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>Delete</button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -125,6 +137,13 @@ export default function SongsPanel({ initialSongs }: Props) {
                 </div>
             </div>
 
+            <ConfirmDialog
+                isOpen={!!deleteId}
+                title="Delete Song?"
+                message="This will permanently delete the song and its files. This cannot be undone."
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteId(null)}
+            />
             <style>{`@media(max-width:768px){.songs-grid{grid-template-columns:1fr!important}}`}</style>
         </div>
     );

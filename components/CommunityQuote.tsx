@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface Quote {
     id: string;
@@ -18,17 +19,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     const [honeypot, setHoneypot] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
-    const [visible, setVisible] = useState(false);
-    const sectionRef = useRef<HTMLElement>(null);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-            { threshold: 0.2 }
-        );
-        if (sectionRef.current) observer.observe(sectionRef.current);
-        return () => observer.disconnect();
-    }, []);
+    const { ref, isVisible } = useScrollReveal(0.2);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,7 +52,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     return (
         <section
             id="community-quotes"
-            ref={sectionRef}
+            ref={ref}
             className="section"
             style={{ background: 'linear-gradient(180deg, #0f0f1e 0%, #0a0a14 100%)', overflow: 'hidden' }}
         >
@@ -75,13 +66,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     }}
                 >
                     {/* Featured Quote – Vinyl Card */}
-                    <div
-                        style={{
-                            opacity: visible ? 1 : 0,
-                            transform: visible ? 'translateX(0)' : 'translateX(-40px)',
-                            transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1)',
-                        }}
-                    >
+                    <div className={`scroll-reveal-left ${isVisible ? 'visible' : ''}`}>
                         <div className="section-badge">Community Voice</div>
                         <h2 className="section-title" style={{ marginBottom: '32px' }}>
                             The Culture<br />Speaks
@@ -195,13 +180,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     </div>
 
                     {/* Submission Form */}
-                    <div
-                        style={{
-                            opacity: visible ? 1 : 0,
-                            transform: visible ? 'translateX(0)' : 'translateX(40px)',
-                            transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s',
-                        }}
-                    >
+                    <div className={`scroll-reveal-right ${isVisible ? 'visible' : ''}`}>
                         <div
                             style={{
                                 background: 'rgba(255,255,255,0.03)',
