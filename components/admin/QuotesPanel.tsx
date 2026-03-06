@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import Toast from '@/components/Toast';
 
 interface Quote { id: string; quote_text: string; submitted_by: string; approved: boolean; is_featured: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialQuotes: Quote[]; }
 
 export default function QuotesPanel({ initialQuotes }: Props) {
     const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; action: () => void; title: string; message: string }>({ 
         isOpen: false, 
         action: () => {}, 
@@ -27,6 +29,9 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 if (patch.is_featured) return q.id === id ? { ...q, ...updated } : { ...q, is_featured: false };
                 return q.id === id ? { ...q, ...updated } : q;
             }));
+            if (patch.approved) setToast({ message: 'Quote approved!', type: 'success' });
+            else if (patch.is_featured) setToast({ message: 'Quote featured!', type: 'success' });
+            else setToast({ message: 'Quote updated', type: 'info' });
         }
     };
 
@@ -38,6 +43,9 @@ export default function QuotesPanel({ initialQuotes }: Props) {
         });
         if (res.ok) {
             setQuotes(quotes.filter(q => q.id !== id));
+            setToast({ message: 'Quote deleted', type: 'success' });
+        } else {
+            setToast({ message: 'Delete failed', type: 'error' });
         }
         setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' });
     };
@@ -118,6 +126,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 onCancel={() => setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' })}
                 variant="danger"
             />
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

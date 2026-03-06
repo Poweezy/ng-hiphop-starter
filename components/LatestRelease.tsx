@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import EmptyState from './EmptyState';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface Song {
     id: string;
@@ -20,6 +21,19 @@ interface LatestReleaseProps {
 
 export default function LatestRelease({ song }: LatestReleaseProps) {
     const [isPlaying, setIsPlaying] = useState(false);
+    const { ref, isVisible } = useScrollReveal(0.2);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isPlaying) {
+            interval = setInterval(() => {
+                setBars([Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2]);
+            }, 150);
+        }
+        return () => clearInterval(interval);
+    }, [isPlaying]);
 
     if (!song) {
         return (
@@ -70,6 +84,8 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 <div className="section-badge">Latest Drop</div>
 
                 <div
+                    ref={ref}
+                    className={`scroll-reveal ${isVisible ? 'visible' : ''}`}
                     style={{
                         display: 'grid',
                         gridTemplateColumns: 'clamp(200px, 35%, 360px) 1fr',
@@ -125,6 +141,33 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                     animation: 'glow 2s ease-in-out infinite',
                                 }}
                             />
+                        )}
+                        {/* Visualizer bars */}
+                        {isPlaying && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '16px',
+                                    right: '16px',
+                                    display: 'flex',
+                                    gap: '4px',
+                                    alignItems: 'flex-end',
+                                    height: '32px',
+                                }}
+                            >
+                                {bars.map((h, i) => (
+                                    <div
+                                        key={i}
+                                        style={{
+                                            width: '4px',
+                                            height: `${h * 100}%`,
+                                            background: 'linear-gradient(to top, #10B981, #34D399)',
+                                            borderRadius: '2px',
+                                            transition: 'height 0.15s ease',
+                                        }}
+                                    />
+                                ))}
+                            </div>
                         )}
                     </div>
 
@@ -189,6 +232,7 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                 }}
                             >
                                 <audio
+                                    ref={audioRef}
                                     controls
                                     src={song.file_url}
                                     preload="metadata"

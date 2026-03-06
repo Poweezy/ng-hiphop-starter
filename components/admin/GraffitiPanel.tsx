@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import ConfirmDialog from '../ConfirmDialog';
 
 interface Graffiti { id: string; image_url: string; artist_name: string; approved: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialGraffiti: Graffiti[]; }
 
 export default function GraffitiPanel({ initialGraffiti }: Props) {
     const [items, setItems] = useState<Graffiti[]>(initialGraffiti);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     const handlePatch = async (id: string, patch: Partial<Graffiti>) => {
         const res = await fetch('/api/graffiti', {
@@ -19,6 +21,13 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
             const updated = await res.json();
             setItems(items.map(g => g.id === id ? { ...g, ...updated } : g));
         }
+    };
+
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        const res = await fetch('/api/graffiti', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteId }) });
+        if (res.ok) setItems(items.filter(g => g.id !== deleteId));
+        setDeleteId(null);
     };
 
     const pending = items.filter(g => !g.approved);
@@ -47,6 +56,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn-admin" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>✓ Approve</button>}
                     {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>✗ Remove</button>}
+                    <button onClick={() => setDeleteId(g.id)} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>Delete</button>
                 </div>
             </div>
         </div>
@@ -76,6 +86,13 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                     </div>
                 )}
             </div>
+            <ConfirmDialog
+                isOpen={!!deleteId}
+                title="Delete Graffiti?"
+                message="This will permanently delete the graffiti image. This cannot be undone."
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteId(null)}
+            />
         </div>
     );
 }
