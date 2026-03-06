@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import EmptyState from './EmptyState';
 
 interface Song {
     id: string;
@@ -23,11 +24,13 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
     if (!song) {
         return (
             <section id="latest-release" className="section" style={{ background: 'var(--gradient-dark)' }}>
-                <div className="container" style={{ textAlign: 'center', padding: '80px 0' }}>
+                <div className="container">
                     <div className="section-badge">Latest Drop</div>
-                    <p style={{ color: 'var(--color-grey-blue)', marginTop: '16px' }}>
-                        New music coming soon. Stay tuned.
-                    </p>
+                    <EmptyState
+                        icon="🎵"
+                        title="No Music Yet"
+                        description="New music coming soon. Check back later for the latest releases."
+                    />
                 </div>
             </section>
         );
