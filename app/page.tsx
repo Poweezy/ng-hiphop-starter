@@ -52,12 +52,7 @@ export default async function Home() {
         image_url: g.image_url,
         artist_name: g.artist_name,
       }))} />
-      <LyricGame gameData={lyrics && lyrics.length > 0 ? {
-        id: lyrics[0].id,
-        lyric_snippet: lyrics[0].lyric_text,
-        correct_song: lyrics[0].correct_artist,
-        options: [lyrics[0].correct_artist, "Dr. Dre", "Snoop Dogg", "Ice Cube"].sort(() => Math.random() - 0.5)
-      } : null} />
+      <LyricGame lyrics={lyrics || []} />
     </>
   );
 }

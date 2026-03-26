@@ -1,20 +1,24 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface LyricGameProps {
-    gameData: {
-        id: string;
-        lyric_snippet: string;
-        correct_song: string;
-        options: string[];
-    } | null;
+    lyrics: any[];
 }
 
-export default function LyricGame({ gameData }: LyricGameProps) {
+export default function LyricGame({ lyrics }: LyricGameProps) {
+    const [gameLyrics, setGameLyrics] = useState<any[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [score, setScore] = useState(0);
+    const [streak, setStreak] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(10);
+    const [isPlaying, setIsPlaying] = useState(false);
+    
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+    const [options, setOptions] = useState<string[]>([]);
+    
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -22,15 +26,103 @@ export default function LyricGame({ gameData }: LyricGameProps) {
     const [newLyric, setNewLyric] = useState('');
     const [newSong, setNewSong] = useState('');
     const [newOptions, setNewOptions] = useState(['', '', '']);
+    
+    // Timer interval ref
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleOptionSelect = (option: string) => {
-        if (selectedOption) return;
-        setSelectedOption(option);
-        setIsCorrect(option === gameData?.correct_song);
+    // Initialize game
+    useEffect(() => {
+        if (lyrics && lyrics.length > 0) {
+            const shuffled = [...lyrics].sort(() => Math.random() - 0.5);
+            setGameLyrics(shuffled);
+            setupRound(shuffled, 0);
+        }
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [lyrics]);
+
+    const setupRound = (allLyrics: any[], index: number) => {
+        if (index >= allLyrics.length) {
+            setIsPlaying(false);
+            if (timerRef.current) clearInterval(timerRef.current);
+            return;
+        }
+        
+        const current = allLyrics[index];
+        const correctArtist = current.correct_artist;
+        
+        // Pick 3 random distractors from ALL other artists
+        const otherArtists = [...new Set(allLyrics.map(l => l.correct_artist).filter(a => a !== correctArtist))];
+        
+        // If not enough distinct artists, pad with some defaults
+        const defaults = ["Dr. Dre", "Snoop Dogg", "Ice Cube", "Tupac", "Nas", "Jay-Z", "Kendrick Lamar", "J. Cole", "Eminem", "Kanye West", "50 Cent", "Notorious B.I.G."];
+        while (otherArtists.length < 3) {
+            const r = defaults[Math.floor(Math.random() * defaults.length)];
+            if (!otherArtists.includes(r) && r !== correctArtist) otherArtists.push(r);
+        }
+        
+        // Shuffle distractors and pick 3
+        const distractors = otherArtists.sort(() => Math.random() - 0.5).slice(0, 3);
+        const roundOptions = [correctArtist, ...distractors].sort(() => Math.random() - 0.5);
+        
+        setOptions(roundOptions);
+        setSelectedOption(null);
+        setIsCorrect(null);
+        setTimeLeft(10);
+        setIsPlaying(true);
+        
+        // Start timer
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current!);
+                    handleTimeout(correctArtist);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
     };
 
-    const handleNewGameRequest = () => {
-        window.location.reload(); // Simple approach for now
+    const handleTimeout = (correctArtist: string) => {
+        setSelectedOption("TIMEOUT");
+        setIsCorrect(false);
+        setStreak(0);
+    };
+
+    const handleOptionSelect = (option: string) => {
+        if (selectedOption || !isPlaying) return;
+        if (timerRef.current) clearInterval(timerRef.current);
+        
+        const current = gameLyrics[currentIndex];
+        const correct = option === current.correct_artist;
+        
+        setSelectedOption(option);
+        setIsCorrect(correct);
+        
+        if (correct) {
+            setScore(prev => prev + 10 + timeLeft); // bonus for speed
+            setStreak(prev => prev + 1);
+        } else {
+            setStreak(0);
+        }
+    };
+
+    const handleNext = () => {
+        const nextIdx = currentIndex + 1;
+        setCurrentIndex(nextIdx);
+        setupRound(gameLyrics, nextIdx);
+    };
+    
+    const handleRestart = () => {
+        const shuffled = [...lyrics].sort(() => Math.random() - 0.5);
+        setGameLyrics(shuffled);
+        setCurrentIndex(0);
+        setScore(0);
+        setStreak(0);
+        setupRound(shuffled, 0);
     };
 
     const handleFormSubmit = async (e: React.FormEvent) => {
@@ -41,9 +133,9 @@ export default function LyricGame({ gameData }: LyricGameProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    lyric_snippet: newLyric,
-                    correct_song: newSong,
-                    options: [...newOptions, newSong].sort(() => Math.random() - 0.5)
+                    lyric_text: newLyric,
+                    correct_artist: newSong,
+                    is_active: false
                 }),
             });
             if (res.ok) {
@@ -59,6 +151,8 @@ export default function LyricGame({ gameData }: LyricGameProps) {
         }
     };
 
+    const currentLyric = isPlaying || currentIndex < gameLyrics.length ? gameLyrics[currentIndex] : null;
+
     return (
         <section id="lyric-game" className="section game-section">
             <div className="container">
@@ -66,62 +160,119 @@ export default function LyricGame({ gameData }: LyricGameProps) {
                     <div className="section-header">
                         <div className="section-badge">Interactive</div>
                         <h2 className="section-title">Lyric Master</h2>
-                        <p className="section-subtitle">Guess the song from the snippet. Test your NG knowledge.</p>
+                        <p className="section-subtitle">Test your NG knowledge. Beat the clock.</p>
                     </div>
 
                     <div className="game-card-wrapper">
-                        {gameData ? (
+                        {gameLyrics.length > 0 ? (
                             <motion.div 
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="game-card"
                             >
-                                <div className="lyric-box">
-                                    <span className="box-label">The Lyric</span>
-                                    <p className="lyric-text">“{gameData.lyric_snippet}”</p>
+                                {/* Game HUD */}
+                                <div className="game-hud">
+                                    <div className="hud-stat">
+                                        <span className="hud-label">Score</span>
+                                        <span className="hud-value">{score}</span>
+                                    </div>
+                                    <div className="hud-stat">
+                                        <span className="hud-label">Streak</span>
+                                        <span className="hud-value streak-value">🔥 {streak}</span>
+                                    </div>
                                 </div>
 
-                                <div className="options-grid">
-                                    {gameData.options.map((option, idx) => (
-                                        <motion.button
-                                            key={idx}
-                                            whileHover={!selectedOption ? { scale: 1.02, backgroundColor: "rgba(255,255,255,0.05)" } : {}}
-                                            whileTap={!selectedOption ? { scale: 0.98 } : {}}
-                                            onClick={() => handleOptionSelect(option)}
-                                            className={`option-btn ${selectedOption === option ? (isCorrect ? 'correct' : 'wrong') : ''} ${selectedOption && option === gameData.correct_song ? 'reveal-correct' : ''}`}
-                                            disabled={!!selectedOption}
-                                        >
-                                            <span className="option-letter">{String.fromCharCode(65 + idx)}</span>
-                                            <span className="option-label">{option}</span>
-                                            {selectedOption === option && (
-                                                <span className="feedback-icon">{isCorrect ? '✓' : '✕'}</span>
-                                            )}
-                                        </motion.button>
-                                    ))}
-                                </div>
-
-                                <AnimatePresence mode="wait">
-                                    {selectedOption && (
+                                {/* Timer Bar */}
+                                {isPlaying && !selectedOption && (
+                                    <div className="timer-container">
                                         <motion.div 
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            className="game-footer"
-                                        >
-                                            <div className="result-text">
-                                                {isCorrect ? 'Perfect! You know the culture.' : `Not quite. The right answer was "${gameData.correct_song}".`}
-                                            </div>
-                                            <div className="footer-actions">
-                                                <button onClick={handleNewGameRequest} className="btn btn-primary">Try Another</button>
-                                                <button onClick={() => setShowSubmitModal(true)} className="btn btn-secondary">Submit a Lyric</button>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                            className="timer-bar"
+                                            animate={{ width: `${(timeLeft / 10) * 100}%`, backgroundColor: timeLeft <= 3 ? '#ef4444' : '#10b981' }}
+                                            transition={{ duration: 1, ease: "linear" }}
+                                        />
+                                    </div>
+                                )}
+
+                                {currentLyric ? (
+                                    <>
+                                        <div className="lyric-box">
+                                            <span className="box-label">Round {currentIndex + 1}</span>
+                                            <p className="lyric-text">“{currentLyric.lyric_text}”</p>
+                                        </div>
+
+                                        <div className="options-grid">
+                                            {options.map((option, idx) => {
+                                                const isThisSelected = selectedOption === option;
+                                                const correctArtist = currentLyric.correct_artist;
+                                                const isThisCorrect = option === correctArtist;
+                                                
+                                                let btnClass = '';
+                                                if (selectedOption) {
+                                                    if (isThisSelected) {
+                                                        btnClass = isCorrect ? 'correct' : 'wrong';
+                                                    } else if (isThisCorrect) {
+                                                        btnClass = 'reveal-correct';
+                                                    }
+                                                }
+
+                                                return (
+                                                    <motion.button
+                                                        key={idx}
+                                                        whileHover={!selectedOption ? { scale: 1.02, backgroundColor: "rgba(255,255,255,0.05)" } : {}}
+                                                        whileTap={!selectedOption ? { scale: 0.98 } : {}}
+                                                        onClick={() => handleOptionSelect(option)}
+                                                        className={`option-btn ${btnClass}`}
+                                                        disabled={!!selectedOption}
+                                                    >
+                                                        <span className="option-letter">{String.fromCharCode(65 + idx)}</span>
+                                                        <span className="option-label">{option}</span>
+                                                        {selectedOption && (isThisSelected || isThisCorrect) && (
+                                                            <span className="feedback-icon">{isThisCorrect ? '✓' : '✕'}</span>
+                                                        )}
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <AnimatePresence mode="wait">
+                                            {selectedOption && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="game-footer"
+                                                >
+                                                    <div className="result-text">
+                                                        {selectedOption === "TIMEOUT" 
+                                                            ? `Time's up! The artist was ${currentLyric.correct_artist}.`
+                                                            : isCorrect 
+                                                                ? 'Perfect! You know the culture.' 
+                                                                : `Not quite. The right answer was ${currentLyric.correct_artist}.`}
+                                                    </div>
+                                                    <div className="footer-actions">
+                                                        <button onClick={handleNext} className="btn btn-primary">
+                                                            Next Round →
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </>
+                                ) : (
+                                    <div className="game-over">
+                                        <h3>Game Over</h3>
+                                        <p>Final Score: <strong>{score}</strong></p>
+                                        <p>Max Streak: <strong>🔥 {streak}</strong></p>
+                                        <div className="footer-actions" style={{ marginTop: '24px' }}>
+                                            <button onClick={handleRestart} className="btn btn-primary">Play Again</button>
+                                            <button onClick={() => setShowSubmitModal(true)} className="btn btn-secondary">Submit a Lyric</button>
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         ) : (
                             <div className="game-loading">
-                                <p>Preparing the next challenge...</p>
+                                <p>Loading the challenge...</p>
                             </div>
                         )}
                     </div>
@@ -156,32 +307,14 @@ export default function LyricGame({ gameData }: LyricGameProps) {
                                     />
                                 </div>
                                 <div className="input-group">
-                                    <label>Correct Song Title</label>
+                                    <label>Correct Artist</label>
                                     <input
                                         type="text"
                                         value={newSong}
                                         onChange={(e) => setNewSong(e.target.value)}
-                                        placeholder="The actual title"
+                                        placeholder="The actual artist"
                                         required
                                     />
-                                </div>
-                                <div className="input-group">
-                                    <label>Distractor Options (Wrong Answers)</label>
-                                    {newOptions.map((opt, i) => (
-                                        <input
-                                            key={i}
-                                            type="text"
-                                            value={opt}
-                                            onChange={(e) => {
-                                                const up = [...newOptions];
-                                                up[i] = e.target.value;
-                                                setNewOptions(up);
-                                            }}
-                                            placeholder={`Wrong answer #${i+1}`}
-                                            required
-                                            style={{ marginBottom: '8px' }}
-                                        />
-                                    ))}
                                 </div>
                                 <div className="form-actions">
                                     <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
@@ -213,6 +346,50 @@ export default function LyricGame({ gameData }: LyricGameProps) {
                     border-radius: 40px;
                     padding: 60px;
                     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+                }
+
+                .game-hud {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 24px;
+                    padding-bottom: 24px;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                }
+
+                .hud-stat {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+
+                .hud-label {
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: var(--color-grey-blue);
+                    font-family: var(--font-condensed);
+                }
+
+                .hud-value {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: white;
+                }
+
+                .streak-value {
+                    color: #F59E0B;
+                }
+
+                .timer-container {
+                    height: 4px;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 4px;
+                    margin-bottom: 32px;
+                    overflow: hidden;
+                }
+
+                .timer-bar {
+                    height: 100%;
                 }
 
                 .lyric-box {
@@ -332,6 +509,34 @@ export default function LyricGame({ gameData }: LyricGameProps) {
                     display: flex;
                     justify-content: center;
                     gap: 20px;
+                }
+
+                .game-over {
+                    text-align: center;
+                    padding: 40px 0;
+                }
+
+                .game-over h3 {
+                    font-family: var(--font-display);
+                    font-size: 2.5rem;
+                    margin-bottom: 20px;
+                    color: white;
+                }
+
+                .game-over p {
+                    font-size: 1.2rem;
+                    color: var(--color-grey-blue);
+                    margin-bottom: 8px;
+                }
+
+                .game-over strong {
+                    color: white;
+                }
+
+                .game-loading {
+                    text-align: center;
+                    padding: 60px 0;
+                    color: var(--color-grey-blue);
                 }
 
                 /* Modal */
