@@ -100,7 +100,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>QUOTE MODERATION</h2>
             <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>Approve fan-submitted quotes and feature one on the homepage.</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+            <div className="panel-grid">
                 <div>
                     <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-yellow)', marginBottom: '16px' }}>
                         Pending Approval ({pending.length})
@@ -115,7 +115,10 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 </div>
             </div>
 
-            <style>{`@media(max-width:768px){div[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important}}`}</style>
+            <style jsx>{`
+                .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+                @media (max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
+            `}</style>
             
             <ConfirmDialog
                 isOpen={confirmDialog.isOpen}
