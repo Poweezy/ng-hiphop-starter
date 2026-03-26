@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navigation from '@/components/Navigation';
+import LayoutWrapper from '@/components/LayoutWrapper';
 
 export const metadata: Metadata = {
     title: {
@@ -62,14 +62,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
-                <Navigation />
-                <main>{children}</main>
-
-                {/* Permanent Legal Disclaimer – Sticky Footer */}
-                <footer className="disclaimer-footer" role="contentinfo" aria-label="Legal disclaimer">
-                    ⚖️ All content published on this platform is licensed, owned, and legally distributed.
-                    Unauthorized use is prohibited.
-                </footer>
+                <LayoutWrapper>{children}</LayoutWrapper>
             </body>
         </html>
     );
