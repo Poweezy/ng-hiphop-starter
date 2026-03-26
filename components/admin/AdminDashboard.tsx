@@ -273,6 +273,19 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                 }
 
                 @media (max-width: 768px) {
+                    .admin-header {
+                        padding: 16px;
+                        flex-direction: column;
+                        align-items: stretch;
+                        gap: 16px;
+                    }
+                    .header-left {
+                        justify-content: center;
+                    }
+                    .header-right {
+                        justify-content: center;
+                        gap: 12px;
+                    }
                     .admin-sidebar {
                         width: 80px;
                         padding: 24px 8px;
@@ -284,6 +297,9 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     }
                     .nav-icon {
                         margin: 0;
+                    }
+                    .admin-main {
+                        padding: 24px 16px;
                     }
                 }
             `}</style>
