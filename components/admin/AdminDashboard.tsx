@@ -5,13 +5,14 @@ import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Panels
+import OverviewPanel from './OverviewPanel';
 import SloganPanel from './SloganPanel';
 import SongsPanel from './SongsPanel';
 import QuotesPanel from './QuotesPanel';
 import GraffitiPanel from './GraffitiPanel';
 import LyricsPanel from './LyricsPanel';
 
-type Tab = 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics';
+export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics';
 
 interface Props {
     initialSlogan: string;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'slogan', label: 'Slogan', icon: '✏️' },
     { id: 'songs', label: 'Songs', icon: '🎵' },
     { id: 'quotes', label: 'Quotes', icon: '💬' },
@@ -30,7 +32,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics }: Props) {
-    const [activeTab, setActiveTab] = useState<Tab>('slogan');
+    const [activeTab, setActiveTab] = useState<Tab>('overview');
 
     return (
         <div className="admin-wrapper">
@@ -90,7 +92,17 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
+                            style={{ flex: 1 }}
                         >
+                            {activeTab === 'overview' && (
+                                <OverviewPanel 
+                                    songs={initialSongs} 
+                                    quotes={initialQuotes} 
+                                    graffiti={initialGraffiti} 
+                                    lyrics={initialLyrics} 
+                                    onNavigate={setActiveTab} 
+                                />
+                            )}
                             {activeTab === 'slogan' && <SloganPanel initialSlogan={initialSlogan} />}
                             {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
                             {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
