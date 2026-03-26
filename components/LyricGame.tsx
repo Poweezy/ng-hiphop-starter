@@ -294,32 +294,38 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                             exit={{ scale: 0.9, opacity: 0 }}
                             className="modal-content"
                         >
-                            <h3 className="modal-title">Challenge the Community</h3>
+                            <div className="modal-header">
+                                <span className="modal-icon">🎤</span>
+                                <h3 className="modal-title">Challenge the Community</h3>
+                                <p className="modal-subtitle">Think you know the culture better than anyone else? Drop a bar and test the streets.</p>
+                            </div>
                             <form onSubmit={handleFormSubmit} className="submit-form">
                                 <div className="input-group">
-                                    <label>Lyric Snippet</label>
+                                    <label>The Bar (Lyric Snippet)</label>
                                     <textarea
                                         value={newLyric}
                                         onChange={(e) => setNewLyric(e.target.value)}
-                                        placeholder="Enter the lyric lines..."
+                                        placeholder="“Real Gs move in silence...”"
                                         required
                                         rows={3}
+                                        className="premium-input"
                                     />
                                 </div>
                                 <div className="input-group">
-                                    <label>Correct Artist</label>
+                                    <label>The Artist (Correct Answer)</label>
                                     <input
                                         type="text"
                                         value={newSong}
                                         onChange={(e) => setNewSong(e.target.value)}
-                                        placeholder="The actual artist"
+                                        placeholder="e.g. Lil Wayne"
                                         required
+                                        className="premium-input"
                                     />
                                 </div>
                                 <div className="form-actions">
                                     <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
-                                    <button type="submit" disabled={submitting} className="btn btn-primary">
-                                        {submitting ? 'Sharing...' : 'Submit Challenge'}
+                                    <button type="submit" disabled={submitting} className="btn-premium">
+                                        {submitting ? 'Dropping logic...' : 'Submit Challenge'}
                                     </button>
                                 </div>
                             </form>
@@ -539,12 +545,12 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     color: var(--color-grey-blue);
                 }
 
-                /* Modal */
+                /* Modal Refinements */
                 .modal-overlay {
                     position: fixed;
                     inset: 0;
-                    background: rgba(0, 0, 0, 0.9);
-                    backdrop-filter: blur(10px);
+                    background: rgba(0, 0, 0, 0.85);
+                    backdrop-filter: blur(12px);
                     z-index: 2000;
                     display: flex;
                     align-items: center;
@@ -553,25 +559,50 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 .modal-content {
-                    background: #11111a;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: radial-gradient(circle at top, rgba(139, 92, 246, 0.15), transparent 70%), #050508;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
                     border-radius: 32px;
-                    padding: 40px;
+                    padding: 48px 40px;
                     width: 100%;
-                    max-width: 520px;
+                    max-width: 480px;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.02);
+                }
+
+                .modal-header {
+                    text-align: center;
+                    margin-bottom: 32px;
+                }
+
+                .modal-icon {
+                    font-size: 2.5rem;
+                    display: inline-block;
+                    margin-bottom: 16px;
+                    background: rgba(255, 255, 255, 0.03);
+                    padding: 16px;
+                    border-radius: 50%;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
                 }
 
                 .modal-title {
                     font-family: var(--font-display);
                     font-size: 1.8rem;
-                    margin-bottom: 32px;
-                    text-align: center;
+                    margin-bottom: 8px;
+                    color: white;
+                    background: linear-gradient(135deg, #fff 0%, #a855f7 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .modal-subtitle {
+                    font-size: 0.95rem;
+                    color: var(--color-grey-blue);
+                    line-height: 1.5;
                 }
 
                 .submit-form {
                     display: flex;
                     flex-direction: column;
-                    gap: 20px;
+                    gap: 24px;
                 }
 
                 .input-group label {
@@ -580,33 +611,84 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.1em;
-                    color: var(--color-grey-blue);
-                    margin-bottom: 8px;
+                    color: var(--color-purple-light);
+                    margin-bottom: 10px;
                 }
 
-                .submit-form input, .submit-form textarea {
+                .premium-input {
                     width: 100%;
-                    background: rgba(255, 255, 255, 0.05);
+                    background: rgba(0, 0, 0, 0.3);
                     border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 12px;
-                    padding: 12px 16px;
+                    padding: 14px 16px;
                     color: white;
                     outline: none;
+                    font-size: 1rem;
+                    transition: all 0.3s ease;
+                    font-family: inherit;
+                }
+
+                .premium-input:focus {
+                    border-color: var(--color-purple);
+                    background: rgba(139, 92, 246, 0.05);
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+                }
+
+                .premium-input::placeholder {
+                    color: rgba(255, 255, 255, 0.2);
+                    font-style: italic;
                 }
 
                 .form-actions {
                     display: flex;
                     justify-content: flex-end;
                     align-items: center;
-                    gap: 20px;
-                    margin-top: 10px;
+                    gap: 16px;
+                    margin-top: 16px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
+                    padding-top: 24px;
+                }
+
+                .btn-premium {
+                    background: linear-gradient(135deg, var(--color-purple), #6366f1);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 12px;
+                    font-family: var(--font-condensed);
+                    font-weight: 700;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+                }
+
+                .btn-premium:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+                }
+
+                .btn-premium:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
                 }
 
                 .btn-text {
                     background: none;
                     border: none;
-                    color: rgba(255, 255, 255, 0.5);
+                    color: var(--color-grey-blue);
+                    font-family: var(--font-condensed);
+                    font-weight: 600;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
                     cursor: pointer;
+                    padding: 10px 16px;
+                    transition: color 0.2s ease;
+                }
+
+                .btn-text:hover {
+                    color: white;
                 }
             `}</style>
         </section>
