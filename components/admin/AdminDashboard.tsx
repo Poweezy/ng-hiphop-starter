@@ -1,7 +1,6 @@
-'use client';
-
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Panels
 import SloganPanel from './SloganPanel';
@@ -32,149 +31,248 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
     const [activeTab, setActiveTab] = useState<Tab>('slogan');
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                background: 'var(--color-black)',
-                display: 'flex',
-                flexDirection: 'column',
-                fontFamily: 'var(--font-body)',
-            }}
-        >
+        <div className="admin-wrapper">
             {/* Top Bar */}
-            <header
-                style={{
-                    background: 'rgba(0,0,0,0.9)',
-                    borderBottom: '1px solid rgba(4,120,87,0.3)',
-                    padding: '16px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 100,
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span
-                        style={{
-                            fontFamily: 'var(--font-cursive)',
-                            fontSize: '1.8rem',
-                            background: 'linear-gradient(135deg,#a855f7,#3b82f6)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                        }}
-                    >
-                        NG
-                    </span>
-                    <div>
-                        <div
-                            style={{
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '1rem',
-                                letterSpacing: '0.15em',
-                                color: 'var(--color-white)',
-                            }}
-                        >
-                            ADMIN DASHBOARD
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--color-grey-blue)', letterSpacing: '0.06em' }}>
-                            Content Management Portal
-                        </div>
+            <header className="admin-header">
+                <div className="header-left">
+                    <span className="logo">NG</span>
+                    <div className="header-text">
+                        <div className="title">ADMIN DASHBOARD</div>
+                        <div className="subtitle">Content Management Portal</div>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <a
-                        href="/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                            fontFamily: 'var(--font-condensed)',
-                            fontSize: '0.8rem',
-                            letterSpacing: '0.08em',
-                            textTransform: 'uppercase',
-                            color: 'var(--color-grey-blue)',
-                            padding: '8px 16px',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '4px',
-                            transition: 'all 0.2s ease',
-                        }}
-                        onMouseOver={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)')}
-                        onMouseOut={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                    >
+                <div className="header-right">
+                    <a href="/" target="_blank" rel="noopener noreferrer" className="btn-outline">
                         View Site ↗
                     </a>
                     <button
                         onClick={() => signOut({ callbackUrl: '/admin/login' })}
                         className="btn-danger"
-                        style={{ fontSize: '0.8rem' }}
                     >
                         Sign Out
                     </button>
                 </div>
             </header>
 
-            <div style={{ display: 'flex', flex: 1 }}>
+            <div className="admin-layout">
                 {/* Sidebar Nav */}
-                <nav
-                    style={{
-                        width: '220px',
-                        background: 'rgba(0,0,0,0.5)',
-                        borderRight: '1px solid rgba(255,255,255,0.06)',
-                        padding: '24px 12px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                        flexShrink: 0,
-                    }}
-                >
+                <nav className="admin-sidebar">
                     {TABS.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                fontFamily: 'var(--font-condensed)',
-                                fontWeight: 600,
-                                fontSize: '0.9rem',
-                                letterSpacing: '0.06em',
-                                textTransform: 'uppercase',
-                                transition: 'all 0.2s ease',
-                                background: activeTab === tab.id ? 'rgba(4,120,87,0.15)' : 'transparent',
-                                color: activeTab === tab.id ? 'var(--color-green-light)' : 'rgba(255,255,255,0.5)',
-                                borderLeft: activeTab === tab.id ? '3px solid var(--color-green)' : '3px solid transparent',
-                            }}
-                            onMouseOver={(e) => {
-                                if (activeTab !== tab.id) (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.8)';
-                            }}
-                            onMouseOut={(e) => {
-                                if (activeTab !== tab.id) (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)';
-                            }}
+                            className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
                         >
-                            <span style={{ fontSize: '1rem' }}>{tab.icon}</span>
+                            <motion.span 
+                                initial={false}
+                                animate={activeTab === tab.id ? { scale: 1.2 } : { scale: 1 }}
+                                className="nav-icon"
+                            >
+                                {tab.icon}
+                            </motion.span>
                             {tab.label}
+                            {activeTab === tab.id && (
+                                <motion.div layoutId="sidebar-active" className="active-indicator" />
+                            )}
                         </button>
                     ))}
                 </nav>
 
                 {/* Main Content Area */}
-                <main style={{ flex: 1, padding: 'clamp(20px, 3vw, 40px)', overflowY: 'auto' }}>
-                    {activeTab === 'slogan' && <SloganPanel initialSlogan={initialSlogan} />}
-                    {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
-                    {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
-                    {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
-                    {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
+                <main className="admin-main">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {activeTab === 'slogan' && <SloganPanel initialSlogan={initialSlogan} />}
+                            {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
+                            {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
+                            {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
+                            {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
             </div>
+
+            <style jsx>{`
+                .admin-wrapper {
+                    min-height: 100vh;
+                    background: #050508;
+                    display: flex;
+                    flex-direction: column;
+                    font-family: 'Inter', sans-serif;
+                }
+
+                .admin-header {
+                    background: rgba(0, 0, 0, 0.95);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    padding: 16px 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    position: sticky;
+                    top: 0;
+                    z-index: 100;
+                    backdrop-filter: blur(10px);
+                }
+
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+
+                .logo {
+                    font-family: var(--font-cursive);
+                    font-size: 2rem;
+                    background: linear-gradient(135deg, #a855f7, #3b82f6);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill_color: transparent;
+                    background-clip: text;
+                }
+
+                .title {
+                    font-family: var(--font-condensed);
+                    font-size: 1rem;
+                    font-weight: 700;
+                    letter-spacing: 0.15em;
+                    color: white;
+                }
+
+                .subtitle {
+                    font-size: 0.75rem;
+                    color: var(--color-grey-blue);
+                    letter-spacing: 0.05em;
+                    margin-top: 2px;
+                }
+
+                .header-right {
+                    display: flex;
+                    gap: 16px;
+                    align-items: center;
+                }
+
+                .btn-outline {
+                    font-family: var(--font-condensed);
+                    font-size: 0.8rem;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: var(--color-grey-blue);
+                    padding: 8px 20px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                    text-decoration: none;
+                }
+
+                .btn-outline:hover {
+                    border-color: rgba(255, 255, 255, 0.3);
+                    color: white;
+                }
+
+                .admin-layout {
+                    display: flex;
+                    flex: 1;
+                }
+
+                .admin-sidebar {
+                    width: 240px;
+                    background: rgba(0, 0, 0, 0.3);
+                    border-right: 1px solid rgba(255, 255, 255, 0.05);
+                    padding: 32px 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    flex-shrink: 0;
+                }
+
+                .nav-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    padding: 14px 20px;
+                    border-radius: 12px;
+                    border: none;
+                    cursor: pointer;
+                    background: transparent;
+                    color: rgba(255, 255, 255, 0.5);
+                    font-family: var(--font-condensed);
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    transition: all 0.2s ease;
+                    position: relative;
+                }
+
+                .nav-item:hover {
+                    color: white;
+                    background: rgba(255, 255, 255, 0.03);
+                }
+
+                .nav-item.active {
+                    color: var(--color-purple-light);
+                    background: rgba(139, 92, 246, 0.08);
+                }
+
+                .nav-icon {
+                    font-size: 1.2rem;
+                }
+
+                .active-indicator {
+                    position: absolute;
+                    left: 0;
+                    top: 25%;
+                    bottom: 25%;
+                    width: 3px;
+                    background: var(--color-purple);
+                    border-radius: 0 4px 4px 0;
+                }
+
+                .admin-main {
+                    flex: 1;
+                    padding: 40px;
+                    overflow-y: auto;
+                    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.03), transparent 40%);
+                }
+
+                .btn-danger {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                    padding: 8px 20px;
+                    border-radius: 8px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .btn-danger:hover {
+                    background: #ef4444;
+                    color: white;
+                }
+
+                @media (max-width: 768px) {
+                    .admin-sidebar {
+                        width: 80px;
+                        padding: 24px 8px;
+                    }
+                    .nav-item {
+                        padding: 14px;
+                        justify-content: center;
+                        font-size: 0;
+                    }
+                    .nav-icon {
+                        margin: 0;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

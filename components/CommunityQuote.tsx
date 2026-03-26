@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 
 interface Quote {
     id: string;
@@ -16,14 +16,14 @@ interface CommunityQuoteProps {
 export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     const [name, setName] = useState('');
     const [quote, setQuote] = useState('');
-    const [honeypot, setHoneypot] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
-    const { ref, isVisible } = useScrollReveal(0.2);
+    
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { once: true, amount: 0.2 });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (honeypot) return; // Honeypot CAPTCHA
         if (!name.trim() || !quote.trim()) return;
 
         setStatus('loading');
@@ -46,197 +46,89 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
             setStatus('error');
             setMessage('Network error. Please try again.');
         }
-        setTimeout(() => setStatus('idle'), 5000);
+        setTimeout(() => {
+            setStatus('idle');
+            setMessage('');
+        }, 5000);
     };
 
     return (
-        <section
-            id="community-quotes"
-            ref={ref}
-            className="section"
-            style={{ background: 'linear-gradient(180deg, #0f0f1e 0%, #0a0a14 100%)', overflow: 'hidden' }}
-        >
+        <section id="community-quotes" className="section quotes-section" ref={containerRef}>
             <div className="container">
-                <div
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: 'clamp(32px, 5vw, 80px)',
-                        alignItems: 'center',
-                    }}
-                >
-                    {/* Featured Quote – Vinyl Card */}
-                    <div className={`scroll-reveal-left ${isVisible ? 'visible' : ''}`}>
+                <div className="quotes-layout">
+                    {/* Featured Quote Section */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={isInView ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="featured-section"
+                    >
                         <div className="section-badge">Community Voice</div>
-                        <h2 className="section-title" style={{ marginBottom: '32px' }}>
-                            The Culture<br />Speaks
-                        </h2>
+                        <h2 className="section-title">The Culture <br /><span>Speaks</span></h2>
+                        <p className="section-subtitle">Real talk from the NG Hip Hop community.</p>
 
-                        {featuredQuote ? (
-                            <div
-                                className="vinyl-card"
-                                style={{
-                                    padding: 'clamp(24px, 4vw, 40px)',
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                {/* Vinyl ring decoration */}
-                                <div
-                                    aria-hidden="true"
-                                    style={{
-                                        position: 'absolute',
-                                        right: '-60px',
-                                        top: '-60px',
-                                        width: '200px',
-                                        height: '200px',
-                                        borderRadius: '50%',
-                                        border: '30px solid rgba(255,255,255,0.04)',
-                                        boxShadow: 'inset 0 0 0 20px rgba(255,255,255,0.02)',
-                                    }}
-                                />
-                                <div
-                                    aria-hidden="true"
-                                    style={{
-                                        position: 'absolute',
-                                        right: '-20px',
-                                        top: '-20px',
-                                        width: '100px',
-                                        height: '100px',
-                                        borderRadius: '50%',
-                                        border: '15px solid rgba(255,255,255,0.06)',
-                                    }}
-                                />
-
-                                <span
-                                    aria-hidden="true"
-                                    style={{
-                                        fontFamily: 'Georgia, serif',
-                                        fontSize: '4rem',
-                                        color: 'var(--color-purple-light)',
-                                        lineHeight: 1,
-                                        opacity: 0.6,
-                                        display: 'block',
-                                        marginBottom: '-8px',
-                                    }}
-                                >
-                                    &ldquo;
-                                </span>
-                                <blockquote
-                                    style={{
-                                        fontFamily: 'var(--font-body)',
-                                        fontSize: 'clamp(1rem, 1.5vw, 1.2rem)',
-                                        lineHeight: 1.7,
-                                        color: 'rgba(255,255,255,0.9)',
-                                        fontStyle: 'italic',
-                                        marginBottom: '20px',
-                                    }}
-                                >
-                                    {featuredQuote.quote_text}
-                                </blockquote>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '12px',
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            width: '32px',
-                                            height: '2px',
-                                            background: 'var(--color-green)',
-                                        }}
-                                    />
-                                    <span
-                                        style={{
-                                            fontFamily: 'var(--font-condensed)',
-                                            fontWeight: 700,
-                                            fontSize: '0.85rem',
-                                            letterSpacing: '0.1em',
-                                            textTransform: 'uppercase',
-                                            color: 'var(--color-green-light)',
-                                        }}
-                                    >
-                                        {featuredQuote.submitted_by}
-                                    </span>
+                        <div className="vinyl-quote-card">
+                            <div className="vinyl-decoration">
+                                <div className="ring ring-1"></div>
+                                <div className="ring ring-2"></div>
+                                <div className="ring ring-3"></div>
+                            </div>
+                            
+                            {featuredQuote ? (
+                                <div className="quote-content">
+                                    <span className="quote-mark">“</span>
+                                    <blockquote className="main-quote">
+                                        {featuredQuote.quote_text}
+                                    </blockquote>
+                                    <div className="quote-author">
+                                        <div className="author-line"></div>
+                                        <span className="author-name">{featuredQuote.submitted_by}</span>
+                                    </div>
                                 </div>
+                            ) : (
+                                <div className="empty-quote">
+                                    <span className="mic-icon">🎤</span>
+                                    <p>The stage is yours. Drop the first piece of wisdom.</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Submission Form Section */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={isInView ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                        className="form-section"
+                    >
+                        <div className="glass-form-card">
+                            <div className="form-header">
+                                <h3 className="form-title">Drop Your Truth</h3>
+                                <p className="form-desc">Submit your favorite lyrics or original thoughts.</p>
                             </div>
-                        ) : (
-                            <div
-                                style={{
-                                    background: 'rgba(255,255,255,0.04)',
-                                    border: '1px dashed rgba(255,255,255,0.15)',
-                                    borderRadius: '12px',
-                                    padding: '40px',
-                                    textAlign: 'center',
-                                    color: 'var(--color-grey-blue)',
-                                }}
-                            >
-                                <p style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🎤</p>
-                                <p>Be the first to drop a quote.</p>
-                            </div>
-                        )}
-                    </div>
 
-                    {/* Submission Form */}
-                    <div className={`scroll-reveal-right ${isVisible ? 'visible' : ''}`}>
-                        <div
-                            style={{
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                borderRadius: '12px',
-                                padding: 'clamp(24px, 4vw, 40px)',
-                            }}
-                        >
-                            <h3
-                                style={{
-                                    fontFamily: 'var(--font-display)',
-                                    fontSize: '1.6rem',
-                                    marginBottom: '8px',
-                                    letterSpacing: '0.05em',
-                                }}
-                            >
-                                DROP YOUR QUOTE
-                            </h3>
-                            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '28px' }}>
-                                Submit a hip-hop quote for the community. Admin picks the best one.
-                            </p>
-
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                                {/* Honeypot – hidden from real users */}
-                                <input
-                                    type="text"
-                                    name="website"
-                                    value={honeypot}
-                                    onChange={(e) => setHoneypot(e.target.value)}
-                                    style={{ display: 'none' }}
-                                    tabIndex={-1}
-                                    autoComplete="off"
-                                    aria-hidden="true"
-                                />
-
-                                <div className="form-group">
-                                    <label htmlFor="quote-name" className="form-label">Your Name</label>
+                            <form onSubmit={handleSubmit} className="quote-submission-form">
+                                <div className="input-group">
+                                    <label htmlFor="quote-name">Your Alias</label>
                                     <input
                                         id="quote-name"
                                         type="text"
-                                        className="form-input"
-                                        placeholder="Street name or alias"
+                                        placeholder="STREET_NAME"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        maxLength={50}
                                         required
                                         disabled={status === 'loading'}
                                     />
                                 </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="quote-text" className="form-label">Your Quote</label>
+                                <div className="input-group">
+                                    <div className="label-row">
+                                        <label htmlFor="quote-text">The Quote</label>
+                                        <span className="char-count">{quote.length}/280</span>
+                                    </div>
                                     <textarea
                                         id="quote-text"
-                                        className="form-textarea"
-                                        placeholder="Drop a hip-hop truth..."
+                                        placeholder="What's the word on the street?"
                                         value={quote}
                                         onChange={(e) => setQuote(e.target.value)}
                                         maxLength={280}
@@ -244,49 +136,257 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                                         disabled={status === 'loading'}
                                         rows={4}
                                     />
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)', textAlign: 'right' }}>
-                                        {quote.length}/280
-                                    </span>
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
+                                <button 
+                                    type="submit" 
+                                    className={`btn btn-primary submit-btn ${status === 'loading' ? 'loading' : ''}`}
                                     disabled={status === 'loading'}
-                                    style={{ width: '100%', justifyContent: 'center' }}
                                 >
-                                    {status === 'loading' ? '⏳ Submitting...' : '🎤 Submit Quote'}
+                                    {status === 'loading' ? 'SUBMITTING...' : 'Post to the Wall'}
                                 </button>
 
-                                {(status === 'success' || status === 'error') && (
-                                    <div
-                                        role="alert"
-                                        style={{
-                                            padding: '12px 16px',
-                                            borderRadius: '6px',
-                                            background: status === 'success' ? 'rgba(4,120,87,0.15)' : 'rgba(220,38,38,0.15)',
-                                            border: `1px solid ${status === 'success' ? 'rgba(4,120,87,0.4)' : 'rgba(220,38,38,0.4)'}`,
-                                            color: status === 'success' ? 'var(--color-green-light)' : '#F87171',
-                                            fontSize: '0.9rem',
-                                        }}
-                                    >
-                                        {message}
-                                    </div>
-                                )}
+                                <AnimatePresence>
+                                    {message && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className={`status-message ${status}`}
+                                        >
+                                            {message}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </form>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-        @media (max-width: 768px) {
-          #community-quotes .container > div {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}} />
+            <style jsx>{`
+                .quotes-section {
+                    background: #050508;
+                    position: relative;
+                    padding: 120px 0;
+                    overflow: hidden;
+                }
+
+                .quotes-layout {
+                    display: grid;
+                    grid-template-columns: 1.2fr 0.8fr;
+                    gap: 80px;
+                    align-items: center;
+                }
+
+                @media (max-width: 1024px) {
+                    .quotes-layout {
+                        grid-template-columns: 1fr;
+                        gap: 60px;
+                    }
+                }
+
+                .section-title span {
+                    color: var(--color-purple);
+                    text-shadow: 0 0 30px rgba(139,92,246,0.3);
+                }
+
+                /* Vinyl Card Styles */
+                .vinyl-quote-card {
+                    background: linear-gradient(135deg, #12121e 0%, #0a0a14 100%);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 40px;
+                    padding: 60px;
+                    margin-top: 40px;
+                    position: relative;
+                    overflow: hidden;
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+                }
+
+                .vinyl-decoration {
+                    position: absolute;
+                    top: -100px;
+                    right: -100px;
+                    width: 300px;
+                    height: 300px;
+                    opacity: 0.1;
+                    pointer-events: none;
+                }
+
+                .ring {
+                    position: absolute;
+                    border: 1px solid white;
+                    border-radius: 50%;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+
+                .ring-1 { width: 100%; height: 100%; }
+                .ring-2 { width: 80%; height: 80%; }
+                .ring-3 { width: 60%; height: 60%; }
+
+                .quote-mark {
+                    display: block;
+                    font-family: Georgia, serif;
+                    font-size: 6rem;
+                    color: var(--color-purple);
+                    opacity: 0.3;
+                    line-height: 1;
+                    margin-bottom: -20px;
+                }
+
+                .main-quote {
+                    font-size: 1.8rem;
+                    line-height: 1.5;
+                    color: white;
+                    font-weight: 500;
+                    margin-bottom: 32px;
+                    position: relative;
+                    z-index: 1;
+                    font-style: italic;
+                }
+
+                .quote-footer {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                }
+
+                .author-line {
+                    width: 40px;
+                    height: 2px;
+                    background: var(--color-purple-light);
+                }
+
+                .author-name {
+                    font-family: var(--font-condensed);
+                    font-size: 1rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    color: var(--color-purple-light);
+                }
+
+                .empty-quote {
+                    text-align: center;
+                    padding: 40px 0;
+                    color: rgba(255, 255, 255, 0.4);
+                }
+
+                .mic-icon {
+                    font-size: 3rem;
+                    display: block;
+                    margin-bottom: 20px;
+                }
+
+                /* Form Card Styles */
+                .glass-form-card {
+                    background: rgba(255, 255, 255, 0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 32px;
+                    padding: 40px;
+                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+                }
+
+                .form-title {
+                    font-family: var(--font-display);
+                    font-size: 1.5rem;
+                    color: white;
+                    margin-bottom: 8px;
+                    letter-spacing: 0.05em;
+                }
+
+                .form-desc {
+                    color: var(--color-grey-blue);
+                    font-size: 0.9rem;
+                    margin-bottom: 32px;
+                }
+
+                .quote-submission-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+
+                .input-group label {
+                    display: block;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: rgba(255, 255, 255, 0.5);
+                    margin-bottom: 8px;
+                }
+
+                .label-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .char-count {
+                    font-size: 0.7rem;
+                    color: rgba(255, 255, 255, 0.3);
+                }
+
+                input, textarea {
+                    width: 100%;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 14px;
+                    padding: 14px 20px;
+                    color: white;
+                    font-size: 1rem;
+                    outline: none;
+                    transition: all 0.2s ease;
+                }
+
+                input:focus, textarea:focus {
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: var(--color-purple);
+                    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+                }
+
+                .submit-btn {
+                    width: 100%;
+                    padding: 16px;
+                    justify-content: center;
+                    font-size: 1rem;
+                    margin-top: 8px;
+                }
+
+                .status-message {
+                    text-align: center;
+                    font-size: 0.85rem;
+                    padding: 12px;
+                    border-radius: 12px;
+                    margin-top: 16px;
+                }
+
+                .status-message.success {
+                    color: #10b981;
+                    background: rgba(16, 185, 129, 0.05);
+                }
+
+                .status-message.error {
+                    color: #ef4444;
+                    background: rgba(239, 68, 68, 0.05);
+                }
+
+                @media (max-width: 640px) {
+                    .vinyl-quote-card {
+                        padding: 40px 24px;
+                    }
+                    .main-quote {
+                        font-size: 1.4rem;
+                    }
+                    .glass-form-card {
+                        padding: 30px 20px;
+                    }
+                }
+            `}</style>
         </section>
     );
 }

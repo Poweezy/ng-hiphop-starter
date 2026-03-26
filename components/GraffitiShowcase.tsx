@@ -1,333 +1,388 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface GraffitiItem {
+interface Graffiti {
     id: string;
     image_url: string;
     artist_name: string;
 }
 
 interface GraffitiShowcaseProps {
-    items: GraffitiItem[];
+    graffiti: Graffiti[];
 }
 
-const MAX_FILE_SIZE_MB = 5;
-
-export default function GraffitiShowcase({ items }: GraffitiShowcaseProps) {
-    const [currentIndex, setCurrentIndex] = useState(0);
+export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProps) {
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [showSubmit, setShowSubmit] = useState(false);
     const [artistName, setArtistName] = useState('');
     const [file, setFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-    const [honeypot, setHoneypot] = useState('');
-    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState('');
-    const { ref, isVisible } = useScrollReveal(0.15);
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    const startCarousel = useCallback(() => {
-        if (items.length <= 1) return;
-        intervalRef.current = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % items.length);
-        }, 4000);
-    }, [items.length]);
-
-    useEffect(() => {
-        if (items.length <= 1) return;
-        startCarousel();
-        return () => { 
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-            }
-        };
-    }, [items.length, startCarousel]);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        if (f.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-            setStatus('error');
-            setMessage(`Image must be under ${MAX_FILE_SIZE_MB}MB`);
-            return;
-        }
-        if (!f.type.startsWith('image/')) {
-            setStatus('error');
-            setMessage('Only image files are accepted (JPG, PNG, WEBP)');
-            return;
-        }
-        setFile(f);
-        setPreview(URL.createObjectURL(f));
-        setStatus('idle');
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (honeypot || !file || !artistName.trim()) return;
+        if (!file || !artistName) return;
 
-        setStatus('loading');
+        setSubmitting(true);
         const formData = new FormData();
         formData.append('image', file);
-        formData.append('artistName', artistName.trim());
+        formData.append('artistName', artistName);
 
         try {
-            const res = await fetch('/api/graffiti', { method: 'POST', body: formData });
+            const res = await fetch('/api/graffiti', {
+                method: 'POST',
+                body: formData,
+            });
             const data = await res.json();
+            setMessage(data.message);
             if (res.ok) {
-                setStatus('success');
-                setMessage("🎨 Graffiti submitted! Pending admin approval.");
-                setArtistName(''); setFile(null); setPreview(null);
-            } else {
-                setStatus('error');
-                setMessage(data.message || 'Upload failed. Try again.');
+                setArtistName('');
+                setFile(null);
+                setTimeout(() => {
+                    setShowSubmit(false);
+                    setMessage('');
+                }, 2000);
             }
-        } catch {
-            setStatus('error');
-            setMessage('Network error. Please try again.');
+        } catch (err) {
+            setMessage('Something went wrong');
+        } finally {
+            setSubmitting(false);
         }
-        setTimeout(() => setStatus('idle'), 5000);
     };
 
     return (
-        <section
-            id="graffiti"
-            ref={ref}
-            className="section"
-            style={{
-                background: 'linear-gradient(135deg, #0a0a14 50%, #1a0a2e 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-            }}
-        >
-            {/* Purple/Black split bg accent */}
-            <div
-                aria-hidden="true"
-                style={{
-                    position: 'absolute',
-                    top: 0, right: 0,
-                    width: '40%', height: '100%',
-                    background: 'linear-gradient(135deg, transparent 0%, rgba(106,13,173,0.08) 100%)',
-                    pointerEvents: 'none',
-                }}
-            />
-
+        <section id="graffiti" className="section graffiti-section">
             <div className="container">
-                <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)' }}>
-                    <div className="section-badge">Graffiti Wall</div>
-                    <h2 className="section-title">The Community<br />Canvas</h2>
-                    <p className="section-subtitle" style={{ margin: '0 auto' }}>
-                        Fan-submitted street art, approved and showcased here.
-                    </p>
+                <div className="section-header">
+                    <div>
+                        <div className="section-badge">Gallery</div>
+                        <h2 className="section-title">Graffiti Wall</h2>
+                        <p className="section-subtitle">Urban art from the NG community.</p>
+                    </div>
+                    <button onClick={() => setShowSubmit(true)} className="btn btn-primary submit-btn">
+                        <span>✍️</span> Tag the Wall
+                    </button>
                 </div>
 
-                <div
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: 'clamp(32px, 5vw, 64px)',
-                        alignItems: 'start',
-                    }}
-                >
-                    {/* Carousel */}
-                    <div className={`scroll-reveal ${isVisible ? 'visible' : ''}`}>
-                        {items.length > 0 ? (
-                            <div style={{ position: 'relative' }}>
-                                <div
-                                    className="spray-frame"
-                                    style={{ aspectRatio: '4/3', position: 'relative', overflow: 'hidden', borderRadius: '6px' }}
-                                >
-                                    <Image
-                                        src={items[currentIndex].image_url}
-                                        alt={`Graffiti by ${items[currentIndex].artist_name}`}
-                                        fill
-                                        style={{ objectFit: 'cover', transition: 'opacity 0.5s ease' }}
-                                        sizes="(max-width: 768px) 100vw, 50vw"
-                                        loading="lazy"
-                                    />
-                                    {/* Tag label */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: 0, left: 0, right: 0,
-                                            background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
-                                            padding: '32px 20px 16px',
-                                        }}
-                                    >
-                                        <span
-                                            style={{
-                                                fontFamily: 'var(--font-cursive)',
-                                                fontSize: '1.4rem',
-                                                color: 'var(--color-yellow)',
-                                                textShadow: '0 0 10px rgba(250,204,21,0.5)',
-                                            }}
-                                        >
-                                            {items[currentIndex].artist_name}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Carousel dots */}
-                                {items.length > 1 && (
-                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '16px' }}>
-                                        {items.map((_, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => {
-                                                    setCurrentIndex(i);
-                                                    if (intervalRef.current) {
-                                                        clearInterval(intervalRef.current);
-                                                        intervalRef.current = null;
-                                                    }
-                                                    startCarousel();
-                                                }}
-                                                aria-label={`Show graffiti ${i + 1}`}
-                                                aria-current={i === currentIndex ? 'true' : 'false'}
-                                                style={{
-                                                    width: i === currentIndex ? '24px' : '8px',
-                                                    height: '8px',
-                                                    borderRadius: '4px',
-                                                    background: i === currentIndex ? 'var(--color-purple)' : 'rgba(255,255,255,0.2)',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.3s ease',
-                                                    padding: 0,
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div
-                                className="spray-frame"
-                                style={{
-                                    aspectRatio: '4/3',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexDirection: 'column',
-                                    gap: '16px',
-                                    background: 'rgba(106,13,173,0.1)',
-                                    color: 'var(--color-grey-blue)',
+                {graffiti.length > 0 ? (
+                    <motion.div 
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true }}
+                        variants={{
+                            hidden: { opacity: 0 },
+                            show: {
+                                opacity: 1,
+                                transition: { staggerChildren: 0.1 }
+                            }
+                        }}
+                        className="graffiti-grid"
+                    >
+                        {graffiti.map((piece) => (
+                            <motion.div
+                                key={piece.id}
+                                variants={{
+                                    hidden: { opacity: 0, y: 20 },
+                                    show: { opacity: 1, y: 0 }
                                 }}
+                                whileHover={{ y: -10, transition: { duration: 0.2 } }}
+                                className="graffiti-card"
+                                onClick={() => setSelectedImage(piece.image_url)}
                             >
-                                <span style={{ fontSize: '3rem' }}>🎨</span>
-                                <p>No artwork yet. Be the first to submit!</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Upload Form */}
-                    <div className={`scroll-reveal-right ${isVisible ? 'visible' : ''}`}>
-                        <div
-                            style={{
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                borderRadius: '12px',
-                                padding: 'clamp(24px, 4vw, 36px)',
-                            }}
-                        >
-                            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', marginBottom: '8px', letterSpacing: '0.05em' }}>
-                                SUBMIT YOUR ART
-                            </h3>
-                            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '28px' }}>
-                                Upload your graffiti artwork. Max 5MB · JPG, PNG, or WEBP.
-                            </p>
-
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                                <input type="text" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} style={{ display: 'none' }} tabIndex={-1} autoComplete="off" aria-hidden="true" />
-
-                                <div className="form-group">
-                                    <label htmlFor="graffiti-artist" className="form-label">Artist Name / Tag</label>
-                                    <input
-                                        id="graffiti-artist"
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Your street tag"
-                                        value={artistName}
-                                        onChange={(e) => setArtistName(e.target.value)}
-                                        maxLength={60}
-                                        required
-                                        disabled={status === 'loading'}
+                                <div className="card-image-wrapper">
+                                    <Image
+                                        src={piece.image_url}
+                                        alt={`Graffiti by ${piece.artist_name}`}
+                                        fill
+                                        style={{ objectFit: 'cover' }}
+                                        sizes="(max-width: 768px) 100vw, 33vw"
                                     />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="graffiti-file" className="form-label">Artwork File</label>
-                                    <label
-                                        htmlFor="graffiti-file"
-                                        style={{
-                                            display: 'block',
-                                            border: '2px dashed rgba(106,13,173,0.5)',
-                                            borderRadius: '8px',
-                                            padding: '24px',
-                                            textAlign: 'center',
-                                            cursor: 'pointer',
-                                            background: 'rgba(106,13,173,0.06)',
-                                            transition: 'all 0.2s ease',
-                                        }}
-                                        onDragOver={(e) => e.preventDefault()}
-                                    >
-                                        {preview ? (
-                                            <img src={preview} alt="Preview" style={{ maxHeight: '120px', borderRadius: '4px', objectFit: 'cover' }} />
-                                        ) : (
-                                            <>
-                                                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>🖼️</span>
-                                                <span style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem' }}>
-                                                    Click to upload or drag & drop
-                                                </span>
-                                            </>
-                                        )}
-                                        <input
-                                            id="graffiti-file"
-                                            type="file"
-                                            accept="image/jpeg,image/png,image/webp"
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                            disabled={status === 'loading'}
-                                        />
-                                    </label>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    disabled={status === 'loading' || !file}
-                                    style={{ width: '100%', justifyContent: 'center' }}
-                                >
-                                    {status === 'loading' ? '⏳ Uploading...' : '🎨 Submit Artwork'}
-                                </button>
-
-                                {(status === 'success' || status === 'error') && (
-                                    <div
-                                        role="alert"
-                                        style={{
-                                            padding: '12px 16px', borderRadius: '6px',
-                                            background: status === 'success' ? 'rgba(4,120,87,0.15)' : 'rgba(220,38,38,0.15)',
-                                            border: `1px solid ${status === 'success' ? 'rgba(4,120,87,0.4)' : 'rgba(220,38,38,0.4)'}`,
-                                            color: status === 'success' ? 'var(--color-green-light)' : '#F87171',
-                                            fontSize: '0.9rem',
-                                        }}
-                                    >
-                                        {message}
+                                    <div className="card-overlay">
+                                        <p className="artist-tag">Artist: {piece.artist_name}</p>
+                                        <span className="view-text">View Large</span>
                                     </div>
-                                )}
-                            </form>
-                        </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                ) : (
+                    <div className="empty-wall">
+                        <p>The wall is empty. Be the first to tag it!</p>
                     </div>
-                </div>
+                )}
             </div>
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-        @media (max-width: 768px) {
-          #graffiti .container > div:last-child {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}} />
+            {/* Lightbox / Modal */}
+            <AnimatePresence>
+                {selectedImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="modal-overlay"
+                        onClick={() => setSelectedImage(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="modal-content lightbox"
+                        >
+                            <Image
+                                src={selectedImage}
+                                alt="Graffiti large view"
+                                width={1200}
+                                height={800}
+                                style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                            />
+                            <button className="close-btn" onClick={() => setSelectedImage(null)}>✕</button>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {showSubmit && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="modal-overlay"
+                    >
+                        <motion.div
+                            initial={{ y: 50, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 50, opacity: 0 }}
+                            className="modal-content form-modal"
+                        >
+                            <div className="form-header">
+                                <h3 className="modal-title">Tag the Wall</h3>
+                                <button onClick={() => setShowSubmit(false)} className="close-btn-text">Cancel</button>
+                            </div>
+                            
+                            <form onSubmit={handleSubmit} className="tag-form">
+                                <div className="input-group">
+                                    <label>Artist Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Your Tag..."
+                                        value={artistName}
+                                        onChange={(e) => setArtistName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="input-group">
+                                    <label>Artwork File</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" disabled={submitting} className="btn btn-primary full-width">
+                                    {submitting ? 'Uploading...' : 'Submit Tag'}
+                                </button>
+                                {message && <p className={`form-message ${message.includes('error') ? 'error' : 'success'}`}>{message}</p>}
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <style jsx>{`
+                .graffiti-section {
+                    background: #08080c;
+                    position: relative;
+                }
+
+                .section-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    margin-bottom: 60px;
+                    gap: 24px;
+                }
+
+                @media (max-width: 640px) {
+                    .section-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                    }
+                }
+
+                .submit-btn {
+                    padding: 12px 32px;
+                }
+
+                .graffiti-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 32px;
+                }
+
+                .graffiti-card {
+                    cursor: pointer;
+                    background: rgba(255, 255, 255, 0.03);
+                    border-radius: 20px;
+                    padding: 8px;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    transition: all 0.3s ease;
+                }
+
+                .card-image-wrapper {
+                    position: relative;
+                    aspect-ratio: 4/3;
+                    border-radius: 14px;
+                    overflow: hidden;
+                }
+
+                .card-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-end;
+                    padding: 20px;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+
+                .graffiti-card:hover .card-overlay {
+                    opacity: 1;
+                }
+
+                .artist-tag {
+                    color: var(--color-purple-light);
+                    font-weight: 700;
+                    font-size: 1.1rem;
+                    margin-bottom: 4px;
+                }
+
+                .view-text {
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 0.8rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                }
+
+                .empty-wall {
+                    text-align: center;
+                    padding: 100px 0;
+                    color: rgba(255, 255, 255, 0.3);
+                    border: 2px dashed rgba(255, 255, 255, 0.05);
+                    border-radius: 30px;
+                }
+
+                /* Modals */
+                .modal-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.95);
+                    z-index: 2000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 24px;
+                    backdrop-filter: blur(10px);
+                }
+
+                .modal-content {
+                    background: #11111a;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 32px;
+                    max-width: 900px;
+                    width: 100%;
+                    max-height: 90vw;
+                    position: relative;
+                    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+                }
+
+                .lightbox {
+                    background: transparent;
+                    border: none;
+                }
+
+                .form-modal {
+                    max-width: 480px;
+                    padding: 40px;
+                }
+
+                .form-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 32px;
+                }
+
+                .modal-title {
+                    font-family: var(--font-cursive);
+                    font-size: 1.8rem;
+                    color: var(--color-white);
+                }
+
+                .close-btn {
+                    position: absolute;
+                    top: -40px;
+                    right: 0;
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                }
+
+                .close-btn-text {
+                    background: none;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.5);
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                }
+
+                .tag-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+
+                .input-group label {
+                    display: block;
+                    font-family: var(--font-condensed);
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.15em;
+                    color: var(--color-grey-blue);
+                    margin-bottom: 8px;
+                }
+
+                .tag-form input {
+                    width: 100%;
+                    padding: 14px 20px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 14px;
+                    color: white;
+                    outline: none;
+                }
+
+                .tag-form input:focus {
+                    border-color: var(--color-purple);
+                    box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+                }
+
+                .form-message {
+                    text-align: center;
+                    font-size: 0.9rem;
+                }
+
+                .full-width {
+                    width: 100%;
+                    margin-top: 12px;
+                }
+            `}</style>
         </section>
     );
 }

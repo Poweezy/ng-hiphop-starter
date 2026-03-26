@@ -1,268 +1,409 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-
-interface LyricEntry {
-    id: string;
-    lyric_text: string;
-    correct_artist: string;
-}
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface LyricGameProps {
-    lyrics: LyricEntry[];
+    gameData: {
+        id: string;
+        lyric_snippet: string;
+        correct_song: string;
+        options: string[];
+    } | null;
 }
 
-export default function LyricGame({ lyrics }: LyricGameProps) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [guess, setGuess] = useState('');
-    const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-    const [score, setScore] = useState(0);
-    const [tries, setTries] = useState(0);
-    const [revealed, setRevealed] = useState(false);
-    const [visible, setVisible] = useState(false);
+export default function LyricGame({ gameData }: LyricGameProps) {
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+    const [showSubmitModal, setShowSubmitModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-            { threshold: 0.2 }
-        );
-        const el = document.getElementById('lyric-game');
-        if (el) observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
+    // Submission form state
+    const [newLyric, setNewLyric] = useState('');
+    const [newSong, setNewSong] = useState('');
+    const [newOptions, setNewOptions] = useState(['', '', '']);
 
-    const current = lyrics[currentIndex] ?? null;
+    const handleOptionSelect = (option: string) => {
+        if (selectedOption) return;
+        setSelectedOption(option);
+        setIsCorrect(option === gameData?.correct_song);
+    };
 
-    const nextLyric = useCallback(() => {
-        setCurrentIndex((prev) => (prev + 1) % lyrics.length);
-        setGuess('');
-        setFeedback(null);
-        setRevealed(false);
-    }, [lyrics.length]);
+    const handleNewGameRequest = () => {
+        window.location.reload(); // Simple approach for now
+    };
 
-    const handleGuess = (e: React.FormEvent) => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!guess.trim() || !current) return;
-        setTries((t) => t + 1);
-        const correct = guess.trim().toLowerCase() === current.correct_artist.toLowerCase();
-        setFeedback(correct ? 'correct' : 'wrong');
-        if (correct) setScore((s) => s + 1);
+        setSubmitting(true);
+        try {
+            const res = await fetch('/api/lyric-game', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lyric_snippet: newLyric,
+                    correct_song: newSong,
+                    options: [...newOptions, newSong].sort(() => Math.random() - 0.5)
+                }),
+            });
+            if (res.ok) {
+                setShowSubmitModal(false);
+                setNewLyric('');
+                setNewSong('');
+                setNewOptions(['', '', '']);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSubmitting(false);
+        }
     };
-
-    const handleSkip = () => {
-        setRevealed(true);
-    };
-
-    if (!lyrics.length) {
-        return (
-            <section
-                id="lyric-game"
-                className="section"
-                style={{ background: 'linear-gradient(180deg, #0a0a14 0%, #050510 100%)', textAlign: 'center' }}
-            >
-                <div className="container">
-                    <div className="section-badge">Lyric Game</div>
-                    <p style={{ color: 'var(--color-grey-blue)', marginTop: '16px' }}>Game coming soon. Check back later.</p>
-                </div>
-            </section>
-        );
-    }
-
-    const accuracy = tries > 0 ? Math.round((score / tries) * 100) : 0;
 
     return (
-        <section
-            id="lyric-game"
-            className="section"
-            style={{
-                background: 'linear-gradient(180deg, #050510 0%, #0a0a1a 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-            }}
-        >
-            {/* Green accent borders */}
-            <div aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--color-green), transparent)' }} />
-            <div aria-hidden="true" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--color-green), transparent)' }} />
-
+        <section id="lyric-game" className="section game-section">
             <div className="container">
-                <div style={{ textAlign: 'center', marginBottom: 'clamp(32px, 5vw, 56px)', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.6s ease' }}>
-                    <div className="section-badge">Guess the Artist</div>
-                    <h2 className="section-title">Who Said That?</h2>
-                    <p className="section-subtitle" style={{ margin: '0 auto' }}>
-                        Can you name the artist? No accounts needed.
-                    </p>
-                </div>
-
-                <div
-                    style={{
-                        maxWidth: '680px',
-                        margin: '0 auto',
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? 'translateY(0)' : 'translateY(30px)',
-                        transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s',
-                    }}
-                >
-                    {/* Score display */}
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '28px',
-                            padding: '12px 20px',
-                            background: 'rgba(4,120,87,0.08)',
-                            border: '1px solid rgba(4,120,87,0.2)',
-                            borderRadius: '6px',
-                        }}
-                    >
-                        <div style={{ display: 'flex', gap: '24px' }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--color-green-light)', lineHeight: 1 }}>{score}</div>
-                                <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-grey-blue)' }}>Correct</div>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1 }}>{tries}</div>
-                                <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-grey-blue)' }}>Attempts</div>
-                            </div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: accuracy >= 70 ? 'var(--color-yellow)' : 'var(--color-grey-blue)', lineHeight: 1 }}>{accuracy}%</div>
-                            <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-grey-blue)' }}>Accuracy</div>
-                        </div>
+                <div className="game-layout">
+                    <div className="section-header">
+                        <div className="section-badge">Interactive</div>
+                        <h2 className="section-title">Lyric Master</h2>
+                        <p className="section-subtitle">Guess the song from the snippet. Test your NG knowledge.</p>
                     </div>
 
-                    {/* Lyric Card */}
-                    <div
-                        style={{
-                            background: 'rgba(30,58,138,0.15)',
-                            border: '2px solid rgba(30,58,138,0.4)',
-                            borderRadius: '12px',
-                            padding: 'clamp(28px, 5vw, 48px)',
-                            textAlign: 'center',
-                            marginBottom: '24px',
-                            position: 'relative',
-                        }}
-                    >
-                        {/* Quote marks */}
-                        <span aria-hidden="true" style={{ fontFamily: 'Georgia,serif', fontSize: '5rem', color: 'rgba(30,58,138,0.5)', position: 'absolute', top: '8px', left: '20px', lineHeight: 1 }}>&ldquo;</span>
-                        <p
-                            style={{
-                                fontFamily: 'var(--font-body)',
-                                fontStyle: 'italic',
-                                fontSize: 'clamp(1.1rem, 2vw, 1.4rem)',
-                                color: 'rgba(255,255,255,0.9)',
-                                lineHeight: 1.7,
-                                position: 'relative',
-                                zIndex: 1,
-                            }}
-                        >
-                            {current?.lyric_text}
-                        </p>
-
-                        {/* Revealed answer */}
-                        {revealed && (
-                            <div
-                                style={{
-                                    marginTop: '20px',
-                                    padding: '12px',
-                                    background: 'rgba(250,204,21,0.1)',
-                                    border: '1px solid rgba(250,204,21,0.3)',
-                                    borderRadius: '6px',
-                                }}
+                    <div className="game-card-wrapper">
+                        {gameData ? (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="game-card"
                             >
-                                <span style={{ color: 'var(--color-yellow)', fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                                    Artist: {current?.correct_artist}
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                                <div className="lyric-box">
+                                    <span className="box-label">The Lyric</span>
+                                    <p className="lyric-text">“{gameData.lyric_snippet}”</p>
+                                </div>
 
-                    {/* Feedback */}
-                    {feedback && (
-                        <div
-                            role="alert"
-                            style={{
-                                textAlign: 'center',
-                                padding: '16px',
-                                borderRadius: '8px',
-                                marginBottom: '20px',
-                                background: feedback === 'correct' ? 'rgba(4,120,87,0.2)' : 'rgba(220,38,38,0.2)',
-                                border: `2px solid ${feedback === 'correct' ? 'var(--color-green)' : '#DC2626'}`,
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '1.6rem',
-                                letterSpacing: '0.05em',
-                                color: feedback === 'correct' ? 'var(--color-green-light)' : '#F87171',
-                                animation: 'fadeInUp 0.3s ease',
-                            }}
-                        >
-                            {feedback === 'correct' ? '✅ CORRECT! That\'s it!' : `❌ Wrong — try again or skip`}
-                        </div>
-                    )}
+                                <div className="options-grid">
+                                    {gameData.options.map((option, idx) => (
+                                        <motion.button
+                                            key={idx}
+                                            whileHover={!selectedOption ? { scale: 1.02, backgroundColor: "rgba(255,255,255,0.05)" } : {}}
+                                            whileTap={!selectedOption ? { scale: 0.98 } : {}}
+                                            onClick={() => handleOptionSelect(option)}
+                                            className={`option-btn ${selectedOption === option ? (isCorrect ? 'correct' : 'wrong') : ''} ${selectedOption && option === gameData.correct_song ? 'reveal-correct' : ''}`}
+                                            disabled={!!selectedOption}
+                                        >
+                                            <span className="option-letter">{String.fromCharCode(65 + idx)}</span>
+                                            <span className="option-label">{option}</span>
+                                            {selectedOption === option && (
+                                                <span className="feedback-icon">{isCorrect ? '✓' : '✕'}</span>
+                                            )}
+                                        </motion.button>
+                                    ))}
+                                </div>
 
-                    {/* Guess Form */}
-                    {!feedback && !revealed && (
-                        <form onSubmit={handleGuess} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Type the artist name..."
-                                value={guess}
-                                onChange={(e) => setGuess(e.target.value)}
-                                maxLength={80}
-                                required
-                                autoComplete="off"
-                                style={{ flex: 1 }}
-                            />
-                            <button type="submit" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
-                                Guess 🎯
-                            </button>
-                        </form>
-                    )}
-
-                    {/* Action buttons */}
-                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        {feedback === 'correct' || feedback === 'wrong' || revealed ? (
-                            <button onClick={nextLyric} className="btn btn-primary">
-                                Next Lyric →
-                            </button>
+                                <AnimatePresence mode="wait">
+                                    {selectedOption && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="game-footer"
+                                        >
+                                            <div className="result-text">
+                                                {isCorrect ? 'Perfect! You know the culture.' : `Not quite. The right answer was "${gameData.correct_song}".`}
+                                            </div>
+                                            <div className="footer-actions">
+                                                <button onClick={handleNewGameRequest} className="btn btn-primary">Try Another</button>
+                                                <button onClick={() => setShowSubmitModal(true)} className="btn btn-secondary">Submit a Lyric</button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
                         ) : (
-                            <button
-                                type="button"
-                                onClick={handleSkip}
-                                style={{
-                                    background: 'transparent',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    color: 'rgba(255,255,255,0.5)',
-                                    borderRadius: '4px',
-                                    padding: '10px 20px',
-                                    cursor: 'pointer',
-                                    fontFamily: 'var(--font-condensed)',
-                                    fontSize: '0.85rem',
-                                    letterSpacing: '0.06em',
-                                    textTransform: 'uppercase',
-                                    transition: 'all 0.2s ease',
-                                }}
-                                onMouseOver={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
-                                onMouseOut={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)')}
-                            >
-                                Reveal Answer
-                            </button>
+                            <div className="game-loading">
+                                <p>Preparing the next challenge...</p>
+                            </div>
                         )}
-                        <span
-                            style={{
-                                fontFamily: 'var(--font-condensed)',
-                                fontSize: '0.8rem',
-                                letterSpacing: '0.06em',
-                                textTransform: 'uppercase',
-                                color: 'var(--color-grey-blue)',
-                                alignSelf: 'center',
-                            }}
-                        >
-                            {currentIndex + 1} / {lyrics.length}
-                        </span>
                     </div>
                 </div>
             </div>
+
+            {/* Submission Modal */}
+            <AnimatePresence>
+                {showSubmitModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="modal-overlay"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="modal-content"
+                        >
+                            <h3 className="modal-title">Challenge the Community</h3>
+                            <form onSubmit={handleFormSubmit} className="submit-form">
+                                <div className="input-group">
+                                    <label>Lyric Snippet</label>
+                                    <textarea
+                                        value={newLyric}
+                                        onChange={(e) => setNewLyric(e.target.value)}
+                                        placeholder="Enter the lyric lines..."
+                                        required
+                                        rows={3}
+                                    />
+                                </div>
+                                <div className="input-group">
+                                    <label>Correct Song Title</label>
+                                    <input
+                                        type="text"
+                                        value={newSong}
+                                        onChange={(e) => setNewSong(e.target.value)}
+                                        placeholder="The actual title"
+                                        required
+                                    />
+                                </div>
+                                <div className="input-group">
+                                    <label>Distractor Options (Wrong Answers)</label>
+                                    {newOptions.map((opt, i) => (
+                                        <input
+                                            key={i}
+                                            type="text"
+                                            value={opt}
+                                            onChange={(e) => {
+                                                const up = [...newOptions];
+                                                up[i] = e.target.value;
+                                                setNewOptions(up);
+                                            }}
+                                            placeholder={`Wrong answer #${i+1}`}
+                                            required
+                                            style={{ marginBottom: '8px' }}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="form-actions">
+                                    <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
+                                    <button type="submit" disabled={submitting} className="btn btn-primary">
+                                        {submitting ? 'Sharing...' : 'Submit Challenge'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <style jsx>{`
+                .game-section {
+                    background: #08080c;
+                    position: relative;
+                }
+
+                .game-layout {
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+
+                .game-card {
+                    background: rgba(255, 255, 255, 0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 40px;
+                    padding: 60px;
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+                }
+
+                .lyric-box {
+                    background: rgba(139, 92, 246, 0.05);
+                    border-left: 4px solid var(--color-purple);
+                    padding: 32px;
+                    border-radius: 0 24px 24px 0;
+                    margin-bottom: 48px;
+                    position: relative;
+                }
+
+                .box-label {
+                    position: absolute;
+                    top: -12px;
+                    left: 32px;
+                    background: var(--color-purple);
+                    color: white;
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    padding: 4px 12px;
+                    border-radius: 6px;
+                    letter-spacing: 0.1em;
+                }
+
+                .lyric-text {
+                    font-size: 1.8rem;
+                    font-weight: 500;
+                    color: white;
+                    line-height: 1.4;
+                    font-style: italic;
+                }
+
+                .options-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 16px;
+                }
+
+                @media (max-width: 640px) {
+                    .options-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .game-card { padding: 40px 24px; }
+                    .lyric-text { font-size: 1.4rem; }
+                }
+
+                .option-btn {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 20px 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    color: white;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    text-align: left;
+                    position: relative;
+                }
+
+                .option-btn:disabled {
+                    cursor: default;
+                }
+
+                .option-letter {
+                    width: 32px;
+                    height: 32px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-family: var(--font-condensed);
+                    color: var(--color-grey-blue);
+                }
+
+                .option-label {
+                    font-size: 1.1rem;
+                }
+
+                .option-btn.correct {
+                    background: rgba(16, 185, 129, 0.15);
+                    border-color: #10b981;
+                }
+
+                .option-btn.wrong {
+                    background: rgba(239, 68, 68, 0.15);
+                    border-color: #ef4444;
+                }
+
+                .option-btn.reveal-correct {
+                    border-color: #10b981;
+                }
+
+                .feedback-icon {
+                    margin-left: auto;
+                    font-weight: 700;
+                }
+
+                .game-footer {
+                    margin-top: 40px;
+                    padding-top: 40px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
+                    text-align: center;
+                }
+
+                .result-text {
+                    font-size: 1.2rem;
+                    color: rgba(255, 255, 255, 0.8);
+                    margin-bottom: 24px;
+                }
+
+                .footer-actions {
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                }
+
+                /* Modal */
+                .modal-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.9);
+                    backdrop-filter: blur(10px);
+                    z-index: 2000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 24px;
+                }
+
+                .modal-content {
+                    background: #11111a;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 32px;
+                    padding: 40px;
+                    width: 100%;
+                    max-width: 520px;
+                }
+
+                .modal-title {
+                    font-family: var(--font-display);
+                    font-size: 1.8rem;
+                    margin-bottom: 32px;
+                    text-align: center;
+                }
+
+                .submit-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+
+                .input-group label {
+                    display: block;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: var(--color-grey-blue);
+                    margin-bottom: 8px;
+                }
+
+                .submit-form input, .submit-form textarea {
+                    width: 100%;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    color: white;
+                    outline: none;
+                }
+
+                .form-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 20px;
+                    margin-top: 10px;
+                }
+
+                .btn-text {
+                    background: none;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.5);
+                    cursor: pointer;
+                }
+            `}</style>
         </section>
     );
 }
