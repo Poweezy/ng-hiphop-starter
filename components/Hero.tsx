@@ -1,208 +1,229 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 interface HeroProps {
   slogan: string;
 }
 
 export default function Hero({ slogan }: HeroProps) {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  const [particles, setParticles] = useState<React.ReactNode[]>([]);
+  const [particles, setParticles] = useState<{ id: number; style: any }[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(true);
-    }, 100);
-    return () => clearTimeout(timer);
+    // Generate particles only once on the client
+    const newParticles = [...Array(20)].map((_, i) => ({
+      id: i,
+      style: {
+        width: `${Math.random() * 3 + 1}px`,
+        height: `${Math.random() * 3 + 1}px`,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        background: i % 3 === 0 ? 'var(--color-yellow)' : i % 3 === 1 ? 'var(--color-purple-light)' : 'var(--color-green-light)',
+        opacity: 0.3 + Math.random() * 0.4,
+      }
+    }));
+    setParticles(newParticles);
   }, []);
 
-  useEffect(() => {
-    if (!visible) return;
-    // Generate particles only once when visible
-    const newParticles = [...Array(12)].map((_, i) => (
-        <span
-          key={i}
-          style={{
-            position: 'absolute',
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            borderRadius: '50%',
-            background: i % 3 === 0 ? 'var(--color-yellow)' : i % 3 === 1 ? 'var(--color-purple-light)' : 'var(--color-green-light)',
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            opacity: 0.4 + Math.random() * 0.4,
-            animation: `glowPulse ${2 + Math.random() * 3}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 2}s`,
-          }}
-        />
-      ));
-      setParticles(newParticles);
-  }, [visible]);
-
   return (
-    <section
-      id="hero"
-      style={{
-        minHeight: '100vh',
-        minHeight: '100dvh', // Dynamic viewport height for mobile
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--gradient-hero)',
-        position: 'relative',
-        overflow: 'hidden',
-        textAlign: 'center',
-        padding: '80px clamp(16px, 4vw, 48px) 120px',
-      }}
-      ref={ref}
-    >
+    <section id="hero" className="hero-section">
       {/* Living particles */}
-      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        {particles}
+      <div className="particles-container" aria-hidden="true">
+        {particles.map((p) => (
+          <motion.span
+            key={p.id}
+            style={p.style}
+            animate={{
+              opacity: [0.3, 0.7, 0.3],
+              scale: [1, 1.5, 1],
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="particle"
+          />
+        ))}
       </div>
 
       {/* NG LOGO - Background */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          opacity: visible ? 0.5 : 0,
-          transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: '100vw',
-          height: '100%',
-          zIndex: 1,
-        }}
+      <motion.div
+        initial={{ opacity: 0, scale: 1.1 }}
+        animate={{ opacity: 0.4, scale: 1 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
+        className="bg-logo-container"
       >
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-          <Image
-            src="/images/graffiti.png"
-            alt="Nerd Gauge Graffiti Logo"
-            fill
-            sizes="100vw"
-            style={{ objectFit: 'cover', filter: 'drop-shadow(0 0 30px rgba(106,13,173,0.6))' }}
-            priority
-          />
-        </div>
-      </div>
+        <Image
+          src="/images/graffiti.png"
+          alt="NG Graffiti Logo"
+          fill
+          sizes="100vw"
+          className="bg-logo-image"
+          priority
+        />
+      </motion.div>
 
-      {/* Slogan */}
-      <p
-        style={{
-          fontFamily: 'var(--font-condensed)',
-          fontSize: 'clamp(1.1rem, 2.5vw, 1.6rem)',
-          fontWeight: 600,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.95)',
-          maxWidth: '600px',
-          marginTop: '28px',
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s',
-          position: 'relative',
-          zIndex: 10,
-          textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6)',
-        }}
-      >
-        {slogan}
-      </p>
-
-      {/* Accent line */}
-      <div
-        style={{
-          width: visible ? '80px' : '0px',
-          height: '2px',
-          background: 'var(--color-green)',
-          margin: '20px auto',
-          transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s',
-          boxShadow: '0 0 10px var(--color-green)',
-          position: 'relative',
-          zIndex: 10,
-        }}
-        aria-hidden="true"
-      />
-
-      {/* CTA Buttons */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '16px',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          marginTop: '16px',
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <a 
-          href="#latest-release" 
-          className="btn btn-primary"
-          style={{
-            background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
-            boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)',
-          }}
+      {/* Content */}
+      <div className="hero-content">
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="hero-slogan"
         >
-          <span>🎵</span> Listen Now
-        </a>
-        <a 
-          href="#latest-release" 
-          className="btn btn-secondary"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '2px solid rgba(255, 255, 255, 0.2)',
-          }}
+          {slogan}
+        </motion.p>
+
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: '80px' }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="accent-line"
+          aria-hidden="true"
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="cta-container"
         >
-          <span>🔥</span> Latest Drop
-        </a>
+          <a href="#latest-release" className="btn btn-primary hero-btn">
+            <span>🎵</span> Listen Now
+          </a>
+          <a href="#latest-release" className="btn btn-secondary hero-btn">
+            <span>🔥</span> Latest Drop
+          </a>
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        transition={{ delay: 1.5, duration: 1 }}
+        className="scroll-indicator"
         aria-hidden="true"
-        style={{
-          position: 'absolute',
-          bottom: '60px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: visible ? 0.5 : 0,
-          transition: 'opacity 1s ease 1s',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '8px',
-        }}
       >
-        <span
-          style={{
-            fontFamily: 'var(--font-condensed)',
-            fontSize: '0.7rem',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.5)',
-          }}
-        >
-          Scroll
-        </span>
-        <div
-          style={{
-            width: '1px',
-            height: '30px',
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), transparent)',
-            animation: 'fadeInDown 1.5s ease infinite',
-          }}
-        />
-      </div>
+        <span className="scroll-text">Scroll</span>
+        <div className="scroll-line" />
+      </motion.div>
+
+      <style jsx>{`
+        .hero-section {
+          min-height: 100vh;
+          min-height: 100dvh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--gradient-hero);
+          position: relative;
+          overflow: hidden;
+          text-align: center;
+          padding: 80px clamp(16px, 4vw, 48px) 120px;
+        }
+
+        .particles-container {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        .particle {
+          position: absolute;
+          border-radius: 50%;
+        }
+
+        .bg-logo-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .bg-logo-image {
+          object-fit: cover;
+          filter: drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)) brightness(0.7);
+        }
+
+        .hero-content {
+          position: relative;
+          z-index: 10;
+          max-width: 800px;
+        }
+
+        .hero-slogan {
+          font-family: var(--font-condensed);
+          font-size: clamp(1.4rem, 4vw, 2.2rem);
+          font-weight: 700;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: var(--color-white);
+          line-height: 1.2;
+          margin-bottom: 24px;
+          text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .accent-line {
+          height: 3px;
+          background: var(--gradient-green);
+          margin: 0 auto 32px;
+          box-shadow: 0 0 15px var(--color-green);
+          border-radius: 2px;
+        }
+
+        .cta-container {
+          display: flex;
+          gap: 20px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .hero-btn {
+          min-width: 180px;
+        }
+
+        .scroll-indicator {
+          position: absolute;
+          bottom: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .scroll-text {
+          font-family: var(--font-condensed);
+          font-size: 0.75rem;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .scroll-line {
+          width: 1px;
+          height: 40px;
+          background: linear-gradient(to bottom, var(--color-purple), transparent);
+          animation: dvrScroll 2s ease-in-out infinite;
+        }
+
+        @keyframes dvrScroll {
+          0% { transform: scaleY(0); transform-origin: top; }
+          50% { transform: scaleY(1); transform-origin: top; }
+          51% { transform: scaleY(1); transform-origin: bottom; }
+          100% { transform: scaleY(0); transform-origin: bottom; }
+        }
+      `}</style>
     </section>
   );
 }

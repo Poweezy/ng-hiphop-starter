@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { storage } from '@/lib/storage';
 import { graffitiUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
 
@@ -80,17 +78,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Image must be under 5MB' }, { status: 400 });
         }
 
-        const ext = file.type.split('/')[1];
-        const filename = `${uuidv4()}.${ext}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'graffiti');
-        await mkdir(uploadDir, { recursive: true });
-
-        const buffer = Buffer.from(await file.arrayBuffer());
-        await writeFile(path.join(uploadDir, filename), buffer);
+        // Save file with the new storage utility
+        const imageUrl = await storage.uploadFile(file, 'graffiti');
 
         await prisma.graffitiSubmission.create({
             data: {
-                image_url: `/uploads/graffiti/${filename}`,
+                image_url: imageUrl,
                 artist_name: artistName,
             },
         });
@@ -116,7 +109,7 @@ export async function PATCH(req: NextRequest) {
         if (!validation.success) {
             return NextResponse.json({ 
                 message: 'Invalid input', 
-                errors: validation.error.errors 
+                errors: validation.error.issues 
             }, { status: 400 });
         }
 
@@ -151,13 +144,8 @@ export async function DELETE(req: NextRequest) {
 
         const graffiti = await prisma.graffitiSubmission.findUnique({ where: { id } });
         if (graffiti) {
-            // Delete file from filesystem
-            const filePath = path.join(process.cwd(), 'public', graffiti.image_url);
-            try {
-                await unlink(filePath);
-            } catch (err) {
-                console.error('File deletion error:', err);
-            }
+            // Delete file using the storage utility
+            await storage.deleteFile(graffiti.image_url);
         }
 
         await prisma.graffitiSubmission.delete({ where: { id } });

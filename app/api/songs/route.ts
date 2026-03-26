@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { storage } from '@/lib/storage';
 import { songUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 const ALLOWED_AUDIO = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4'];
 const ALLOWED_IMAGE = ['image/jpeg', 'image/png', 'image/webp'];
@@ -83,19 +82,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Cover image must be under 5MB' }, { status: 400 });
         }
 
-        // Save files
-        const audioExt = audioFile.name.split('.').pop() ?? 'mp3';
-        const audioName = `${uuidv4()}.${audioExt}`;
-        const coverExt = coverFile.type.split('/')[1];
-        const coverName = `${uuidv4()}.${coverExt}`;
-
-        const audioDir = path.join(process.cwd(), 'public', 'uploads', 'songs');
-        const coverDir = path.join(process.cwd(), 'public', 'uploads', 'covers');
-        await mkdir(audioDir, { recursive: true });
-        await mkdir(coverDir, { recursive: true });
-
-        await writeFile(path.join(audioDir, audioName), Buffer.from(await audioFile.arrayBuffer()));
-        await writeFile(path.join(coverDir, coverName), Buffer.from(await coverFile.arrayBuffer()));
+        // Save files with the new storage utility
+        const audioUrl = await storage.uploadFile(audioFile, 'songs');
+        const coverUrl = await storage.uploadFile(coverFile, 'covers');
 
         // Deactivate others if setting active
         await prisma.song.updateMany({ data: { is_active: false } });
@@ -104,8 +93,8 @@ export async function POST(req: NextRequest) {
             data: {
                 title,
                 description: description || null,
-                file_url: `/uploads/songs/${audioName}`,
-                cover_url: `/uploads/covers/${coverName}`,
+                file_url: audioUrl,
+                cover_url: coverUrl,
                 distribution_links: distributionLinks || null,
                 publisher_link: publisherLink || null,
                 is_active: true,
@@ -134,7 +123,7 @@ export async function PATCH(req: NextRequest) {
         if (!validation.success) {
             return NextResponse.json({ 
                 message: 'Invalid input', 
-                errors: validation.error.errors 
+                errors: validation.error.issues 
             }, { status: 400 });
         }
 
@@ -167,16 +156,9 @@ export async function DELETE(req: NextRequest) {
 
         const song = await prisma.song.findUnique({ where: { id } });
         if (song) {
-            // Delete files from filesystem
-            const audioPath = path.join(process.cwd(), 'public', song.file_url);
-            const coverPath = path.join(process.cwd(), 'public', song.cover_url);
-            
-            try {
-                await unlink(audioPath);
-                await unlink(coverPath);
-            } catch (err) {
-                console.error('File deletion error:', err);
-            }
+            // Delete files using the storage utility
+            await storage.deleteFile(song.file_url);
+            await storage.deleteFile(song.cover_url);
         }
 
         await prisma.song.delete({ where: { id } });

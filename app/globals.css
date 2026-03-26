@@ -31,17 +31,24 @@
   --gradient-hero: linear-gradient(135deg, #0A0A0F 0%, #1E1B4B 50%, #312E81 100%);
   --gradient-card: linear-gradient(145deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
   --gradient-green: linear-gradient(135deg, #10B981 0%, #34D399 100%);
-  --gradient-dark: linear-gradient(180deg, #0A0A0F 0%, #111827 100%);
-  --gradient-accent: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
-  --gradient-mesh: radial-gradient(at 40% 20%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
-                   radial-gradient(at 80% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
-                   radial-gradient(at 0% 50%, rgba(16, 185, 129, 0.2) 0px, transparent 50%);
-
-  /* Typography */
-  --font-display: 'Bebas Neue', 'Impact', sans-serif;
-  --font-cursive: 'Dancing Script', cursive;
-  --font-condensed: 'Barlow Condensed', sans-serif;
+  --color-dark: #050508;
+  --color-purple: #8b5cf6;
+  --color-purple-light: #c084fc;
+  --color-purple-dark: #581c87;
+  --color-green: #10b981;
+  --color-green-light: #34d399;
+  --color-yellow: #facc15;
+  --color-grey-blue: #94a3b8;
+  --color-white: #ffffff;
+  
+  --font-display: 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
+  --font-condensed: 'Oswald', sans-serif;
+  --font-cursive: 'Dancing Script', cursive;
+  
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(20px);
 
   /* Spacing */
   --section-padding: clamp(60px, 8vw, 120px);

@@ -47,16 +47,17 @@ export default async function Home() {
         quote_text: featuredQuote.quote_text,
         submitted_by: featuredQuote.submitted_by,
       } : null} />
-      <GraffitiShowcase items={graffitiItems.map((g) => ({
+      <GraffitiShowcase graffiti={(graffitiItems || []).map((g) => ({
         id: g.id,
         image_url: g.image_url,
         artist_name: g.artist_name,
       }))} />
-      <LyricGame lyrics={lyrics.map((l) => ({
-        id: l.id,
-        lyric_text: l.lyric_text,
-        correct_artist: l.correct_artist,
-      }))} />
+      <LyricGame gameData={lyrics && lyrics.length > 0 ? {
+        id: lyrics[0].id,
+        lyric_snippet: lyrics[0].lyric_text,
+        correct_song: lyrics[0].correct_artist,
+        options: [lyrics[0].correct_artist, "Dr. Dre", "Snoop Dogg", "Ice Cube"].sort(() => Math.random() - 0.5)
+      } : null} />
     </>
   );
 }
