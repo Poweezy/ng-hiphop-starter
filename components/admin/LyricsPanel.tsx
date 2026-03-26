@@ -57,7 +57,7 @@ export default function LyricsPanel({ initialLyrics }: Props) {
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>LYRIC GAME</h2>
             <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>Add and manage "Guess the Artist" game entries.</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '32px', alignItems: 'start' }}>
+            <div className="panel-grid">
                 {/* Add form */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(4,120,87,0.25)', borderRadius: '10px', padding: '24px' }}>
                     <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '1rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '20px' }}>Add New Entry</h3>
@@ -131,7 +131,10 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                 </div>
             </div>
 
-            <style>{`@media(max-width:768px){.lyrics-grid{grid-template-columns:1fr!important}}`}</style>
+            <style jsx>{`
+                .panel-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 32px; align-items: start; }
+                @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
+            `}</style>
         </div>
     );
 }
