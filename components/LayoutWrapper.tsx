@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Navigation from '@/components/Navigation';
+import { Toaster } from 'react-hot-toast';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -9,6 +10,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <>
+            <Toaster position="top-right" />
             {!isAdmin && <Navigation />}
             <main>{children}</main>
             {!isAdmin && (
