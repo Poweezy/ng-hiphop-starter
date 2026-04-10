@@ -11,8 +11,9 @@ import SongsPanel from './SongsPanel';
 import QuotesPanel from './QuotesPanel';
 import GraffitiPanel from './GraffitiPanel';
 import LyricsPanel from './LyricsPanel';
+import SecurityPanel from './SecurityPanel';
 
-export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics';
+export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'security';
 
 interface Props {
     initialSlogan: string;
@@ -29,6 +30,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'quotes', label: 'Quotes', icon: '💬' },
     { id: 'graffiti', label: 'Graffiti', icon: '🎨' },
     { id: 'lyrics', label: 'Lyrics', icon: '🎤' },
+    { id: 'security', label: 'Security', icon: '🔐' },
 ];
 
 export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics }: Props) {
@@ -108,6 +110,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                             {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
                             {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
                             {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
+                            {activeTab === 'security' && <SecurityPanel />}
                         </motion.div>
                     </AnimatePresence>
                 </main>
