@@ -27,10 +27,11 @@ export default function Navigation() {
 
         {/* Desktop Menu */}
         <div className="desktop-menu">
-          <a href="#latest-release" className="nav-link">Music</a>
-          <a href="#community-quotes" className="nav-link">Community</a>
-          <a href="#graffiti" className="nav-link">Gallery</a>
-          <a href="#lyric-game" className="nav-link">Game</a>
+          <a href="/#latest-release" className="nav-link">Music</a>
+          <a href="/library" className="nav-link">Library</a>
+          <a href="/#community-quotes" className="nav-link">Community</a>
+          <a href="/#graffiti" className="nav-link">Gallery</a>
+          <a href="/#lyric-game" className="nav-link">Game</a>
           <a href="/admin/login" className="nav-link nav-link-admin">Admin</a>
         </div>
 
@@ -54,10 +55,11 @@ export default function Navigation() {
             className="mobile-menu"
           >
             <div className="mobile-menu-links">
-              <a href="#latest-release" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Music</a>
-              <a href="#community-quotes" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Community</a>
-              <a href="#graffiti" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Gallery</a>
-              <a href="#lyric-game" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Game</a>
+              <a href="/#latest-release" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Music</a>
+              <a href="/library" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Library</a>
+              <a href="/#community-quotes" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Community</a>
+              <a href="/#graffiti" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Gallery</a>
+              <a href="/#lyric-game" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Game</a>
               <a href="/admin/login" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Admin</a>
             </div>
           </motion.div>

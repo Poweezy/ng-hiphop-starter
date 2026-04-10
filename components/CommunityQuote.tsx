@@ -247,7 +247,8 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     font-style: italic;
                 }
 
-                .quote-footer {
+                .quote-footer,
+                .quote-author {
                     display: flex;
                     align-items: center;
                     gap: 16px;

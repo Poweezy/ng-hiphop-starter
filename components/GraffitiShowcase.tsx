@@ -119,6 +119,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
             <AnimatePresence>
                 {selectedImage && (
                     <motion.div
+                        key="lightbox"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -145,6 +146,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
                 {showSubmit && (
                     <motion.div
+                        key="submit-modal"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -280,107 +282,150 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .modal-overlay {
                     position: fixed;
                     inset: 0;
-                    background: rgba(0, 0, 0, 0.95);
+                    background: rgba(0, 0, 0, 0.85);
                     z-index: 2000;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     padding: 24px;
-                    backdrop-filter: blur(10px);
+                    backdrop-filter: blur(12px);
                 }
 
                 .modal-content {
                     background: #11111a;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 32px;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 28px;
                     max-width: 900px;
                     width: 100%;
-                    max-height: 90vw;
+                    max-height: 90vh;
+                    overflow-y: auto;
                     position: relative;
-                    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+                    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
                 }
 
                 .lightbox {
                     background: transparent;
                     border: none;
+                    box-shadow: none;
+                    overflow: visible;
                 }
 
+                /* Tag the Wall form modal — compact card */
                 .form-modal {
-                    max-width: 480px;
-                    padding: 40px;
+                    max-width: 420px;
+                    width: 100%;
+                    padding: 32px;
+                    border-radius: 24px;
                 }
 
                 .form-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 32px;
+                    margin-bottom: 24px;
                 }
 
                 .modal-title {
                     font-family: var(--font-cursive);
-                    font-size: 1.8rem;
+                    font-size: 1.5rem;
                     color: var(--color-white);
+                    margin: 0;
                 }
 
                 .close-btn {
                     position: absolute;
-                    top: -40px;
+                    top: -36px;
                     right: 0;
                     background: none;
                     border: none;
-                    color: white;
-                    font-size: 1.5rem;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 1.2rem;
                     cursor: pointer;
+                    transition: color 0.2s;
+                }
+
+                .close-btn:hover {
+                    color: white;
                 }
 
                 .close-btn-text {
                     background: none;
                     border: none;
-                    color: rgba(255, 255, 255, 0.5);
+                    color: rgba(255, 255, 255, 0.4);
                     cursor: pointer;
-                    font-size: 0.9rem;
+                    font-size: 0.8rem;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                    transition: color 0.2s;
+                }
+
+                .close-btn-text:hover {
+                    color: rgba(255, 255, 255, 0.7);
                 }
 
                 .tag-form {
                     display: flex;
                     flex-direction: column;
-                    gap: 20px;
+                    gap: 16px;
                 }
 
                 .input-group label {
                     display: block;
-                    font-family: var(--font-condensed);
-                    font-size: 0.75rem;
+                    font-size: 0.7rem;
+                    font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.15em;
-                    color: var(--color-grey-blue);
-                    margin-bottom: 8px;
+                    color: rgba(255, 255, 255, 0.45);
+                    margin-bottom: 6px;
                 }
 
-                .tag-form input {
+                .tag-form input[type="text"],
+                .tag-form input[type="file"] {
                     width: 100%;
-                    padding: 14px 20px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 14px;
+                    padding: 12px 16px;
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 12px;
                     color: white;
+                    font-size: 0.95rem;
                     outline: none;
+                    transition: border-color 0.2s, box-shadow 0.2s;
                 }
 
-                .tag-form input:focus {
+                .tag-form input[type="text"]:focus {
                     border-color: var(--color-purple);
-                    box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+                    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+                }
+
+                .tag-form input[type="file"] {
+                    padding: 10px 14px;
+                    font-size: 0.85rem;
+                    color: rgba(255, 255, 255, 0.5);
+                    cursor: pointer;
                 }
 
                 .form-message {
                     text-align: center;
-                    font-size: 0.9rem;
+                    font-size: 0.85rem;
+                    padding: 10px;
+                    border-radius: 10px;
+                    margin-top: 4px;
+                }
+
+                .form-message.success {
+                    color: #10b981;
+                    background: rgba(16, 185, 129, 0.06);
+                }
+
+                .form-message.error {
+                    color: #ef4444;
+                    background: rgba(239, 68, 68, 0.06);
                 }
 
                 .full-width {
                     width: 100%;
-                    margin-top: 12px;
+                    margin-top: 8px;
+                    justify-content: center;
                 }
             `}</style>
         </section>
