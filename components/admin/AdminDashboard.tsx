@@ -146,7 +146,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     font-size: 2rem;
                     background: linear-gradient(135deg, #a855f7, #3b82f6);
                     -webkit-background-clip: text;
-                    -webkit-text-fill_color: transparent;
+                    -webkit-text-fill-color: transparent;
                     background-clip: text;
                 }
 
