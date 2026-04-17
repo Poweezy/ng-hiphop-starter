@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +26,10 @@ export default function Navigation() {
     <nav
       className={`nav-main ${scrolled ? 'scrolled' : ''}`}
     >
+      <motion.div
+        className="scroll-progress-bar"
+        style={{ scaleX }}
+      />
       <div className="nav-container">
         {/* Logo */}
         <a href="/" className="nav-logo">
@@ -85,6 +96,18 @@ export default function Navigation() {
           -webkit-backdrop-filter: blur(30px);
           border-bottom: 1px solid rgba(255, 255, 255, 0.05);
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .scroll-progress-bar {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, var(--color-purple), var(--color-accent));
+          transform-origin: 0%;
+          z-index: 1001;
+          box-shadow: 0 0 10px var(--color-purple);
         }
 
         .nav-container {
