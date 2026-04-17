@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, AnimatePresence, useInView, useMotionValue, useTransform } from 'framer-motion';
 
 interface Quote {
     id: string;
@@ -21,6 +21,24 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     
     const containerRef = useRef(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.2 });
+
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotateX = useTransform(y, [-200, 200], [10, -10]);
+    const rotateY = useTransform(x, [-200, 200], [-10, 10]);
+
+    function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        x.set(e.clientX - centerX);
+        y.set(e.clientY - centerY);
+    }
+
+    function handleMouseLeave() {
+        x.set(0);
+        y.set(0);
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,15 +85,20 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                         <h2 className="section-title">The Culture <br /><span>Speaks</span></h2>
                         <p className="section-subtitle">Real talk from the NG Hip Hop community.</p>
 
-                        <div className="vinyl-quote-card">
-                            <div className="vinyl-decoration">
+                        <motion.div 
+                            className="vinyl-quote-card"
+                            style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
+                            onMouseMove={handleMouseMove}
+                            onMouseLeave={handleMouseLeave}
+                        >
+                            <div className="vinyl-decoration" style={{ transform: "translateZ(20px)" }}>
                                 <div className="ring ring-1"></div>
                                 <div className="ring ring-2"></div>
                                 <div className="ring ring-3"></div>
                             </div>
                             
                             {featuredQuote ? (
-                                <div className="quote-content">
+                                <div className="quote-content" style={{ transform: "translateZ(50px)" }}>
                                     <span className="quote-mark">“</span>
                                     <blockquote className="main-quote">
                                         {featuredQuote.quote_text}
@@ -86,12 +109,12 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="empty-quote">
+                                <div className="empty-quote" style={{ transform: "translateZ(50px)" }}>
                                     <span className="mic-icon">🎤</span>
                                     <p>The stage is yours. Drop the first piece of wisdom.</p>
                                 </div>
                             )}
-                        </div>
+                        </motion.div>
                     </motion.div>
 
                     {/* Submission Form Section */}

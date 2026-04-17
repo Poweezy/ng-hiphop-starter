@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
+import CustomCursor from '@/components/CustomCursor';
+import SplashScreen from '@/components/SplashScreen';
 
 export const metadata: Metadata = {
     title: {
@@ -62,6 +64,8 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
+                <CustomCursor />
+                <SplashScreen />
                 <LayoutWrapper>{children}</LayoutWrapper>
             </body>
         </html>

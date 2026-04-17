@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 
 interface Graffiti {
     id: string;
@@ -12,6 +12,56 @@ interface Graffiti {
 
 interface GraffitiShowcaseProps {
     graffiti: Graffiti[];
+}
+
+function GraffitiCardComponent({ piece, onClick }: { piece: Graffiti, onClick: () => void }) {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+
+    const rotateX = useTransform(y, [-150, 150], [10, -10]);
+    const rotateY = useTransform(x, [-150, 150], [-10, 10]);
+
+    function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        x.set(e.clientX - centerX);
+        y.set(e.clientY - centerY);
+    }
+
+    function handleMouseLeave() {
+        x.set(0);
+        y.set(0);
+    }
+
+    return (
+        <motion.div
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 }
+            }}
+            className="graffiti-card"
+            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            onClick={onClick}
+        >
+            <div className="card-image-wrapper">
+                <Image
+                    src={piece.image_url}
+                    alt={`Graffiti by ${piece.artist_name}`}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="graffiti-image"
+                />
+                <div className="card-overlay" style={{ transform: "translateZ(30px)" }}>
+                    <p className="artist-tag">Artist: {piece.artist_name}</p>
+                    <span className="view-text">View Large</span>
+                </div>
+            </div>
+        </motion.div>
+    );
 }
 
 export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProps) {
@@ -82,30 +132,11 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                         className="graffiti-grid"
                     >
                         {graffiti.map((piece) => (
-                            <motion.div
+                            <GraffitiCardComponent
                                 key={piece.id}
-                                variants={{
-                                    hidden: { opacity: 0, y: 20 },
-                                    show: { opacity: 1, y: 0 }
-                                }}
-                                className="graffiti-card"
+                                piece={piece}
                                 onClick={() => setSelectedImage(piece.image_url)}
-                            >
-                                <div className="card-image-wrapper">
-                                    <Image
-                                        src={piece.image_url}
-                                        alt={`Graffiti by ${piece.artist_name}`}
-                                        fill
-                                        style={{ objectFit: 'cover' }}
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                        className="graffiti-image"
-                                    />
-                                    <div className="card-overlay">
-                                        <p className="artist-tag">Artist: {piece.artist_name}</p>
-                                        <span className="view-text">View Large</span>
-                                    </div>
-                                </div>
-                            </motion.div>
+                            />
                         ))}
                     </motion.div>
                 ) : (
@@ -224,6 +255,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     display: grid;
                     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
                     gap: 32px;
+                    perspective: 1000px;
                 }
 
                 .graffiti-card {
