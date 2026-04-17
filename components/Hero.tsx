@@ -52,9 +52,9 @@ export default function Hero({ slogan }: HeroProps) {
 
       {/* NG LOGO - Background */}
       <motion.div
-        initial={{ opacity: 0, scale: 1.1 }}
-        animate={{ opacity: 0.4, scale: 1 }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
+        initial={{ opacity: 0, scale: 1.2 }}
+        animate={{ opacity: 0.25, scale: 1 }}
+        transition={{ duration: 2, ease: "easeOut" }}
         className="bg-logo-container"
       >
         <Image
@@ -65,18 +65,19 @@ export default function Hero({ slogan }: HeroProps) {
           className="bg-logo-image"
           priority
         />
+        <div className="bg-logo-overlay"></div>
       </motion.div>
 
       {/* Content */}
       <div className="hero-content">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
+        <motion.h1
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="hero-slogan"
         >
           {slogan}
-        </motion.p>
+        </motion.h1>
 
         <motion.div
           initial={{ width: 0 }}
@@ -95,7 +96,7 @@ export default function Hero({ slogan }: HeroProps) {
           <a href="#latest-release" className="btn btn-primary hero-btn">
             <span>🎵</span> Listen Now
           </a>
-          <a href="#latest-release" className="btn btn-secondary hero-btn">
+          <a href="#latest-release" className="btn glass-button hero-btn">
             <span>🔥</span> Latest Drop
           </a>
         </motion.div>
@@ -149,27 +150,37 @@ export default function Hero({ slogan }: HeroProps) {
           pointer-events: none;
         }
 
+        .bg-logo-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 0%, #030305 100%);
+        }
+
         .bg-logo-image {
           object-fit: cover;
-          filter: drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)) brightness(0.7);
+          filter: drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)) brightness(0.6) contrast(1.2);
+          mix-blend-mode: screen;
         }
 
         .hero-content {
           position: relative;
           z-index: 10;
-          max-width: 800px;
+          max-width: 1000px;
         }
 
         .hero-slogan {
-          font-family: var(--font-condensed);
-          font-size: clamp(1.4rem, 4vw, 2.2rem);
-          font-weight: 700;
-          letter-spacing: 0.15em;
+          font-family: var(--font-display);
+          font-size: clamp(3rem, 8vw, 6.5rem);
+          font-weight: 900;
+          letter-spacing: -0.03em;
           text-transform: uppercase;
-          color: var(--color-white);
-          line-height: 1.2;
+          line-height: 1.05;
           margin-bottom: 24px;
-          text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+          text-shadow: 0 10px 40px rgba(0,0,0,0.8);
+          background: var(--gradient-glow);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
         .accent-line {

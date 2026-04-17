@@ -88,7 +88,6 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                                     hidden: { opacity: 0, y: 20 },
                                     show: { opacity: 1, y: 0 }
                                 }}
-                                whileHover={{ y: -10, transition: { duration: 0.2 } }}
                                 className="graffiti-card"
                                 onClick={() => setSelectedImage(piece.image_url)}
                             >
@@ -99,6 +98,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                                         fill
                                         style={{ objectFit: 'cover' }}
                                         sizes="(max-width: 768px) 100vw, 33vw"
+                                        className="graffiti-image"
                                     />
                                     <div className="card-overlay">
                                         <p className="artist-tag">Artist: {piece.artist_name}</p>
@@ -228,11 +228,18 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
                 .graffiti-card {
                     cursor: pointer;
-                    background: rgba(255, 255, 255, 0.03);
+                    background: rgba(255, 255, 255, 0.02);
                     border-radius: 20px;
                     padding: 8px;
                     border: 1px solid rgba(255, 255, 255, 0.05);
-                    transition: all 0.3s ease;
+                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                    backdrop-filter: blur(16px);
+                }
+
+                .graffiti-card:hover {
+                    border-color: rgba(139, 92, 246, 0.3);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(139, 92, 246, 0.15);
+                    transform: translateY(-8px);
                 }
 
                 .card-image-wrapper {
@@ -242,20 +249,30 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     overflow: hidden;
                 }
 
+                .card-image-wrapper :global(.graffiti-image) {
+                    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .graffiti-card:hover :global(.graffiti-image) {
+                    transform: scale(1.1);
+                }
+
                 .card-overlay {
                     position: absolute;
                     inset: 0;
-                    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+                    background: linear-gradient(to top, rgba(10,10,15,0.9) 0%, rgba(10,10,15,0.2) 60%, transparent 100%);
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-end;
-                    padding: 20px;
+                    padding: 24px;
                     opacity: 0;
-                    transition: opacity 0.3s ease;
+                    transform: translateY(10px);
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
                 .graffiti-card:hover .card-overlay {
                     opacity: 1;
+                    transform: translateY(0);
                 }
 
                 .artist-tag {
@@ -306,13 +323,14 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 }
 
                 .graffiti-modal-content {
-                    background: #11111a;
-                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: rgba(10, 10, 15, 0.6);
+                    backdrop-filter: blur(40px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 28px;
                     max-height: 90vh;
                     overflow-y: auto;
                     position: relative;
-                    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
                     margin: auto;
                     display: block;
                 }
@@ -333,9 +351,10 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     border-radius: 32px;
                     display: flex;
                     flex-direction: column;
-                    background: #0d0d14;
-                    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(139, 92, 246, 0.2);
+                    background: rgba(13, 13, 20, 0.8);
+                    backdrop-filter: blur(40px);
+                    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(139, 92, 246, 0.1);
+                    border: 1px solid rgba(139, 92, 246, 0.3);
                 }
 
                 .form-header {

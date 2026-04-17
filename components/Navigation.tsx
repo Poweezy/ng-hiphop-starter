@@ -80,10 +80,11 @@ export default function Navigation() {
 
         .nav-main.scrolled {
           padding: 12px 0;
-          background: rgba(10, 10, 15, 0.85);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+          background: rgba(3, 3, 5, 0.6);
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
         }
 
         .nav-container {

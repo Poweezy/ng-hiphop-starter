@@ -166,7 +166,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
             <style jsx>{`
                 .quotes-section {
-                    background: #050508;
+                    background: var(--color-black);
                     position: relative;
                     padding: 120px 0;
                     overflow: hidden;
@@ -193,14 +193,21 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
                 /* Vinyl Card Styles */
                 .vinyl-quote-card {
-                    background: linear-gradient(135deg, #12121e 0%, #0a0a14 100%);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+                    backdrop-filter: blur(24px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 40px;
-                    padding: 60px;
+                    padding: 80px 60px 60px;
                     margin-top: 40px;
                     position: relative;
                     overflow: hidden;
-                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(139, 92, 246, 0.1);
+                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .vinyl-quote-card:hover {
+                    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), inset 0 0 0 2px rgba(139, 92, 246, 0.5);
+                    transform: translateY(-8px);
                 }
 
                 .vinyl-decoration {
@@ -229,22 +236,29 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 .quote-mark {
                     display: block;
                     font-family: Georgia, serif;
-                    font-size: 6rem;
+                    font-size: 8rem;
                     color: var(--color-purple);
-                    opacity: 0.3;
+                    opacity: 0.15;
                     line-height: 1;
-                    margin-bottom: -20px;
+                    margin-bottom: -50px;
+                    transition: transform 0.5s ease;
+                }
+
+                .vinyl-quote-card:hover .quote-mark {
+                    transform: scale(1.1) rotate(-5deg);
+                    opacity: 0.25;
                 }
 
                 .main-quote {
-                    font-size: 1.8rem;
-                    line-height: 1.5;
+                    font-size: 2rem;
+                    line-height: 1.4;
                     color: white;
                     font-weight: 500;
-                    margin-bottom: 32px;
+                    margin-bottom: 40px;
                     position: relative;
                     z-index: 1;
                     font-style: italic;
+                    letter-spacing: -0.01em;
                 }
 
                 .quote-footer,
@@ -283,12 +297,17 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
                 /* Form Card Styles */
                 .glass-form-card {
-                    background: rgba(255, 255, 255, 0.02);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+                    backdrop-filter: blur(24px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 32px;
-                    padding: 40px;
-                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+                    padding: 50px 40px;
+                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+                    transition: transform 0.4s ease;
+                }
+                
+                .glass-form-card:hover {
+                    transform: translateY(-4px);
                 }
 
                 .form-title {
