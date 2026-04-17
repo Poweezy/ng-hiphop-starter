@@ -56,10 +56,16 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
     return (
         <section id="latest-release" className="section release-section">
-            {/* Background accent */}
-            <div className="release-bg-accent" aria-hidden="true" />
+            {/* Massive blurred background of the cover art */}
+            <div 
+                className="release-bg-blur" 
+                style={{ backgroundImage: `url(${song.cover_url})` }} 
+                aria-hidden="true" 
+            />
+            {/* Ambient overlay to ensure text remains readable */}
+            <div className="release-bg-overlay" aria-hidden="true" />
 
-            <div className="container">
+            <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="section-badge">Latest Drop</div>
 
                 <div className="release-grid">
@@ -142,22 +148,22 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                             <p className="links-label">Stream & Download</p>
                             <div className="links-grid">
                                 {links.spotify && (
-                                    <a href={links.spotify} target="_blank" rel="noopener noreferrer" className="btn-badge link-btn">
+                                    <a href={links.spotify} target="_blank" rel="noopener noreferrer" className="btn-badge glass-button link-btn">
                                         <SpotifyIcon /> Spotify
                                     </a>
                                 )}
                                 {links.apple && (
-                                    <a href={links.apple} target="_blank" rel="noopener noreferrer" className="btn-badge link-btn">
+                                    <a href={links.apple} target="_blank" rel="noopener noreferrer" className="btn-badge glass-button link-btn">
                                         <AppleIcon /> Apple Music
                                     </a>
                                 )}
                                 {links.distro && (
-                                    <a href={links.distro} target="_blank" rel="noopener noreferrer" className="btn-badge link-btn">
+                                    <a href={links.distro} target="_blank" rel="noopener noreferrer" className="btn-badge glass-button link-btn">
                                         🌐 Distribution
                                     </a>
                                 )}
                                 {(links.publisher || song.publisher_link) && (
-                                    <a href={links.publisher || song.publisher_link || '#'} target="_blank" rel="noopener noreferrer" className="btn-badge link-btn">
+                                    <a href={links.publisher || song.publisher_link || '#'} target="_blank" rel="noopener noreferrer" className="btn-badge glass-button link-btn">
                                         📜 Publisher
                                     </a>
                                 )}
@@ -169,19 +175,28 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
             <style jsx>{`
                 .release-section {
-                    background: linear-gradient(180deg, #0a0a14 0%, #0f0f1e 100%);
+                    background: var(--color-black);
                     position: relative;
                     overflow: hidden;
+                    padding-top: calc(var(--section-padding) + 40px);
                 }
 
-                .release-bg-accent {
+                .release-bg-blur {
                     position: absolute;
-                    right: -200px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    width: 600px;
-                    height: 600px;
-                    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+                    inset: -50px; /* Slight overflow to handle blur edges */
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(80px) saturate(2);
+                    opacity: 0.3;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+
+                .release-bg-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(180deg, rgba(3,3,5,0.8) 0%, rgba(3,3,5,0.95) 100%);
+                    z-index: 2;
                     pointer-events: none;
                 }
 
@@ -261,9 +276,11 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 }
 
                 .release-title {
-                    font-size: clamp(2.5rem, 6vw, 4.5rem);
+                    font-size: clamp(3rem, 7vw, 5.5rem);
                     margin-bottom: 24px;
                     line-height: 0.95;
+                    font-weight: 900;
+                    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
                 }
 
                 .release-description {
@@ -289,11 +306,12 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 }
 
                 .audio-wrapper {
-                    background: rgba(255, 255, 255, 0.03);
+                    background: rgba(255, 255, 255, 0.05);
                     border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 20px;
-                    padding: 8px;
-                    backdrop-filter: blur(20px);
+                    padding: 12px;
+                    backdrop-filter: blur(24px);
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
                 }
 
                 .custom-audio {
