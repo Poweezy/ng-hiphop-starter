@@ -113,13 +113,13 @@ export default function CustomCursor() {
                     position: fixed;
                     top: 0;
                     left: 0;
-                    width: 12px;
-                    height: 12px;
-                    background: var(--color-purple);
+                    width: 10px;
+                    height: 10px;
+                    background: white;
                     border-radius: 50%;
                     pointer-events: none;
                     z-index: 10000;
-                    box-shadow: 0 0 10px var(--color-purple);
+                    mix-blend-mode: difference;
                 }
 
                 .cursor-ring {
@@ -128,7 +128,7 @@ export default function CustomCursor() {
                     left: 0;
                     width: 40px;
                     height: 40px;
-                    border: 1.5px solid var(--color-purple);
+                    border: 1px solid white;
                     border-radius: 50%;
                     pointer-events: none;
                     z-index: 9999;
@@ -136,7 +136,7 @@ export default function CustomCursor() {
                     align-items: center;
                     justify-content: center;
                     transition: border-color 0.2s, background-color 0.2s;
-                    backdrop-filter: blur(2px);
+                    mix-blend-mode: difference;
                 }
                 
                 .cursor-text {
