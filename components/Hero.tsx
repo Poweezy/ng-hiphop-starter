@@ -53,7 +53,7 @@ export default function Hero({ slogan }: HeroProps) {
       {/* NG LOGO - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 1.2 }}
-        animate={{ opacity: 0.25, scale: 1 }}
+        animate={{ opacity: 0.45, scale: 1 }}
         transition={{ duration: 2, ease: "easeOut" }}
         className="bg-logo-container"
       >
@@ -170,12 +170,12 @@ export default function Hero({ slogan }: HeroProps) {
         .bg-logo-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, transparent 0%, #030305 100%);
+          background: linear-gradient(180deg, transparent 0%, rgba(3, 3, 5, 0.4) 100%);
         }
 
         .bg-logo-image {
           object-fit: cover;
-          filter: drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)) brightness(0.6) contrast(1.2);
+          filter: drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)) brightness(0.8) contrast(1.2);
           mix-blend-mode: screen;
         }
 
