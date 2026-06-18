@@ -110,11 +110,11 @@ export default function Hero({ slogan }: HeroProps) {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="cta-container"
         >
-          <a href="#latest-release" className="btn btn-primary hero-btn">
-            <span>🎵</span> Listen Now
+          <a href="#latest-release" className="hero-btn-primary">
+            <span aria-hidden="true">🎵</span> Listen Now
           </a>
-          <a href="#latest-release" className="btn glass-button hero-btn">
-            <span>🔥</span> Latest Drop
+          <a href="#latest-release" className="hero-btn-ghost">
+            <span aria-hidden="true">🔥</span> Latest Drop
           </a>
         </motion.div>
       </div>
@@ -210,14 +210,13 @@ export default function Hero({ slogan }: HeroProps) {
 
         .cta-container {
           display: flex;
-          gap: 20px;
+          gap: 16px;
           justify-content: center;
           flex-wrap: wrap;
+          align-items: center;
         }
 
-        .hero-btn {
-          min-width: 180px;
-        }
+
 
         .scroll-indicator {
           position: absolute;
