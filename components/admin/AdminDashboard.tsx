@@ -13,6 +13,8 @@ import GraffitiPanel from './GraffitiPanel';
 import LyricsPanel from './LyricsPanel';
 import SecurityPanel from './SecurityPanel';
 
+import Image from 'next/image';
+
 export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'security';
 
 interface Props {
@@ -41,7 +43,13 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
             {/* Top Bar */}
             <header className="admin-header">
                 <div className="header-left">
-                    <span className="logo">NG</span>
+                    <Image
+                        src="/images/logo.png"
+                        alt="Nerd Gauge Logo"
+                        width={36}
+                        height={36}
+                        style={{ objectFit: 'contain' }}
+                    />
                     <div className="header-text">
                         <div className="title">ADMIN DASHBOARD</div>
                         <div className="subtitle">Content Management Portal</div>

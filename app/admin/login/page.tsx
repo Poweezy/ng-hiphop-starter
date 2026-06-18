@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
+import Image from 'next/image';
+
 export default function AdminLoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -79,19 +81,23 @@ export default function AdminLoginPage() {
         >
             <div style={{ width: '100%', maxWidth: '420px' }}>
                 {/* Logo */}
-                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div
                         style={{
-                            fontFamily: 'var(--font-cursive)',
-                            fontSize: '3.5rem',
-                            background: 'linear-gradient(135deg, #a855f7 0%, #6A0DAD 50%, #3b82f6 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                            lineHeight: 1,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginBottom: '12px'
                         }}
                     >
-                        NG
+                        <Image
+                            src="/images/logo.png"
+                            alt="Nerd Gauge Logo"
+                            width={90}
+                            height={90}
+                            style={{ objectFit: 'contain' }}
+                            priority
+                        />
                     </div>
                     <div
                         style={{

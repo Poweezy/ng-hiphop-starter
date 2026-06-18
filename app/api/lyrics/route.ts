@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         if (!validation.success) {
             return NextResponse.json({ 
                 message: 'Invalid input', 
-                errors: validation.error.errors 
+                errors: validation.error.issues 
             }, { status: 400 });
         }
 
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest) {
         if (!validation.success) {
             return NextResponse.json({ 
                 message: 'Invalid input', 
-                errors: validation.error.errors 
+                errors: validation.error.issues 
             }, { status: 400 });
         }
 
@@ -98,7 +98,7 @@ export async function DELETE(req: NextRequest) {
         if (!validation.success) {
             return NextResponse.json({ 
                 message: 'Invalid input', 
-                errors: validation.error.errors 
+                errors: validation.error.issues 
             }, { status: 400 });
         }
         

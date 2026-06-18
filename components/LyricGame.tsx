@@ -53,7 +53,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         const correctArtist = current.correct_artist;
         
         // Pick 3 random distractors from ALL other artists
-        const otherArtists = [...new Set(allLyrics.map(l => l.correct_artist).filter(a => a !== correctArtist))];
+        const rawArtists = allLyrics.map(l => l.correct_artist).filter(a => a !== correctArtist);
+        const otherArtists = rawArtists.filter((artist, idx) => rawArtists.indexOf(artist) === idx);
         
         // If not enough distinct artists, pad with some defaults
         const defaults = ["Dr. Dre", "Snoop Dogg", "Ice Cube", "Tupac", "Nas", "Jay-Z", "Kendrick Lamar", "J. Cole", "Eminem", "Kanye West", "50 Cent", "Notorious B.I.G."];
