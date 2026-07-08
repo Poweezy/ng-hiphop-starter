@@ -1,12 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
 
 interface OverviewPanelProps {
-    songs: any[];
-    quotes: any[];
-    graffiti: any[];
-    lyrics: any[];
+    songs: SongSummary[];
+    quotes: QuoteSummary[];
+    graffiti: GraffitiSummary[];
+    lyrics: LyricSummary[];
     onNavigate: (tab: "slogan" | "songs" | "quotes" | "graffiti" | "lyrics") => void;
 }
 
