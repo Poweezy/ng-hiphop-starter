@@ -47,6 +47,8 @@ model QuoteSubmission {
   approved      Boolean   @default(false)
   is_featured   Boolean   @default(false)
   display_until DateTime?
+  scan_clean    Boolean   @default(true)
+  scan_result   String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -60,6 +62,8 @@ model GraffitiSubmission {
   artist_name   String
   approved      Boolean   @default(false)
   display_until DateTime?
+  scan_clean    Boolean   @default(true)
+  scan_result   String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

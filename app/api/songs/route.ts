@@ -7,6 +7,7 @@ import { songUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { optimizeImage } from '@/lib/imageOptimizer';
+import { scanBuffer } from '@/lib/uploadScanner';
 
 const ALLOWED_AUDIO = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4'];
 const ALLOWED_IMAGE = ['image/jpeg', 'image/png', 'image/webp'];
@@ -85,13 +86,18 @@ export async function POST(req: NextRequest) {
         const formData = await req.formData();
         const audioFile = formData.get('audio') as File | null;
         const coverFile = formData.get('cover') as File | null;
+        const coverUrl = formData.get('coverUrl') as string | null;
         const title = (formData.get('title') as string ?? '').trim().slice(0, 120);
         const description = (formData.get('description') as string ?? '').trim().slice(0, 500);
         const distributionLinks = formData.get('distributionLinks') as string | null;
         const publisherLink = formData.get('publisherLink') as string | null;
 
-        if (!audioFile || !coverFile || !title) {
-            return NextResponse.json({ message: 'Audio file, cover image, and title are required' }, { status: 400 });
+        if (!audioFile || !title) {
+            return NextResponse.json({ message: 'Audio file and title are required' }, { status: 400 });
+        }
+
+        if (!coverFile && !coverUrl) {
+            return NextResponse.json({ message: 'Cover image or cover URL is required' }, { status: 400 });
         }
 
         // Validate audio
@@ -102,20 +108,39 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Audio must be under 50MB' }, { status: 400 });
         }
 
-        // Validate cover
-        if (!ALLOWED_IMAGE.includes(coverFile.type)) {
-            return NextResponse.json({ message: 'Cover must be JPG, PNG, or WEBP' }, { status: 400 });
-        }
-        if (coverFile.size > MAX_IMAGE_BYTES) {
-            return NextResponse.json({ message: 'Cover image must be under 5MB' }, { status: 400 });
+        // Scan audio (best-effort)
+        const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+        const audioScan = await scanBuffer(audioBuffer, audioFile.name);
+        if (!audioScan.clean) {
+            return NextResponse.json({ message: `Audio rejected: ${audioScan.reason}` }, { status: 400 });
         }
 
-        // Save files with the new storage utility
+        // Save audio
         const audioUrl = await storage.uploadFile(audioFile, 'songs');
 
-        const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
-        const optimizedCover = await optimizeImage(coverBuffer, { maxWidth: 1200, maxHeight: 1200, quality: 80, format: 'webp' });
-        const coverUrl = await storage.uploadFile(optimizedCover.buffer, 'covers', optimizedCover.format);
+        // Use pre-optimized cover URL if provided, otherwise optimize now
+        let finalCoverUrl = coverUrl;
+        if (!finalCoverUrl && coverFile) {
+            if (!ALLOWED_IMAGE.includes(coverFile.type)) {
+                return NextResponse.json({ message: 'Cover must be JPG, PNG, or WEBP' }, { status: 400 });
+            }
+            if (coverFile.size > MAX_IMAGE_BYTES) {
+                return NextResponse.json({ message: 'Cover image must be under 5MB' }, { status: 400 });
+            }
+
+            const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
+            const coverScan = await scanBuffer(coverBuffer, coverFile.name);
+            if (!coverScan.clean) {
+                return NextResponse.json({ message: `Cover rejected: ${coverScan.reason}` }, { status: 400 });
+            }
+
+            const optimizedCover = await optimizeImage(coverBuffer, { maxWidth: 1200, maxHeight: 1200, quality: 80, format: 'webp' });
+            finalCoverUrl = await storage.uploadFile(optimizedCover.buffer, 'covers', optimizedCover.format);
+        }
+
+        if (!finalCoverUrl) {
+            return NextResponse.json({ message: 'Cover image is required' }, { status: 400 });
+        }
 
         // Deactivate others if setting active
         await prisma.song.updateMany({ data: { is_active: false } });
@@ -125,7 +150,7 @@ export async function POST(req: NextRequest) {
                 title,
                 description: description || null,
                 file_url: audioUrl,
-                cover_url: coverUrl,
+                cover_url: finalCoverUrl,
                 distribution_links: distributionLinks || null,
                 publisher_link: publisherLink || null,
                 is_active: true,

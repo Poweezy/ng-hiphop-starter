@@ -19,11 +19,27 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
         if (!file || !artistName.trim()) return;
         setUploading(true);
         try {
-            const fd = new FormData();
-            fd.append('image', file);
-            fd.append('artistName', artistName.trim());
+            // Optimize image server-side
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('folder', 'graffiti');
 
-            const res = await fetch('/api/graffiti', { method: 'POST', body: fd });
+            const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: formData });
+            if (!optimizeRes.ok) {
+                const err = await optimizeRes.json();
+                setUploading(false);
+                return;
+            }
+            const { url: imageUrl } = await optimizeRes.json();
+
+            // Create graffiti submission via JSON
+            const res = await fetch('/api/graffiti', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl, artistName: artistName.trim() }),
+                credentials: 'include',
+            });
+
             if (res.ok) {
                 setItems([await res.json(), ...items]);
                 setArtistName('');

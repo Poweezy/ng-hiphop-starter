@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { registerModerationHandlers } from '@/lib/moderation';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -12,3 +13,6 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
+
+// Register background task handlers once per process
+registerModerationHandlers();

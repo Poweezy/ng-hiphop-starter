@@ -77,14 +77,26 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
         if (!file || !artistName) return;
 
         setSubmitting(true);
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('artistName', artistName);
-
         try {
+            // Optimize image server-side first
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('folder', 'graffiti');
+
+            const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: formData });
+            if (!optimizeRes.ok) {
+                const err = await optimizeRes.json();
+                setMessage(err.message || 'Upload failed');
+                setSubmitting(false);
+                return;
+            }
+            const { url: imageUrl } = await optimizeRes.json();
+
+            // Submit graffiti with optimized image URL
             const res = await fetch('/api/graffiti', {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl, artistName }),
             });
             const data = await res.json();
             setMessage(data.message);
@@ -96,7 +108,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     setMessage('');
                 }, 2000);
             }
-        } catch (err) {
+        } catch {
             setMessage('Something went wrong');
         } finally {
             setSubmitting(false);

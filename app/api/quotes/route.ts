@@ -9,6 +9,7 @@ import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { recordRequest } from '@/lib/observability';
+import { notifyAdminModeration } from '@/lib/moderation';
 
 
 export async function GET(req: NextRequest) {
@@ -86,9 +87,11 @@ export async function POST(req: NextRequest) {
 
         const { name, quote } = validation.data;
 
-        await prisma.quoteSubmission.create({
+        const newQuote = await prisma.quoteSubmission.create({
             data: { quote_text: quote, submitted_by: name },
         });
+
+        notifyAdminModeration({ submissionType: 'quote', submissionId: newQuote.id, submittedBy: name }).catch(() => {});
 
         recordRequest('POST', '/api/quotes', 201, performance.now() - start);
         return NextResponse.json({ message: 'Quote submitted for approval' }, { status: 201 });
