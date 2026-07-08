@@ -32,15 +32,15 @@ export default function SloganPanel({ initialSlogan }: Props) {
             <h2 className="panel-title">SLOGAN EDITOR</h2>
             <p className="panel-desc">Update the hero slogan. Changes go live immediately on the main site.</p>
 
-            <div className="glass-panel" style={{ maxWidth: '600px', padding: '28px' }}>
-                <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(4,120,87,0.08)', borderRadius: '6px', borderLeft: '3px solid var(--color-green)' }}>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px', fontFamily: 'var(--font-condensed)' }}>Current Live Slogan</p>
-                    <p style={{ fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '0.06em' }}>{saved || '—'}</p>
+            <div className="glass-panel glass-panel--narrow">
+                <div className="admin-preview-box">
+                    <p className="admin-preview-label">Current Live Slogan</p>
+                    <p className="admin-preview-text">{saved || '—'}</p>
                 </div>
 
-                <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <form onSubmit={handleSave} className="form-stack">
                     <div className="form-group">
-                        <label htmlFor="slogan-input" className="form-label" style={{ color: 'var(--color-green-light)' }}>New Slogan</label>
+                        <label htmlFor="slogan-input" className="form-label admin-label--green">New Slogan</label>
                         <input
                             id="slogan-input"
                             type="text"
@@ -52,7 +52,7 @@ export default function SloganPanel({ initialSlogan }: Props) {
                             required
                             disabled={status === 'loading'}
                         />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)', textAlign: 'right' }}>{slogan.length}/200</span>
+                        <span className="admin-char-count">{slogan.length}/200</span>
                     </div>
 
                     <button type="submit" className="btn-admin" disabled={status === 'loading' || slogan.trim() === saved}>

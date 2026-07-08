@@ -15,6 +15,7 @@ import LyricsPanel from './LyricsPanel';
 import SecurityPanel from './SecurityPanel';
 
 import Image from 'next/image';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'security';
 
@@ -96,32 +97,34 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
 
                 {/* Main Content Area */}
                 <main className="admin-main">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ flex: 1 }}
-                        >
-                            {activeTab === 'overview' && (
-                                <OverviewPanel 
-                                    songs={initialSongs} 
-                                    quotes={initialQuotes} 
-                                    graffiti={initialGraffiti} 
-                                    lyrics={initialLyrics} 
-                                    onNavigate={setActiveTab} 
-                                />
-                            )}
-                            {activeTab === 'slogan' && <SloganPanel initialSlogan={initialSlogan} />}
-                            {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
-                            {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
-                            {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
-                            {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
-                            {activeTab === 'security' && <SecurityPanel />}
-                        </motion.div>
-                    </AnimatePresence>
+                    <ErrorBoundary>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex-1"
+                            >
+                                {activeTab === 'overview' && (
+                                    <OverviewPanel 
+                                        songs={initialSongs} 
+                                        quotes={initialQuotes} 
+                                        graffiti={initialGraffiti} 
+                                        lyrics={initialLyrics} 
+                                        onNavigate={setActiveTab} 
+                                    />
+                                )}
+                                {activeTab === 'slogan' && <SloganPanel initialSlogan={initialSlogan} />}
+                                {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
+                                {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
+                                {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
+                                {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
+                                {activeTab === 'security' && <SecurityPanel />}
+                            </motion.div>
+                        </AnimatePresence>
+                    </ErrorBoundary>
                 </main>
             </div>
 

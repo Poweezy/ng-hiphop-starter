@@ -58,14 +58,14 @@ export default function LyricsPanel({ initialLyrics }: Props) {
             <p className="panel-desc">Add and manage &quot;Guess the Artist&quot; game entries.</p>
 
             <div className="panel-grid">
-                <div className="glass-panel" style={{ padding: '24px' }}>
+                <div className="form-stack glass-panel">
                     <h3 className="admin-section-title">Add New Entry</h3>
-                    <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <form onSubmit={handleAdd} className="form-stack">
                         <div className="form-group">
-                            <label htmlFor="lyric-input" className="form-label" style={{ color: 'var(--color-green-light)' }}>Lyric Line *</label>
+                            <label htmlFor="lyric-input" className="form-label admin-label--green">Lyric Line *</label>
                             <textarea
                                 id="lyric-input"
-                                className="admin-input"
+                                className="admin-input admin-textarea"
                                 value={lyricText}
                                 onChange={(e) => setLyricText(e.target.value)}
                                 placeholder="Enter the lyric line..."
@@ -73,11 +73,10 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                                 rows={3}
                                 required
                                 disabled={saving}
-                                style={{ resize: 'vertical' }}
                             />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="artist-input" className="form-label" style={{ color: 'var(--color-green-light)' }}>Correct Artist *</label>
+                            <label htmlFor="artist-input" className="form-label admin-label--green">Correct Artist *</label>
                             <input
                                 id="artist-input"
                                 type="text"
@@ -118,7 +117,7 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                                         >
                                             {l.is_active ? 'OFF' : 'ON'}
                                         </button>
-                                        <button onClick={() => remove(l.id)} className="btn-danger" style={{ fontSize: '0.75rem', padding: '5px 10px' }}>Del</button>
+                                        <button onClick={() => remove(l.id)} className="btn-danger btn-sm">Del</button>
                                     </div>
                                 </div>
                             ))}

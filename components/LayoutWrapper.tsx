@@ -2,15 +2,14 @@
 
 import { usePathname } from 'next/navigation';
 import Navigation from '@/components/Navigation';
-import { Toaster } from 'react-hot-toast';
+import { ToastProvider } from '@/components/ToastProvider';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
 
     return (
-        <>
-            <Toaster position="top-right" />
+        <ToastProvider>
             {!isAdmin && <Navigation />}
             <main>{children}</main>
             {!isAdmin && (
@@ -19,6 +18,6 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                     Unauthorized use is prohibited.
                 </footer>
             )}
-        </>
+        </ToastProvider>
     );
 }

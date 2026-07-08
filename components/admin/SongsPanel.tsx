@@ -84,9 +84,9 @@ export default function SongsPanel({ initialSongs }: Props) {
             <p className="panel-desc">Upload and manage the active release.</p>
 
             <div className="panel-grid">
-                <div className="glass-panel" style={{ padding: '24px' }}>
+                <div className="glass-panel glass-panel--padded">
                     <h3 className="admin-section-title">Upload New Song</h3>
-                    <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <form onSubmit={handleUpload} className="form-stack">
                         {[{ label: 'Song Title *', id: 's-title', type: 'text', val: title, set: setTitle, ph: 'Enter track name' },
                         { label: 'Description', id: 's-desc', type: 'text', val: desc, set: setDesc, ph: 'Short description...' },
                         { label: 'Spotify URL', id: 's-spot', type: 'url', val: spotify, set: setSpotify, ph: 'https://open.spotify.com/...' },
@@ -95,21 +95,21 @@ export default function SongsPanel({ initialSongs }: Props) {
                         { label: 'Publisher URL', id: 's-pub', type: 'url', val: pubLink, set: setPubLink, ph: 'https://...' },
                         ].map(f => (
                             <div className="form-group" key={f.id}>
-                                <label htmlFor={f.id} className="form-label" style={{ color: 'var(--color-green-light)' }}>{f.label}</label>
+                                <label htmlFor={f.id} className="form-label admin-label--green">{f.label}</label>
                                 <input id={f.id} type={f.type} className="admin-input" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} disabled={uploading} maxLength={300} />
                             </div>
                         ))}
 
                         <div className="form-group">
-                            <label htmlFor="audio-file" className="form-label" style={{ color: 'var(--color-green-light)' }}>Audio File * (MP3/WAV, max 50MB)</label>
-                            <input id="audio-file" name="audio" type="file" accept="audio/*" required className="admin-input" disabled={uploading} style={{ padding: '8px' }} />
+                            <label htmlFor="audio-file" className="form-label admin-label--green">Audio File * (MP3/WAV, max 50MB)</label>
+                            <input id="audio-file" name="audio" type="file" accept="audio/*" required className="admin-input admin-file-input" disabled={uploading} />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="cover-file" className="form-label" style={{ color: 'var(--color-green-light)' }}>Cover Art * (JPG/PNG/WEBP, max 5MB)</label>
-                            <input id="cover-file" name="cover" type="file" accept="image/jpeg,image/png,image/webp" required className="admin-input" disabled={uploading} style={{ padding: '8px' }} />
+                            <label htmlFor="cover-file" className="form-label admin-label--green">Cover Art * (JPG/PNG/WEBP, max 5MB)</label>
+                            <input id="cover-file" name="cover" type="file" accept="image/jpeg,image/png,image/webp" required className="admin-input admin-file-input" disabled={uploading} />
                         </div>
 
-                        <button type="submit" className="btn-admin" disabled={uploading} style={{ marginTop: '4px' }}>
+                        <button type="submit" className="btn-admin mt-1" disabled={uploading}>
                             {uploading ? '⏳ Uploading...' : '🎵 Upload & Set Active'}
                         </button>
                         {status !== 'idle' && (
@@ -123,27 +123,26 @@ export default function SongsPanel({ initialSongs }: Props) {
                     {songs.length === 0 ? (
                         <p className="admin-text-muted">No songs uploaded yet.</p>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div className="form-stack">
                             {songs.map(song => (
-                                <div key={song.id} className={`admin-card ${song.is_active ? 'admin-card--active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px' }}>
+                                <div key={song.id} className={`admin-card admin-card--compact ${song.is_active ? 'admin-card--active' : ''}`}>
                                     {song.cover_url && (
-                                        <div style={{ width: '48px', height: '48px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                                        <div className="admin-cover-thumb">
                                             <Image src={song.cover_url} alt={song.title} fill style={{ objectFit: 'cover' }} sizes="48px" />
                                         </div>
                                     )}
-                                    <div className="admin-card-body" style={{ minWidth: 0 }}>
-                                        <div style={{ fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
-                                        {song.is_active && <span className="badge-approved" style={{ marginTop: '4px', display: 'inline-block' }}>ACTIVE</span>}
+                                    <div className="admin-card-body admin-card-body--no-shrink">
+                                        <div className="admin-text-ellipsis">{song.title}</div>
+                                        {song.is_active && <span className="badge-approved badge-approved--inline mt-1">ACTIVE</span>}
                                     </div>
                                     <div className="admin-card-actions">
                                         <button
                                             onClick={() => toggleActive(song.id, song.is_active)}
-                                            className={song.is_active ? 'btn-danger' : 'btn-badge btn-badge--listen'}
-                                            style={song.is_active ? undefined : { padding: '8px 18px', borderRadius: '50px', fontSize: '0.78rem' }}
+                                            className={song.is_active ? 'btn-danger' : 'btn-badge'}
                                         >
                                             {song.is_active ? 'Deactivate' : 'Set Active'}
                                         </button>
-                                        <button onClick={() => setDeleteId(song.id)} className="btn-danger" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>Delete</button>
+                                        <button onClick={() => setDeleteId(song.id)} className="btn-danger btn-xs">Delete</button>
                                     </div>
                                 </div>
                             ))}

@@ -1560,3 +1560,221 @@ img[loading="lazy"] {
   background: rgba(220, 38, 38, 0.2);
   color: #F87171;
 }
+
+/* ===================================
+   ADDITIONAL ADMIN UTILITIES
+   =================================== */
+
+/* Stacked form layout */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Green label variant */
+.admin-label--green {
+  color: var(--color-green-light);
+}
+
+/* Textarea resize control */
+.admin-textarea {
+  resize: vertical;
+}
+
+/* Small button variant */
+.btn-sm {
+  font-size: 0.75rem;
+  padding: 5px 10px;
+}
+
+/* Medium action button variant */
+.btn-md {
+  font-size: 0.78rem;
+  padding: 7px 14px;
+}
+
+/* Narrower glass panel */
+.glass-panel--narrow {
+  max-width: 600px;
+  padding: 28px;
+}
+
+/* Slogan preview block */
+.admin-preview-box {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(4,120,87,0.08);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-green);
+}
+
+.admin-preview-label {
+  font-size: 0.75rem;
+  color: var(--color-grey-blue);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-family: var(--font-condensed);
+}
+
+.admin-preview-text {
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+}
+
+/* Character count for inputs */
+.admin-char-count {
+  font-size: 0.75rem;
+  color: var(--color-grey-blue);
+  text-align: right;
+}
+
+/* Force badge inline-block */
+.badge-approved--inline {
+  display: inline-block;
+}
+
+.badge-approved--mt {
+  margin-top: 6px;
+}
+
+/* File input padding */
+.admin-file-input {
+  padding: 8px;
+}
+
+/* Card overflow fix for media */
+.admin-card--overflow-hidden {
+  overflow: hidden;
+}
+
+/* Card media wrapper */
+.admin-card-media {
+  position: relative;
+  aspect-ratio: 4/3;
+}
+
+/* Card absolute badge */
+.admin-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* Graffiti artist name */
+.admin-artist-name {
+  font-family: var(--font-cursive);
+  font-size: 1rem;
+  color: var(--color-yellow);
+  margin-bottom: 10px;
+}
+
+/* Spaced section title */
+.admin-section-title--spaced {
+  margin-top: 24px;
+}
+
+/* Glass panel with explicit padding */
+.glass-panel--padded {
+  padding: 24px;
+}
+
+/* Compact admin card for lists */
+.admin-card--compact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+}
+
+/* Cover art thumbnail */
+.admin-cover-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Prevent flex child min-width blowout */
+.admin-card-body--no-shrink {
+  min-width: 0;
+}
+
+/* Ellipsis text utility */
+.admin-text-ellipsis {
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Small button variant for admin actions */
+.btn-xs {
+  font-size: 0.8rem;
+  padding: 6px 14px;
+}
+
+/* Utility: flex-1 */
+.flex-1 {
+  flex: 1;
+}
+
+/* ===================================
+   TOAST NOTIFICATIONS (Zustand)
+   =================================== */
+.toast-stack {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: all;
+  min-width: 260px;
+  max-width: 400px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-family: var(--font-condensed);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  animation: toastSlideIn 0.3s ease;
+}
+
+.toast-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34D399;
+}
+
+.toast-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #F87171;
+}
+
+.toast-info {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60A5FA;
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
