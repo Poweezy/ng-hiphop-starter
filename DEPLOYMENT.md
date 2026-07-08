@@ -23,6 +23,28 @@ NEXTAUTH_URL="https://yourdomain.com"
 # Admin Credentials
 ADMIN_EMAIL="admin@yourdomain.com"
 ADMIN_PASSWORD="strong-secure-password"
+
+# Security
+ADMIN_RESET_SECRET="strong-master-reset-key"
+
+# Rate Limiting (Upstash Redis)
+UPSTASH_REDIS_REST_URL="https://..."
+UPSTASH_REDIS_REST_TOKEN="..."
+
+# S3 / Object Storage (Required for production file uploads)
+S3_BUCKET="your-bucket"
+S3_REGION="eu-west-1"
+AWS_ACCESS_KEY_ID="..."
+AWS_SECRET_ACCESS_KEY="..."
+S3_PUBLIC_BASE_URL="https://your-bucket.s3.amazonaws.com"
+S3_SIGNED_URL_TTL_SECONDS="3600"
+
+# Upload Scanning (Optional but recommended)
+VIRUS_SCANNER_ENABLED="true"
+VIRUS_SCANNER="clamav" # or "webhook"
+CLAMAV_HOST="127.0.0.1"
+CLAMAV_PORT="3310"
+# SCAN_WEBHOOK_URL="https://scanner.example.com/scan"
 ```
 
 ### 2. Database Migration
@@ -40,9 +62,11 @@ datasource db {
 2. Run migrations:
 ```bash
 npm run db:generate
-npm run db:push
+npm run db:migrate
 npm run db:seed
 ```
+
+**Note:** Use `npm run db:migrate` in production instead of `db:push` to preserve migration history.
 
 ### 3. Security Hardening
 
@@ -50,8 +74,11 @@ npm run db:seed
 - [ ] Change default admin password
 - [ ] Enable HTTPS/SSL
 - [ ] Set up CORS policies
-- [ ] Configure CSP headers
-- [ ] Add rate limiting (Redis recommended)
+- [ ] Configure CSP headers (already in `next.config.js`)
+- [ ] Configure rate limiting with Upstash Redis
+- [ ] Enable upload virus scanning (`VIRUS_SCANNER_ENABLED=true`)
+- [ ] Use S3/Cloudinary for file storage
+- [ ] Set strong `ADMIN_RESET_SECRET`
 
 ## 📦 Deployment Options
 
@@ -78,11 +105,17 @@ git push origin main
    - Add all variables from `.env`
    - Use Vercel Postgres for database
    - Set `NEXTAUTH_URL` to your domain
+   - Configure S3 credentials if using direct uploads
 
 4. **Deploy**
    - Click "Deploy"
    - Wait for build to complete
    - Visit your live site
+
+**Important Vercel Notes:**
+- Serverless functions have a 4.5MB body limit — use presigned S3 uploads for large files
+- Add S3 domains to `next.config.js` `remotePatterns` if using signed URLs
+- Set `NEXT_PUBLIC_S3_PUBLIC_BASE_URL` if serving public S3 objects
 
 **Database Options:**
 - [Vercel Postgres](https://vercel.com/storage/postgres) (Recommended)
@@ -115,6 +148,8 @@ railway add postgresql
 ```bash
 railway variables set NEXTAUTH_SECRET="your-secret"
 railway variables set NEXTAUTH_URL="https://your-app.railway.app"
+railway variables set UPSTASH_REDIS_REST_URL="..."
+railway variables set UPSTASH_REDIS_REST_TOKEN="..."
 ```
 
 5. **Deploy**
@@ -164,14 +199,14 @@ railway up
 postgresql://username:password@host:port/database?sslmode=require
 ```
 
-### Running Migrations
+### Migrations
 
 ```bash
 # Generate Prisma client
 npm run db:generate
 
-# Push schema to database
-npm run db:push
+# Create and apply migration
+npm run db:migrate
 
 # Seed initial data
 npm run db:seed
@@ -179,28 +214,25 @@ npm run db:seed
 
 ## 📁 File Storage
 
-### Local Storage (Development Only)
+### Production: S3 / Cloud Storage
 
-Files are stored in `/public/uploads/` - **NOT suitable for production**
+The app supports local storage in development and S3 in production.
 
-### Production Options
+**S3 Configuration:**
+1. Create an S3 bucket
+2. Set bucket policy for public read (if using public URLs) or configure signed URLs
+3. Set environment variables:
+   - `S3_BUCKET`
+   - `S3_REGION`
+   - `AWS_ACCESS_KEY_ID`
+   - `AWS_SECRET_ACCESS_KEY`
+   - `S3_PUBLIC_BASE_URL` (optional, for public buckets)
 
-#### Option 1: AWS S3
-```bash
-npm install @aws-sdk/client-s3
-```
-
-#### Option 2: Cloudinary
-```bash
-npm install cloudinary
-```
-
-#### Option 3: Vercel Blob
-```bash
-npm install @vercel/blob
-```
-
-**Recommendation:** Use Cloudinary for images (free tier: 25GB)
+**Upload Endpoints:**
+- `POST /api/uploads/presign` — Get presigned S3 upload URL (admin only)
+- `POST /api/uploads/optimize` — Server-side image optimization + upload (admin only)
+- `POST /api/songs` — Accepts multipart/form-data or JSON with `fileUrl`/`coverUrl`
+- `POST /api/graffiti` — Accepts multipart/form-data or JSON with `imageUrl`
 
 ## 🔒 Security Configuration
 
@@ -213,9 +245,7 @@ All platforms provide automatic HTTPS. Ensure:
 
 ### 2. Rate Limiting
 
-**Development:** In-memory (current implementation)
-
-**Production:** Use Redis
+**Production:** Use Upstash Redis
 
 ```bash
 npm install @upstash/redis @upstash/ratelimit
@@ -223,9 +253,13 @@ npm install @upstash/redis @upstash/ratelimit
 
 Create account at [Upstash](https://upstash.com) (free tier available)
 
+Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in production.
+
+**Fallback:** Without Upstash, rate limiting is disabled (allow-all). This is fine for internal/admin-only usage but should be enabled for public submission endpoints.
+
 ### 3. CORS Configuration
 
-Add to `next.config.js`:
+Already configured in `next.config.js`:
 ```javascript
 async headers() {
   return [
@@ -242,7 +276,7 @@ async headers() {
 
 ### 4. Content Security Policy
 
-Add CSP headers in `next.config.js`:
+Already configured in `next.config.js`:
 ```javascript
 async headers() {
   return [
@@ -251,12 +285,29 @@ async headers() {
       headers: [
         {
           key: 'Content-Security-Policy',
-          value: "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-eval' 'unsafe-inline';"
+          value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:;"
         },
       ],
     },
   ];
 }
+```
+
+### 5. Upload Scanning
+
+Enable virus scanning for uploads:
+```env
+VIRUS_SCANNER_ENABLED=true
+VIRUS_SCANNER=clamav
+CLAMAV_HOST=127.0.0.1
+CLAMAV_PORT=3310
+```
+
+Or use webhook scanner:
+```env
+VIRUS_SCANNER_ENABLED=true
+VIRUS_SCANNER=webhook
+SCAN_WEBHOOK_URL=https://scanner.example.com/scan
 ```
 
 ## 🔍 Monitoring & Analytics
@@ -274,22 +325,6 @@ npx @sentry/wizard@latest -i nextjs
 **Vercel Analytics**
 ```bash
 npm install @vercel/analytics
-```
-
-Add to `app/layout.tsx`:
-```typescript
-import { Analytics } from '@vercel/analytics/react';
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        {children}
-        <Analytics />
-      </body>
-    </html>
-  );
-}
 ```
 
 ## 🧪 Pre-Launch Testing
@@ -314,17 +349,36 @@ npm audit fix
 ### 4. Load Testing
 Use [Artillery](https://www.artillery.io/) or [k6](https://k6.io/)
 
+### 5. Upload Smoke Test
+```bash
+# Test quote submission (requires Upstash for rate limiting)
+curl -X POST http://localhost:3000/api/quotes \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","quote":"Test quote"}"
+
+# Test graffiti upload
+curl -X POST http://localhost:3000/api/graffiti \
+  -F "image=@/path/to/test.jpg" \
+  -F "artistName=Test"
+```
+
 ## 📊 Performance Optimization
 
 ### 1. Image Optimization
 
-Already configured with Next.js Image component
+Images are optimized server-side via `/api/uploads/optimize` using Sharp. The endpoint:
+- Accepts multipart/form-data uploads
+- Validates MIME type and size
+- Optionally scans for malware
+- Resizes to max 2000x2000
+- Converts to WebP at 80% quality
+- Uploads to S3 or local storage
 
 ### 2. Caching Strategy
 
-Current: `revalidate: 60` (60 seconds)
+Current: `revalidate: 60` (60 seconds) for public pages.
 
-Adjust in `app/page.tsx` based on needs:
+Adjust in route segments based on needs:
 ```typescript
 export const revalidate = 300; // 5 minutes
 ```
@@ -335,6 +389,12 @@ Already added to schema. Verify with:
 ```bash
 npm run db:studio
 ```
+
+Key indexes:
+- `QuoteSubmission`: `(approved, is_featured, display_until)`
+- `GraffitiSubmission`: `(approved, display_until)`
+- `Song`: `(is_active)`
+- `LyricGame`: `(is_active)`
 
 ## 🚨 Troubleshooting
 
@@ -347,8 +407,9 @@ npm run build 2>&1 | tee build.log
 
 **Issue:** Missing dependencies
 ```bash
-rm -rf node_modules package-lock.json
+rm -rf node_modules package-lock.json .next
 npm install
+npm run build
 ```
 
 ### Database Connection Issues
@@ -365,6 +426,16 @@ Check firewall rules and IP whitelist
 - Use cloud storage (S3, Cloudinary)
 - Check write permissions
 
+**Issue:** Large uploads fail on serverless
+- Use presigned S3 URLs (`/api/uploads/presign`)
+- Ensure S3 bucket CORS allows PUT from your domain
+
+### Rate Limiting Not Working
+
+**Issue:** 500 errors on `/api/quotes`
+- Ensure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set
+- Without these, rate limiting is disabled (allow-all)
+
 ## 📝 Post-Deployment
 
 ### 1. Verify Functionality
@@ -372,6 +443,8 @@ Check firewall rules and IP whitelist
 - [ ] File uploads work
 - [ ] Database queries work
 - [ ] All pages load correctly
+- [ ] Rate limiting responds with 429 when exceeded
+- [ ] S3 uploads work (if configured)
 
 ### 2. Set Up Backups
 - Database: Daily automated backups
@@ -408,7 +481,36 @@ jobs:
 - **Vercel Docs**: https://vercel.com/docs
 - **Prisma Docs**: https://www.prisma.io/docs
 - **Next.js Docs**: https://nextjs.org/docs
+- **Upstash Docs**: https://docs.upstash.com
+
+## 🏗️ Architecture Notes
+
+### Upload Flow
+
+**Development:**
+1. Client uploads file to `/api/songs` or `/api/graffiti`
+2. Server stores in `/public/uploads/`
+3. Server returns local URL
+
+**Production (Direct S3):**
+1. Client requests presigned URL from `/api/uploads/presign`
+2. Client uploads directly to S3
+3. Client sends S3 URL to `/api/songs` or `/api/graffiti`
+4. Server creates database record
+
+**Production (Server-side optimize):**
+1. Client uploads file to `/api/uploads/optimize`
+2. Server optimizes with Sharp, scans for malware, uploads to S3
+3. Server returns optimized URL
+4. Client sends URL to `/api/songs` or `/api/graffiti`
+
+### Moderation Queue
+
+Currently uses an in-memory queue with retry logic:
+- `lib/queue.ts` — async task queue
+- `lib/moderation.ts` — moderation notification handlers
+
+**Production consideration:** Replace with a durable queue (e.g., database-backed jobs, QStash, BullMQ) to survive serverless cold starts.
 
 ---
-
 **Ready to deploy? Follow this checklist and you'll be live in minutes!** 🚀
