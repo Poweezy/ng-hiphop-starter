@@ -29,12 +29,10 @@ export default function SloganPanel({ initialSlogan }: Props) {
 
     return (
         <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>SLOGAN EDITOR</h2>
-            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>
-                Update the hero slogan. Changes go live immediately on the main site.
-            </p>
+            <h2 className="panel-title">SLOGAN EDITOR</h2>
+            <p className="panel-desc">Update the hero slogan. Changes go live immediately on the main site.</p>
 
-            <div style={{ maxWidth: '600px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(4,120,87,0.25)', borderRadius: '10px', padding: '28px' }}>
+            <div className="glass-panel" style={{ maxWidth: '600px', padding: '28px' }}>
                 <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(4,120,87,0.08)', borderRadius: '6px', borderLeft: '3px solid var(--color-green)' }}>
                     <p style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px', fontFamily: 'var(--font-condensed)' }}>Current Live Slogan</p>
                     <p style={{ fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '0.06em' }}>{saved || '—'}</p>
@@ -62,7 +60,7 @@ export default function SloganPanel({ initialSlogan }: Props) {
                     </button>
 
                     {(status === 'success' || status === 'error') && (
-                        <div style={{ padding: '10px 14px', borderRadius: '6px', background: status === 'success' ? 'rgba(4,120,87,0.15)' : 'rgba(220,38,38,0.15)', border: `1px solid ${status === 'success' ? 'rgba(4,120,87,0.4)' : 'rgba(220,38,38,0.4)'}`, color: status === 'success' ? 'var(--color-green-light)' : '#F87171', fontSize: '0.9rem' }}>{msg}</div>
+                        <div className={`status-message status-message--${status}`}>{msg}</div>
                     )}
                 </form>
             </div>

@@ -1,22 +1,42 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import bcrypt from 'bcryptjs';
+import { getClientIp } from '@/lib/ip';
+import { checkRateLimit } from '@/lib/ratelimit';
 
-export async function POST(req: Request) {
+let masterSecretHash: string | null = null;
+
+async function getMasterSecretHash(): Promise<string> {
+    if (masterSecretHash) return masterSecretHash;
+
+    const secret = process.env.ADMIN_RESET_SECRET;
+    if (!secret) {
+        throw new Error('ADMIN_RESET_SECRET is not configured');
+    }
+
+    masterSecretHash = await bcrypt.hash(secret, 10);
+    return masterSecretHash;
+}
+
+export async function POST(req: NextRequest) {
     try {
+        const ip = getClientIp(req);
+        const key = `reset-password:${ip}`;
+        const { allowed } = await checkRateLimit({ key, max: 3, periodSeconds: 300 });
+        if (!allowed) {
+            return NextResponse.json({ error: 'Too many attempts. Please wait.' }, { status: 429 });
+        }
+
         const { email, resetSecret, newPassword } = await req.json();
 
         if (!email || !resetSecret || !newPassword) {
             return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
         }
 
-        const masterSecret = process.env.ADMIN_RESET_SECRET;
+        const expectedHash = await getMasterSecretHash();
+        const isValid = await bcrypt.compare(resetSecret, expectedHash);
 
-        if (!masterSecret) {
-            return NextResponse.json({ error: 'Reset functionality is not configured' }, { status: 500 });
-        }
-
-        if (resetSecret !== masterSecret) {
+        if (!isValid) {
             return NextResponse.json({ error: 'Invalid reset secret key' }, { status: 403 });
         }
 

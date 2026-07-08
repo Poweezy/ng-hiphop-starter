@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { storage } from '@/lib/storage';
 import { songUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
+import { requireAdmin } from '@/app/api/_lib/admin';
+import { optimizeImage } from '@/lib/imageOptimizer';
 
 const ALLOWED_AUDIO = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4'];
 const ALLOWED_IMAGE = ['image/jpeg', 'image/png', 'image/webp'];
@@ -15,7 +16,7 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;  // 5MB
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        const userRole = session?.user?.role ?? null;
         const isAdmin = userRole === 'ADMIN';
 
         if (isAdmin) {
@@ -49,9 +50,36 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || (session.user as any)?.role !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const { session } = await requireAdmin();
+        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+        const contentType = req.headers.get('content-type') || '';
+
+        // Support direct S3 uploads: client uploads to S3 via presigned URL,
+        // then sends JSON with final file URLs to create the DB record.
+        if (contentType.includes('application/json')) {
+            const body = await req.json();
+            const { title, description, distributionLinks, publisherLink, fileUrl, coverUrl } = body;
+
+            if (!title || !fileUrl || !coverUrl) {
+                return NextResponse.json({ message: 'Title, file URL, and cover URL are required' }, { status: 400 });
+            }
+
+            await prisma.song.updateMany({ data: { is_active: false } });
+
+            const song = await prisma.song.create({
+                data: {
+                    title,
+                    description: description || null,
+                    file_url: fileUrl,
+                    cover_url: coverUrl,
+                    distribution_links: distributionLinks || null,
+                    publisher_link: publisherLink || null,
+                    is_active: true,
+                },
+            });
+
+            return NextResponse.json(song, { status: 201 });
         }
 
         const formData = await req.formData();
@@ -84,7 +112,10 @@ export async function POST(req: NextRequest) {
 
         // Save files with the new storage utility
         const audioUrl = await storage.uploadFile(audioFile, 'songs');
-        const coverUrl = await storage.uploadFile(coverFile, 'covers');
+
+        const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
+        const optimizedCover = await optimizeImage(coverBuffer, { maxWidth: 1200, maxHeight: 1200, quality: 80, format: 'webp' });
+        const coverUrl = await storage.uploadFile(optimizedCover.buffer, 'covers', optimizedCover.format);
 
         // Deactivate others if setting active
         await prisma.song.updateMany({ data: { is_active: false } });
@@ -110,12 +141,8 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-        
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
+        const { session } = await requireAdmin();
+        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
         const validation = songUpdateSchema.safeParse(body);
@@ -144,12 +171,8 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-        
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
+        const { session } = await requireAdmin();
+        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
         const { id } = z.object({ id: z.string().cuid() }).parse(body);

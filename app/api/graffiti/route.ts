@@ -1,27 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { storage } from '@/lib/storage';
 import { graffitiUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
+import { getClientIp } from '@/lib/ip';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { requireAdmin } from '@/app/api/_lib/admin';
+import { optimizeImage } from '@/lib/imageOptimizer';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
-const uploadLog = new Map<string, number[]>();
-function isRateLimited(ip: string): boolean {
-    const now = Date.now();
-    const log = uploadLog.get(ip) ?? [];
-    const recent = log.filter((t) => now - t < 60000);
-    uploadLog.set(ip, [...recent, now]);
-    return recent.length >= 2;
-}
-
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        const userRole = session?.user?.role ?? null;
         const isAdmin = userRole === 'ADMIN';
 
         if (isAdmin) {
@@ -59,9 +54,32 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
-        if (isRateLimited(ip)) {
+        const ip = getClientIp(req);
+        const key = `graffiti:${ip}`;
+        const { allowed } = await checkRateLimit({ key, max: 3, periodSeconds: 60 });
+        if (!allowed) {
             return NextResponse.json({ message: 'Too many uploads. Please wait.' }, { status: 429 });
+        }
+
+        const contentType = req.headers.get('content-type') || '';
+
+        // Support direct S3 uploads
+        if (contentType.includes('application/json')) {
+            const body = await req.json();
+            const { imageUrl, artistName } = body;
+
+            if (!imageUrl || !artistName) {
+                return NextResponse.json({ message: 'Image URL and artist name are required' }, { status: 400 });
+            }
+
+            await prisma.graffitiSubmission.create({
+                data: {
+                    image_url: imageUrl,
+                    artist_name: artistName,
+                },
+            });
+
+            return NextResponse.json({ message: 'Artwork submitted for approval' }, { status: 201 });
         }
 
         const formData = await req.formData();
@@ -78,8 +96,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Image must be under 5MB' }, { status: 400 });
         }
 
-        // Save file with the new storage utility
-        const imageUrl = await storage.uploadFile(file, 'graffiti');
+        const imageBuffer = Buffer.from(await file.arrayBuffer());
+        const optimized = await optimizeImage(imageBuffer, { maxWidth: 2000, maxHeight: 2000, quality: 80, format: 'webp' });
+        const imageUrl = await storage.uploadFile(optimized.buffer, 'graffiti', optimized.format);
 
         await prisma.graffitiSubmission.create({
             data: {
@@ -96,12 +115,8 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-        
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
+        const { session } = await requireAdmin();
+        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
         const validation = graffitiUpdateSchema.safeParse(body);
@@ -132,19 +147,14 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-        
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
+        const { session } = await requireAdmin();
+        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
         const { id } = z.object({ id: z.string().cuid() }).parse(body);
 
         const graffiti = await prisma.graffitiSubmission.findUnique({ where: { id } });
         if (graffiti) {
-            // Delete file using the storage utility
             await storage.deleteFile(graffiti.image_url);
         }
 

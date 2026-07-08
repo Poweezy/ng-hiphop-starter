@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/app/db';
 import bcrypt from 'bcryptjs';
+import { requireAdmin } from '@/app/api/_lib/admin';
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const { session } = await requireAdmin();
+        if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { currentPassword, newPassword } = await req.json();
 
@@ -24,7 +21,7 @@ export async function POST(req: Request) {
         }
 
         const user = await prisma.user.findUnique({
-            where: { email: session.user?.email! },
+            where: { email: session.user!.email! },
         });
 
         if (!user) {
@@ -39,7 +36,7 @@ export async function POST(req: Request) {
         const hashedPassword = await bcrypt.hash(newPassword, 12);
 
         await prisma.user.update({
-            where: { email: session.user?.email! },
+            where: { email: session.user!.email! },
             data: { password_hash: hashedPassword },
         });
 

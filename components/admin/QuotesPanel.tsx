@@ -65,19 +65,15 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     const renderQuote = (q: Quote) => (
         <div
             key={q.id}
-            style={{
-                background: q.is_featured ? 'rgba(4,120,87,0.08)' : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${q.is_featured ? 'rgba(4,120,87,0.4)' : 'rgba(255,255,255,0.06)'}`,
-                borderRadius: '8px', padding: '16px', marginBottom: '10px',
-            }}
+            className={`admin-card ${q.is_featured ? 'admin-card--featured' : ''}`}
         >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1 }}>
-                    <p style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.85)', marginBottom: '6px', lineHeight: 1.5 }}>"{q.quote_text}"</p>
-                    <p style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.8rem', color: 'var(--color-green-light)', letterSpacing: '0.06em' }}>— {q.submitted_by}</p>
+            <div className="admin-card-header">
+                <div className="admin-card-body">
+                    <p className="admin-text-quote">"{q.quote_text}"</p>
+                    <p className="admin-text-artist">— {q.submitted_by}</p>
                     {q.is_featured && <span className="badge-approved" style={{ marginTop: '6px', display: 'inline-block' }}>FEATURED</span>}
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flexShrink: 0 }}>
+                <div className="admin-card-actions">
                     {!q.approved && (
                         <button onClick={() => handlePatch(q.id, { approved: true })} className="btn-admin" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>✓ Approve</button>
                     )}
@@ -97,28 +93,19 @@ export default function QuotesPanel({ initialQuotes }: Props) {
 
     return (
         <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>QUOTE MODERATION</h2>
-            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>Approve fan-submitted quotes and feature one on the homepage.</p>
+            <h2 className="panel-title">QUOTE MODERATION</h2>
+            <p className="panel-desc">Approve fan-submitted quotes and feature one on the homepage.</p>
 
             <div className="panel-grid">
                 <div>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-yellow)', marginBottom: '16px' }}>
-                        Pending Approval ({pending.length})
-                    </h3>
-                    {pending.length === 0 ? <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem' }}>No pending quotes.</p> : pending.map(renderQuote)}
+                    <h3 className="admin-section-title">Pending Approval ({pending.length})</h3>
+                    {pending.length === 0 ? <p className="admin-text-muted">No pending quotes.</p> : pending.map(renderQuote)}
                 </div>
                 <div>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '16px' }}>
-                        Approved ({approved.length})
-                    </h3>
-                    {approved.length === 0 ? <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem' }}>No approved quotes.</p> : approved.map(renderQuote)}
+                    <h3 className="admin-section-title admin-section-title--green">Approved ({approved.length})</h3>
+                    {approved.length === 0 ? <p className="admin-text-muted">No approved quotes.</p> : approved.map(renderQuote)}
                 </div>
             </div>
-
-            <style jsx>{`
-                .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-                @media (max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
-            `}</style>
             
             <ConfirmDialog
                 isOpen={confirmDialog.isOpen}

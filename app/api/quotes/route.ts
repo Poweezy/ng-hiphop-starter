@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { quoteSubmissionSchema, quoteUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
 
-// Simple in-memory rate limiter per IP
-const submissionLog = new Map<string, number[]>();
-const WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_PER_WINDOW = 3;
+import { getClientIp } from '@/lib/ip';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { requireAdmin } from '@/app/api/_lib/admin';
+import { recordRequest } from '@/lib/observability';
 
-function isRateLimited(ip: string): boolean {
-    const now = Date.now();
-    const log = submissionLog.get(ip) ?? [];
-    const recent = log.filter((t) => now - t < WINDOW_MS);
-    submissionLog.set(ip, [...recent, now]);
-    return recent.length >= MAX_PER_WINDOW;
-}
 
 export async function GET(req: NextRequest) {
+    const start = performance.now();
     try {
         const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+        const userRole = session?.user?.role ?? null;
         const isAdmin = userRole === 'ADMIN';
 
         if (isAdmin) {
@@ -39,6 +33,7 @@ export async function GET(req: NextRequest) {
                 prisma.quoteSubmission.count(),
             ]);
             
+            recordRequest('GET', '/api/quotes', 200, performance.now() - start);
             return NextResponse.json({ 
                 quotes, 
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) } 
@@ -52,28 +47,41 @@ export async function GET(req: NextRequest) {
                 OR: [{ display_until: null }, { display_until: { gte: new Date() } }],
             },
         });
+        recordRequest('GET', '/api/quotes', 200, performance.now() - start);
         return NextResponse.json(featured);
     } catch (error) {
         console.error('Quote fetch error:', error);
+        recordRequest('GET', '/api/quotes', 500, performance.now() - start);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
 
 export async function POST(req: NextRequest) {
+    const start = performance.now();
     try {
-        const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
-        if (isRateLimited(ip)) {
+        const ip = getClientIp(req);
+        const key = `quotes:${ip}`;
+        const { allowed } = await checkRateLimit({ key, max: 3, periodSeconds: 60 });
+        if (!allowed) {
+            recordRequest('POST', '/api/quotes', 429, performance.now() - start);
             return NextResponse.json({ message: 'Too many submissions. Please wait.' }, { status: 429 });
         }
 
         const body = await req.json();
-        const validation = quoteSubmissionSchema.safeParse(body);
-        
+
+        const normalized = {
+            name: (body?.name ?? body?.submitted_by ?? body?.alias ?? '').toString(),
+            quote: (body?.quote ?? body?.quote_text ?? body?.message ?? '').toString(),
+        };
+
+        const validation = quoteSubmissionSchema.safeParse(normalized);
         if (!validation.success) {
-            return NextResponse.json({ 
-                message: 'Invalid input', 
-                errors: validation.error.issues 
-            }, { status: 400 });
+            console.error('Quote validation failed:', validation.error.issues, normalized);
+            recordRequest('POST', '/api/quotes', 400, performance.now() - start);
+            return NextResponse.json(
+                { message: 'Invalid input' },
+                { status: 400 }
+            );
         }
 
         const { name, quote } = validation.data;
@@ -82,26 +90,30 @@ export async function POST(req: NextRequest) {
             data: { quote_text: quote, submitted_by: name },
         });
 
+        recordRequest('POST', '/api/quotes', 201, performance.now() - start);
         return NextResponse.json({ message: 'Quote submitted for approval' }, { status: 201 });
     } catch (error) {
         console.error('Quote submission error:', error);
+        recordRequest('POST', '/api/quotes', 500, performance.now() - start);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
 
+
 export async function PATCH(req: NextRequest) {
+    const start = performance.now();
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-        
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const { session, error } = await requireAdmin();
+        if (!session) {
+            recordRequest('PATCH', '/api/quotes', error!.status, performance.now() - start);
+            return NextResponse.json({ message: error!.message }, { status: error!.status });
         }
 
         const body = await req.json();
         const validation = quoteUpdateSchema.safeParse(body);
         
         if (!validation.success) {
+            recordRequest('PATCH', '/api/quotes', 400, performance.now() - start);
             return NextResponse.json({ 
                 message: 'Invalid input', 
                 errors: validation.error.issues 
@@ -110,7 +122,6 @@ export async function PATCH(req: NextRequest) {
 
         const { id, approved, is_featured, display_until } = validation.data;
 
-        // If featuring, unfeatured others first
         if (is_featured) {
             await prisma.quoteSubmission.updateMany({ data: { is_featured: false } });
         }
@@ -124,29 +135,33 @@ export async function PATCH(req: NextRequest) {
             },
         });
 
+        recordRequest('PATCH', '/api/quotes', 200, performance.now() - start);
         return NextResponse.json(updated);
     } catch (error) {
         console.error('Quote update error:', error);
+        recordRequest('PATCH', '/api/quotes', 500, performance.now() - start);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
 
 export async function DELETE(req: NextRequest) {
+    const start = performance.now();
     try {
-        const session = await getServerSession(authOptions);
-        const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-        
-        if (!session || userRole !== 'ADMIN') {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const { session, error } = await requireAdmin();
+        if (!session) {
+            recordRequest('DELETE', '/api/quotes', error!.status, performance.now() - start);
+            return NextResponse.json({ message: error!.message }, { status: error!.status });
         }
 
         const body = await req.json();
         const { id } = z.object({ id: z.string().cuid() }).parse(body);
 
         await prisma.quoteSubmission.delete({ where: { id } });
+        recordRequest('DELETE', '/api/quotes', 200, performance.now() - start);
         return NextResponse.json({ message: 'Quote deleted' });
     } catch (error) {
         console.error('Quote delete error:', error);
+        recordRequest('DELETE', '/api/quotes', 500, performance.now() - start);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }
