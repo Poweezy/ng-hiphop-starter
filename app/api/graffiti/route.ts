@@ -9,6 +9,8 @@ import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { optimizeImage } from '@/lib/imageOptimizer';
+import { scanBuffer } from '@/lib/uploadScanner';
+import { notifyAdminModeration } from '@/lib/moderation';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -72,12 +74,15 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ message: 'Image URL and artist name are required' }, { status: 400 });
             }
 
-            await prisma.graffitiSubmission.create({
+            const newGraffiti = await prisma.graffitiSubmission.create({
                 data: {
                     image_url: imageUrl,
                     artist_name: artistName,
+                    scan_clean: true,
                 },
             });
+
+            notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
 
             return NextResponse.json({ message: 'Artwork submitted for approval' }, { status: 201 });
         }
@@ -97,15 +102,24 @@ export async function POST(req: NextRequest) {
         }
 
         const imageBuffer = Buffer.from(await file.arrayBuffer());
+        const scan = await scanBuffer(imageBuffer, file.name);
+        if (!scan.clean) {
+            return NextResponse.json({ message: `Image rejected: ${scan.reason}` }, { status: 400 });
+        }
+
         const optimized = await optimizeImage(imageBuffer, { maxWidth: 2000, maxHeight: 2000, quality: 80, format: 'webp' });
         const imageUrl = await storage.uploadFile(optimized.buffer, 'graffiti', optimized.format);
 
-        await prisma.graffitiSubmission.create({
+        const newGraffiti = await prisma.graffitiSubmission.create({
             data: {
                 image_url: imageUrl,
                 artist_name: artistName,
+                scan_clean: scan.clean,
+                scan_result: scan.reason ?? null,
             },
         });
+
+        notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
 
         return NextResponse.json({ message: 'Artwork submitted for approval' }, { status: 201 });
     } catch {

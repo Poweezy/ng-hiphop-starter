@@ -28,13 +28,27 @@ export default function SongsPanel({ initialSongs }: Props) {
 
         setUploading(true);
         try {
+            // Optimize cover image server-side
+            const coverForm = new FormData();
+            coverForm.append('image', coverFile);
+            coverForm.append('folder', 'covers');
+
+            const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: coverForm });
+            if (!optimizeRes.ok) {
+                const err = await optimizeRes.json();
+                setStatus('error'); setMsg(err.message || 'Cover optimization failed');
+                setUploading(false);
+                return;
+            }
+            const { url: coverUrl } = await optimizeRes.json();
+
             const fd = new FormData();
             fd.append('audio', audioFile);
-            fd.append('cover', coverFile);
             fd.append('title', title.trim());
             fd.append('description', desc.trim());
             fd.append('distributionLinks', JSON.stringify({ spotify, apple, distro }));
             fd.append('publisherLink', pubLink);
+            fd.append('coverUrl', coverUrl);
 
             const res = await fetch('/api/songs', { method: 'POST', body: fd });
             const data = await res.json();
