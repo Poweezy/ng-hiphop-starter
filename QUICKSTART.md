@@ -42,12 +42,9 @@ npm start                # Start production server
 # Database
 npm run db:generate      # Generate Prisma client
 npm run db:push          # Push schema changes
+npm run db:migrate       # Create/run migration
 npm run db:seed          # Seed initial data
 npm run db:studio        # Open database GUI
-
-# Maintenance
-npm audit                # Check for vulnerabilities
-npm audit fix            # Fix vulnerabilities
 ```
 
 ## 🎯 First Steps
@@ -55,8 +52,7 @@ npm audit fix            # Fix vulnerabilities
 ### 1. Change Admin Password
 1. Go to `/admin/login`
 2. Login with default credentials
-3. Update `.env` with new password
-4. Re-run `npm run db:seed`
+3. Use **Security** tab in admin to change password
 
 ### 2. Upload First Song
 1. Navigate to Admin Dashboard
@@ -75,6 +71,39 @@ npm audit fix            # Fix vulnerabilities
 2. Submit a quote (Community Quotes section)
 3. Upload graffiti art
 4. Play lyric guessing game
+
+## 🔧 Environment Variables
+
+See `.env.example` for the full list. Key vars:
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `DATABASE_URL` | Yes | SQLite dev DB or Postgres in prod |
+| `NEXTAUTH_SECRET` | Yes | Session signing secret |
+| `ADMIN_EMAIL` | Yes | Admin login email |
+| `ADMIN_PASSWORD` | Yes | Admin login password |
+| `ADMIN_RESET_SECRET` | Yes | Master key for password reset |
+| `UPSTASH_REDIS_REST_URL` | No | Rate limiting (optional locally) |
+| `UPSTASH_REDIS_REST_TOKEN` | No | Rate limiting (optional locally) |
+| `S3_BUCKET` | No | S3 bucket for uploads |
+| `S3_REGION` | No | S3 region |
+| `AWS_ACCESS_KEY_ID` | No | S3 access key |
+| `AWS_SECRET_ACCESS_KEY` | No | S3 secret key |
+| `S3_PUBLIC_BASE_URL` | No | Public S3 base URL |
+| `VIRUS_SCANNER_ENABLED` | No | Enable upload scanning |
+| `CLAMAV_HOST` / `CLAMAV_PORT` | No | ClamAV adapter |
+| `SCAN_WEBHOOK_URL` | No | Webhook scanner adapter |
+
+## 🚀 Upload Architecture
+
+### Local Development
+- Uploads go to `/public/uploads/...`
+- No S3 or virus scanning required
+
+### Production
+- Images are optimized server-side via `/api/uploads/optimize`
+- Large files can use presigned S3 uploads via `/api/uploads/presign`
+- Virus scanning is opt-in via `VIRUS_SCANNER_ENABLED=true`
 
 ## 🔧 Common Issues
 
@@ -124,19 +153,19 @@ npm run build
 ## 🚀 Next Steps
 
 1. **Customize Design**
-   - Edit `app/globals.css`
-   - Update color variables
-   - Change fonts
+    - Edit `app/globals.css`
+    - Update color variables
+    - Change fonts
 
 2. **Add Content**
-   - Upload songs via admin
-   - Approve community submissions
-   - Add lyric game questions
+    - Upload songs via admin
+    - Approve community submissions
+    - Add lyric game questions
 
 3. **Deploy**
-   - See [DEPLOYMENT.md](./DEPLOYMENT.md)
-   - Recommended: Vercel
-   - Database: Vercel Postgres or Neon
+    - See [DEPLOYMENT.md](./DEPLOYMENT.md)
+    - Recommended: Vercel
+    - Database: Vercel Postgres or Neon
 
 ## 📚 Documentation
 
@@ -159,5 +188,4 @@ npm run build
 4. Verify environment variables
 
 ---
-
-**You're ready to go! Start building.** 🎤
+**Built From Bars. Raised By Beats.** 🎤

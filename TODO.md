@@ -1,20 +1,24 @@
 # TODO (NG HipHop)
 
 ## Current status
-- ✅ Upstash-based shared rate limiter integrated into `app/api/quotes/route.ts`
-- ✅ `lib/ratelimit.ts` updated for TS typing
-- ✅ `tsconfig.json` target set to ES2019
-- ✅ Admin SongsPanel “Set Active” green styling updated
-- ⚠️ Dev runtime currently failing `POST /api/quotes` with 500 due to missing env vars `UPSTASH_REDIS_REST_URL`
+- ✅ Upstash-based rate limiter integrated with local dev fallback
+- ✅ `lib/ratelimit.ts` allows all requests when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are missing
+- ✅ Next.js updated to 14.2.28
+- ✅ Strict TypeScript enabled
+- ✅ Shared `requireAdmin()` helper across admin routes
+- ✅ Splash screen restored via client wrapper
+- ✅ Admin styles moved into shared global CSS classes
+- ✅ Sharp-based image optimization via `/api/uploads/optimize`
+- ✅ Presigned S3 upload support via `/api/uploads/presign`
+- ✅ Virus scanning scaffold (ClamAV + webhook adapters)
+- ✅ Async moderation queue with retry logic
+- ✅ Compound DB indexes applied via migration
+- ✅ Security headers + CSP added to `next.config.js`
 
-## Next steps
-1. Add required env vars to the project `.env` (or your Next env configuration):
-   - `UPSTASH_REDIS_REST_URL`
-   - `UPSTASH_REDIS_REST_TOKEN`
-2. Restart dev server.
-3. Smoke test:
-   - `POST /api/quotes` until limit exceeded -> verify HTTP 429 and message.
-
-## Optional (if you want local dev without Upstash)
-4. Implement dev fallback in `lib/ratelimit.ts` (allow all when env vars missing).
-
+## Remaining
+1. Replace remaining inline styles in `LyricsPanel`, `SloganPanel`, `QuotesPanel`, `GraffitiPanel`
+2. Add `<ErrorBoundary>` wrapper for admin/public routes
+3. Consider Zustand notification store to replace `react-hot-toast`
+4. Fix `showSubmit` modal timing in `GraffitiShowcase.tsx`
+5. Replace in-memory queue with durable job backend for production
+6. Update DEPLOYMENT.md with new env vars and endpoints
