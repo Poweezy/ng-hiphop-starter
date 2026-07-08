@@ -81,3 +81,18 @@ model LyricGame {
 
   @@index([is_active])
 }
+
+model Job {
+  id        String   @id @default(cuid())
+  type      String
+  payload   String   // JSON
+  attempts  Int      @default(0)
+  maxAttempts Int    @default(3)
+  status    String   @default("pending") // pending | processing | completed | failed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  nextRetryAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([nextRetryAt])
+}
