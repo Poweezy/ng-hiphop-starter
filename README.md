@@ -18,7 +18,10 @@ A modern, full-stack hip-hop music platform built with Next.js 14, featuring mus
 - **Authentication**: NextAuth.js
 - **Styling**: CSS Custom Properties
 - **TypeScript**: Full type safety
-- **Image Optimization**: Next.js Image component
+- **Image Optimization**: Sharp + Next.js Image component
+- **Storage**: Local filesystem (dev) / S3 (prod)
+- **Rate Limiting**: Upstash Redis
+- **Upload Scanning**: ClamAV / webhook adapter (opt-in)
 
 ## 📋 Prerequisites
 
@@ -98,9 +101,10 @@ A modern, full-stack hip-hop music platform built with Next.js 14, featuring mus
 4. ✅ Use PostgreSQL (not SQLite)
 5. ✅ Enable HTTPS
 6. ✅ Set up proper CORS policies
-7. ✅ Implement rate limiting (Redis recommended)
-8. ✅ Add file upload virus scanning
-9. ✅ Use CDN for uploaded files
+7. ✅ Configure Upstash Redis for rate limiting
+8. ✅ Enable virus scanning for uploads (`VIRUS_SCANNER_ENABLED=true`)
+9. ✅ Use S3/Cloudinary for file storage
+10. ✅ Set `ADMIN_RESET_SECRET` to a strong random value
 
 ## 📝 Available Scripts
 
@@ -142,26 +146,32 @@ ADMIN_PASSWORD=<strong-password>
 ## 🐛 Known Issues & Limitations
 
 - SQLite not suitable for production (use PostgreSQL)
-- File uploads stored locally (consider S3/Cloudinary)
-- In-memory rate limiting (use Redis for production)
-- No email notifications
+- Local file uploads are public; use S3/Cloudinary in production
+- Rate limiting requires Upstash Redis env vars (falls back to allow-all locally)
+- Virus scanning is opt-in and fail-open by default
+- In-memory moderation queue is lost on cold restart; use a durable queue in production
+- No email notifications yet (queue scaffold is in place)
 - No user registration (admin only)
 
 ## 🔄 Recent Improvements
 
 - ✅ Added database indexes for performance
-- ✅ Fixed type safety issues (removed all `as any`)
+- ✅ Fixed type safety issues (enabled strict mode, removed `as any`)
 - ✅ Improved accessibility (focus styles, ARIA labels, touch targets)
-- ✅ Enhanced security (restricted image domains, Zod validation)
-- ✅ Fixed memory leaks in carousel
-- ✅ Optimized Hero component rendering
+- ✅ Enhanced security (CSP headers, timing-safe reset secret, sanitized errors, S3 signed URLs)
+- ✅ Fixed memory leaks (rate-limit cache, removed unbounded upload log)
+- ✅ Optimized image uploads with Sharp + server-side optimize endpoint
+- ✅ Added presigned S3 upload support (`/api/uploads/presign`)
 - ✅ Added request validation with Zod
 - ✅ Implemented DELETE endpoints with file cleanup
 - ✅ Added pagination to admin API endpoints
-- ✅ Created error boundaries for graceful error handling
-- ✅ Added confirmation dialogs for destructive actions
+- ✅ Created shared `requireAdmin()` auth helper
+- ✅ Confirmation dialogs for destructive actions
 - ✅ Improved error logging and handling
-- ✅ Implemented smart caching strategy (revalidate: 60)
+- ✅ Added SLO definitions and request observability logging
+- ✅ Added upload scanning scaffold (ClamAV + webhook adapters)
+- ✅ Added async moderation queue with retry logic
+- ✅ Updated Next.js to 14.2.28
 
 ## 📄 License
 
