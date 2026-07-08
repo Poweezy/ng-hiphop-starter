@@ -1,12 +1,12 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { prisma } from '@/app/db';
 
 export default async function AdminPage() {
     const session = await getServerSession(authOptions);
-    const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
+    const userRole = session?.user?.role ?? null;
     
     if (!session || userRole !== 'ADMIN') {
         redirect('/admin/login');

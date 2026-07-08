@@ -34,15 +34,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
     const approved = items.filter(g => g.approved);
 
     const renderCard = (g: Graffiti, showApprove: boolean) => (
-        <div
-            key={g.id}
-            style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: `1px solid ${g.approved ? 'rgba(4,120,87,0.35)' : 'rgba(255,255,255,0.06)'}`,
-                borderRadius: '8px',
-                overflow: 'hidden',
-            }}
-        >
+        <div key={g.id} className={`admin-card ${g.approved ? 'admin-card--featured' : ''}`} style={{ overflow: 'hidden' }}>
             <div style={{ position: 'relative', aspectRatio: '4/3' }}>
                 <Image src={g.image_url} alt={`Graffiti by ${g.artist_name}`} fill style={{ objectFit: 'cover' }} sizes="200px" />
                 {g.approved && (
@@ -53,7 +45,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
             </div>
             <div style={{ padding: '12px' }}>
                 <p style={{ fontFamily: 'var(--font-cursive)', fontSize: '1rem', color: 'var(--color-yellow)', marginBottom: '10px' }}>{g.artist_name}</p>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="admin-card-actions">
                     {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn-admin" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>✓ Approve</button>}
                     {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>✗ Remove</button>}
                     <button onClick={() => setDeleteId(g.id)} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>Delete</button>
@@ -64,24 +56,24 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
 
     return (
         <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>GRAFFITI WALL</h2>
-            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>Review and approve fan-submitted graffiti artwork.</p>
+            <h2 className="panel-title">GRAFFITI WALL</h2>
+            <p className="panel-desc">Review and approve fan-submitted graffiti artwork.</p>
 
             {pending.length > 0 && (
                 <div style={{ marginBottom: '36px' }}>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-yellow)', marginBottom: '16px' }}>Pending ({pending.length})</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                    <h3 className="admin-section-title">Pending ({pending.length})</h3>
+                    <div className="admin-grid-gallery">
                         {pending.map(g => renderCard(g, true))}
                     </div>
                 </div>
             )}
 
             <div>
-                <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '16px' }}>Live on Site ({approved.length})</h3>
+                <h3 className="admin-section-title admin-section-title--green">Live on Site ({approved.length})</h3>
                 {approved.length === 0 ? (
-                    <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem' }}>No approved graffiti yet.</p>
+                    <p className="admin-text-muted">No approved graffiti yet.</p>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                    <div className="admin-grid-gallery">
                         {approved.map(g => renderCard(g, false))}
                     </div>
                 )}

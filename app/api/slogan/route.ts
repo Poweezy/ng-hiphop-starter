@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { sloganUpdateSchema } from '@/lib/validations';
+import { requireAdmin } from '@/app/api/_lib/admin';
 
 export async function GET() {
   try {
@@ -15,12 +14,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const userRole = session?.user && 'role' in session.user ? (session.user as any).role : null;
-    
-    if (!session || userRole !== 'ADMIN') {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+    const { session } = await requireAdmin();
+    if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     
     const body = await req.json();
     const validation = sloganUpdateSchema.safeParse(body);

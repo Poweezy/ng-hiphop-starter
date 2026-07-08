@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
-import CustomCursor from '@/components/CustomCursor';
-import SplashScreen from '@/components/SplashScreen';
+import SplashScreenWrapper from '@/components/SplashScreenWrapper';
 
 export const metadata: Metadata = {
     title: {
         default: 'NG — Built From Bars. Raised By Beats.',
         template: '%s | NG Hip Hop'
+    },
+    icons: {
+        icon: '/images/logo.png'
     },
     description: 'The official platform for NG. Authentic hip-hop, community-driven, and legally distributed. Stream the latest releases and join the movement.',
     keywords: ['NG Hip Hop', 'Eswatini Music', 'African Rap', 'Urban Culture', 'Music Platform'],
@@ -63,9 +65,11 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
+            <head>
+                <link rel="icon" href="/images/logo.png" />
+            </head>
             <body>
-                <CustomCursor />
-                <SplashScreen />
+                <SplashScreenWrapper />
                 <LayoutWrapper>{children}</LayoutWrapper>
             </body>
         </html>

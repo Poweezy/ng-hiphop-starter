@@ -54,13 +54,12 @@ export default function LyricsPanel({ initialLyrics }: Props) {
 
     return (
         <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>LYRIC GAME</h2>
-            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>Add and manage "Guess the Artist" game entries.</p>
+            <h2 className="panel-title">LYRIC GAME</h2>
+            <p className="panel-desc">Add and manage &quot;Guess the Artist&quot; game entries.</p>
 
             <div className="panel-grid">
-                {/* Add form */}
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(4,120,87,0.25)', borderRadius: '10px', padding: '24px' }}>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '1rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '20px' }}>Add New Entry</h3>
+                <div className="glass-panel" style={{ padding: '24px' }}>
+                    <h3 className="admin-section-title">Add New Entry</h3>
                     <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <div className="form-group">
                             <label htmlFor="lyric-input" className="form-label" style={{ color: 'var(--color-green-light)' }}>Lyric Line *</label>
@@ -95,30 +94,27 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                             {saving ? '⏳ Saving...' : '+ Add Lyric'}
                         </button>
                         {status !== 'idle' && (
-                            <div style={{ padding: '10px 14px', borderRadius: '6px', background: status === 'success' ? 'rgba(4,120,87,0.15)' : 'rgba(220,38,38,0.15)', border: `1px solid ${status === 'success' ? 'rgba(4,120,87,0.4)' : 'rgba(220,38,38,0.4)'}`, color: status === 'success' ? 'var(--color-green-light)' : '#F87171', fontSize: '0.9rem' }}>{msg}</div>
+                            <div className={`status-message status-message--${status}`}>{msg}</div>
                         )}
                     </form>
                 </div>
 
-                {/* Lyric list */}
                 <div>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '16px' }}>
-                        All Entries ({lyrics.length})
-                    </h3>
+                    <h3 className="admin-section-title admin-section-title--green">All Entries ({lyrics.length})</h3>
                     {lyrics.length === 0 ? (
-                        <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem' }}>No lyrics added yet.</p>
+                        <p className="admin-text-muted">No lyrics added yet.</p>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '500px', overflowY: 'auto' }}>
+                        <div className="admin-lyrics-list">
                             {lyrics.map(l => (
-                                <div key={l.id} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${l.is_active ? 'rgba(4,120,87,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '8px', padding: '14px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ fontStyle: 'italic', fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', marginBottom: '4px', lineHeight: 1.5 }}>"{l.lyric_text}"</p>
-                                        <p style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.8rem', color: 'var(--color-green-light)' }}>— {l.correct_artist}</p>
+                                <div key={l.id} className={`admin-card ${l.is_active ? 'admin-card--active' : ''}`}>
+                                    <div className="admin-card-body">
+                                        <p className="admin-text-quote">"{l.lyric_text}"</p>
+                                        <p className="admin-text-artist">— {l.correct_artist}</p>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                                    <div className="admin-card-actions">
                                         <button
                                             onClick={() => toggle(l.id, l.is_active)}
-                                            style={{ padding: '5px 10px', borderRadius: '3px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-condensed)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'all 0.2s ease', background: l.is_active ? 'rgba(220,38,38,0.2)' : 'rgba(4,120,87,0.2)', color: l.is_active ? '#F87171' : 'var(--color-green-light)' }}
+                                            className={`admin-lyric-toggle ${l.is_active ? 'admin-lyric-toggle--off' : 'admin-lyric-toggle--on'}`}
                                         >
                                             {l.is_active ? 'OFF' : 'ON'}
                                         </button>
@@ -130,11 +126,6 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                     )}
                 </div>
             </div>
-
-            <style jsx>{`
-                .panel-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 32px; align-items: start; }
-                @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
-            `}</style>
         </div>
     );
 }

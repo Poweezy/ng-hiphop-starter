@@ -64,13 +64,12 @@ export default function SongsPanel({ initialSongs }: Props) {
 
     return (
         <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.05em', marginBottom: '8px' }}>SONG MANAGER</h2>
-            <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem', marginBottom: '32px' }}>Upload and manage the active release.</p>
+            <h2 className="panel-title">SONG MANAGER</h2>
+            <p className="panel-desc">Upload and manage the active release.</p>
 
             <div className="panel-grid">
-                {/* Upload form */}
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(4,120,87,0.25)', borderRadius: '10px', padding: '24px' }}>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '1rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '20px' }}>Upload New Song</h3>
+                <div className="glass-panel" style={{ padding: '24px' }}>
+                    <h3 className="admin-section-title">Upload New Song</h3>
                     <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {[{ label: 'Song Title *', id: 's-title', type: 'text', val: title, set: setTitle, ph: 'Enter track name' },
                         { label: 'Description', id: 's-desc', type: 'text', val: desc, set: setDesc, ph: 'Short description...' },
@@ -98,33 +97,33 @@ export default function SongsPanel({ initialSongs }: Props) {
                             {uploading ? '⏳ Uploading...' : '🎵 Upload & Set Active'}
                         </button>
                         {status !== 'idle' && (
-                            <div style={{ padding: '10px 14px', borderRadius: '6px', background: status === 'success' ? 'rgba(4,120,87,0.15)' : 'rgba(220,38,38,0.15)', border: `1px solid ${status === 'success' ? 'rgba(4,120,87,0.4)' : 'rgba(220,38,38,0.4)'}`, color: status === 'success' ? 'var(--color-green-light)' : '#F87171', fontSize: '0.9rem' }}>{msg}</div>
+                            <div className={`status-message status-message--${status}`}>{msg}</div>
                         )}
                     </form>
                 </div>
 
-                {/* Song list */}
                 <div>
-                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontSize: '1rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-green-light)', marginBottom: '16px' }}>Existing Songs</h3>
+                    <h3 className="admin-section-title admin-section-title--green">Existing Songs</h3>
                     {songs.length === 0 ? (
-                        <p style={{ color: 'var(--color-grey-blue)', fontSize: '0.9rem' }}>No songs uploaded yet.</p>
+                        <p className="admin-text-muted">No songs uploaded yet.</p>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {songs.map(song => (
-                                <div key={song.id} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${song.is_active ? 'rgba(4,120,87,0.4)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '8px', padding: '14px' }}>
+                                <div key={song.id} className={`admin-card ${song.is_active ? 'admin-card--active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px' }}>
                                     {song.cover_url && (
                                         <div style={{ width: '48px', height: '48px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
                                             <Image src={song.cover_url} alt={song.title} fill style={{ objectFit: 'cover' }} sizes="48px" />
                                         </div>
                                     )}
-                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div className="admin-card-body" style={{ minWidth: 0 }}>
                                         <div style={{ fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
                                         {song.is_active && <span className="badge-approved" style={{ marginTop: '4px', display: 'inline-block' }}>ACTIVE</span>}
                                     </div>
-                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                    <div className="admin-card-actions">
                                         <button
                                             onClick={() => toggleActive(song.id, song.is_active)}
-                                            style={{ padding: '6px 14px', borderRadius: '3px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-condensed)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'all 0.2s ease', background: song.is_active ? 'rgba(220,38,38,0.2)' : 'rgba(4,120,87,0.2)', color: song.is_active ? '#F87171' : 'var(--color-green-light)' }}
+                                            className={song.is_active ? 'btn-danger' : 'btn-badge btn-badge--listen'}
+                                            style={song.is_active ? undefined : { padding: '8px 18px', borderRadius: '50px', fontSize: '0.78rem' }}
                                         >
                                             {song.is_active ? 'Deactivate' : 'Set Active'}
                                         </button>
@@ -144,10 +143,6 @@ export default function SongsPanel({ initialSongs }: Props) {
                 onConfirm={handleDelete}
                 onCancel={() => setDeleteId(null)}
             />
-            <style jsx>{`
-                .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
-                @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
-            `}</style>
         </div>
     );
 }

@@ -50,7 +50,7 @@ model QuoteSubmission {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@index([approved, is_featured])
+  @@index([approved, is_featured, display_until])
   @@index([display_until])
 }
 
@@ -63,7 +63,7 @@ model GraffitiSubmission {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@index([approved])
+  @@index([approved, display_until])
   @@index([display_until])
 }
 

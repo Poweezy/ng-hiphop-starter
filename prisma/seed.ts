@@ -18,8 +18,16 @@ async function main() {
     console.log('✅ Slogan seeded');
 
     // Create admin user
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@ng.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail) {
+        throw new Error('ADMIN_EMAIL environment variable is required');
+    }
+    if (!adminPassword) {
+        throw new Error('ADMIN_PASSWORD environment variable is required');
+    }
+
     const password_hash = await bcrypt.hash(adminPassword, 12);
 
     await prisma.user.upsert({
