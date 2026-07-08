@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
 
 // Panels
 import OverviewPanel from './OverviewPanel';
@@ -19,10 +20,10 @@ export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyr
 
 interface Props {
     initialSlogan: string;
-    initialSongs: any[];
-    initialQuotes: any[];
-    initialGraffiti: any[];
-    initialLyrics: any[];
+    initialSongs: SongSummary[];
+    initialQuotes: QuoteSummary[];
+    initialGraffiti: GraffitiSummary[];
+    initialLyrics: LyricSummary[];
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [

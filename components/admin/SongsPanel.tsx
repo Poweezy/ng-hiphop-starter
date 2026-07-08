@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import ConfirmDialog from '../ConfirmDialog';
 
-interface Song { id: string; title: string; description?: string; file_url: string; cover_url: string; is_active: boolean; distribution_links: any; publisher_link?: string; }
+interface Song { id: string; title: string; description?: string | null; file_url: string; cover_url: string; is_active: boolean; distribution_links: any; publisher_link?: string | null; }
 interface Props { initialSongs: Song[]; }
 
 export default function SongsPanel({ initialSongs }: Props) {
@@ -27,15 +27,15 @@ export default function SongsPanel({ initialSongs }: Props) {
         if (!audioFile || !coverFile || !title.trim()) { setStatus('error'); setMsg('Title, audio, and cover are required'); return; }
 
         setUploading(true);
-        const fd = new FormData();
-        fd.append('audio', audioFile);
-        fd.append('cover', coverFile);
-        fd.append('title', title.trim());
-        fd.append('description', desc.trim());
-        fd.append('distributionLinks', JSON.stringify({ spotify, apple, distro }));
-        fd.append('publisherLink', pubLink);
-
         try {
+            const fd = new FormData();
+            fd.append('audio', audioFile);
+            fd.append('cover', coverFile);
+            fd.append('title', title.trim());
+            fd.append('description', desc.trim());
+            fd.append('distributionLinks', JSON.stringify({ spotify, apple, distro }));
+            fd.append('publisherLink', pubLink);
+
             const res = await fetch('/api/songs', { method: 'POST', body: fd });
             const data = await res.json();
             if (res.ok) {
@@ -44,7 +44,9 @@ export default function SongsPanel({ initialSongs }: Props) {
                 setTitle(''); setDesc(''); setSpotify(''); setApple(''); setDistro(''); setPubLink('');
                 form.reset();
             } else { setStatus('error'); setMsg(data.message); }
-        } catch { setStatus('error'); setMsg('Upload failed'); }
+        } catch {
+            setStatus('error'); setMsg('Upload failed');
+        }
         setUploading(false);
         setTimeout(() => setStatus('idle'), 4000);
     };
