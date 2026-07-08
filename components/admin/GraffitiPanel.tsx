@@ -74,21 +74,21 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
     const approved = items.filter(g => g.approved);
 
     const renderCard = (g: Graffiti, showApprove: boolean) => (
-        <div key={g.id} className={`admin-card ${g.approved ? 'admin-card--featured' : ''}`} style={{ overflow: 'hidden' }}>
-            <div style={{ position: 'relative', aspectRatio: '4/3' }}>
+        <div key={g.id} className={`admin-card admin-card--overflow-hidden ${g.approved ? 'admin-card--featured' : ''}`}>
+            <div className="admin-card-media">
                 <Image src={g.image_url} alt={`Graffiti by ${g.artist_name}`} fill style={{ objectFit: 'cover' }} sizes="200px" />
                 {g.approved && (
-                    <div style={{ position: 'absolute', top: '8px', right: '8px' }}>
+                    <div className="admin-card-badge">
                         <span className="badge-approved">LIVE</span>
                     </div>
                 )}
             </div>
-            <div style={{ padding: '12px' }}>
-                <p style={{ fontFamily: 'var(--font-cursive)', fontSize: '1rem', color: 'var(--color-yellow)', marginBottom: '10px' }}>{g.artist_name}</p>
+            <div className="admin-card-body">
+                <p className="admin-artist-name">{g.artist_name}</p>
                 <div className="admin-card-actions">
-                    {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn-admin" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>✓ Approve</button>}
-                    {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>✗ Remove</button>}
-                    <button onClick={() => setDeleteId(g.id)} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>Delete</button>
+                    {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn-admin btn-sm">✓ Approve</button>}
+                    {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger btn-sm">✗ Remove</button>}
+                    <button onClick={() => setDeleteId(g.id)} className="btn-danger btn-sm">Delete</button>
                 </div>
             </div>
         </div>
@@ -100,11 +100,11 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
             <p className="panel-desc">Review and approve fan-submitted graffiti artwork.</p>
 
             <div className="panel-grid">
-                <div className="glass-panel" style={{ padding: '24px' }}>
+                <div className="form-stack glass-panel">
                     <h3 className="admin-section-title">Submit New Artwork</h3>
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <form onSubmit={handleSubmit} className="form-stack">
                         <div className="form-group">
-                            <label htmlFor="artist-name" className="form-label" style={{ color: 'var(--color-green-light)' }}>Artist Name *</label>
+                            <label htmlFor="artist-name" className="form-label admin-label--green">Artist Name *</label>
                             <input
                                 id="artist-name"
                                 type="text"
@@ -118,15 +118,14 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                             />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="graffiti-file" className="form-label" style={{ color: 'var(--color-green-light)' }}>Image * (JPG/PNG/WEBP, max 5MB)</label>
+                            <label htmlFor="graffiti-file" className="form-label admin-label--green">Image * (JPG/PNG/WEBP, max 5MB)</label>
                             <input
                                 id="graffiti-file"
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
                                 required
-                                className="admin-input"
+                                className="admin-input admin-file-input"
                                 disabled={uploading}
-                                style={{ padding: '8px' }}
                                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                             />
                         </div>
@@ -146,7 +145,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                         </div>
                     )}
 
-                    <h3 className="admin-section-title admin-section-title--green" style={{ marginTop: '24px' }}>Live on Site ({approved.length})</h3>
+                    <h3 className="admin-section-title admin-section-title--green admin-section-title--spaced">Live on Site ({approved.length})</h3>
                     {approved.length === 0 ? (
                         <p className="admin-text-muted">No approved graffiti yet.</p>
                     ) : (

@@ -2,20 +2,20 @@
 
 import { useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import Toast from '@/components/Toast';
+import { useToast } from '@/components/ToastProvider';
 
 interface Quote { id: string; quote_text: string; submitted_by: string; approved: boolean; is_featured: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialQuotes: Quote[]; }
 
 export default function QuotesPanel({ initialQuotes }: Props) {
     const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
-    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; action: () => void; title: string; message: string }>({ 
         isOpen: false, 
         action: () => {}, 
         title: '', 
         message: '' 
     });
+    const toast = useToast();
 
     const handlePatch = async (id: string, patch: Partial<Quote>) => {
         const res = await fetch('/api/quotes', {
@@ -29,9 +29,9 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 if (patch.is_featured) return q.id === id ? { ...q, ...updated } : { ...q, is_featured: false };
                 return q.id === id ? { ...q, ...updated } : q;
             }));
-            if (patch.approved) setToast({ message: 'Quote approved!', type: 'success' });
-            else if (patch.is_featured) setToast({ message: 'Quote featured!', type: 'success' });
-            else setToast({ message: 'Quote updated', type: 'info' });
+            if (patch.approved) toast.success('Quote approved!');
+            else if (patch.is_featured) toast.success('Quote featured!');
+            else toast.info('Quote updated');
         }
     };
 
@@ -43,9 +43,9 @@ export default function QuotesPanel({ initialQuotes }: Props) {
         });
         if (res.ok) {
             setQuotes(quotes.filter(q => q.id !== id));
-            setToast({ message: 'Quote deleted', type: 'success' });
+            toast.success('Quote deleted');
         } else {
-            setToast({ message: 'Delete failed', type: 'error' });
+            toast.error('Delete failed');
         }
         setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' });
     };
@@ -71,19 +71,19 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 <div className="admin-card-body">
                     <p className="admin-text-quote">"{q.quote_text}"</p>
                     <p className="admin-text-artist">— {q.submitted_by}</p>
-                    {q.is_featured && <span className="badge-approved" style={{ marginTop: '6px', display: 'inline-block' }}>FEATURED</span>}
+                    {q.is_featured && <span className="badge-approved badge-approved--inline badge-approved--mt">FEATURED</span>}
                 </div>
                 <div className="admin-card-actions">
                     {!q.approved && (
-                        <button onClick={() => handlePatch(q.id, { approved: true })} className="btn-admin" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>✓ Approve</button>
+                        <button onClick={() => handlePatch(q.id, { approved: true })} className="btn-admin btn-md">✓ Approve</button>
                     )}
                     {q.approved && !q.is_featured && (
-                        <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn-admin" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>⭐ Feature</button>
+                        <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn-admin btn-md">⭐ Feature</button>
                     )}
                     {q.approved && (
                         <>
-                            <button onClick={() => handlePatch(q.id, { approved: false, is_featured: false })} className="btn-danger" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>✗ Reject</button>
-                            <button onClick={() => confirmDelete(q.id, q.submitted_by)} className="btn-danger" style={{ fontSize: '0.78rem', padding: '7px 14px' }}>🗑️ Delete</button>
+                            <button onClick={() => handlePatch(q.id, { approved: false, is_featured: false })} className="btn-danger btn-md">✗ Reject</button>
+                            <button onClick={() => confirmDelete(q.id, q.submitted_by)} className="btn-danger btn-md">🗑️ Delete</button>
                         </>
                     )}
                 </div>
@@ -116,7 +116,6 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 onCancel={() => setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' })}
                 variant="danger"
             />
-            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

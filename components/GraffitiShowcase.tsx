@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 
@@ -71,6 +71,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
     const [file, setFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState('');
+    const mountedRef = useRef(true);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -103,17 +104,23 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
             if (res.ok) {
                 setArtistName('');
                 setFile(null);
-                setTimeout(() => {
-                    setShowSubmit(false);
-                    setMessage('');
-                }, 2000);
+                if (mountedRef.current) {
+                    setTimeout(() => {
+                        setShowSubmit(false);
+                        setMessage('');
+                    }, 1500);
+                }
             }
         } catch {
             setMessage('Something went wrong');
         } finally {
-            setSubmitting(false);
+            if (mountedRef.current) {
+                setSubmitting(false);
+            }
         }
     };
+
+    useEffect(() => () => { mountedRef.current = false; }, []);
 
     return (
         <section id="graffiti" className="section graffiti-section">
