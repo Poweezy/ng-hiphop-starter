@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
 
         if (isAdmin) {
             const { searchParams } = new URL(req.url);
-            const page = parseInt(searchParams.get('page') || '1');
-            const limit = parseInt(searchParams.get('limit') || '20');
+            const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
             const skip = (page - 1) * limit;
 
             const [quotes, total] = await Promise.all([
@@ -126,14 +126,20 @@ export async function PATCH(req: NextRequest) {
         const { id, approved, is_featured, display_until } = validation.data;
 
         if (is_featured) {
-            await prisma.quoteSubmission.updateMany({ data: { is_featured: false } });
+            // Atomically clear other featured quotes, then set this one.
+            await prisma.$transaction([
+                prisma.quoteSubmission.updateMany({ data: { is_featured: false } }),
+                prisma.quoteSubmission.update({
+                    where: { id },
+                    data: { is_featured: true },
+                }),
+            ]);
         }
 
         const updated = await prisma.quoteSubmission.update({
             where: { id },
             data: {
                 ...(approved !== undefined ? { approved } : {}),
-                ...(is_featured !== undefined ? { is_featured } : {}),
                 ...(display_until !== undefined ? { display_until: display_until ? new Date(display_until) : null } : {}),
             },
         });

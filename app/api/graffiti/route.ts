@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
 
         if (isAdmin) {
             const { searchParams } = new URL(req.url);
-            const page = parseInt(searchParams.get('page') || '1');
-            const limit = parseInt(searchParams.get('limit') || '20');
+            const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
             const skip = (page - 1) * limit;
 
             const [items, total] = await Promise.all([
@@ -65,8 +65,14 @@ export async function POST(req: NextRequest) {
 
         const contentType = req.headers.get('content-type') || '';
 
-        // Support direct S3 uploads
+        // JSON branch is admin-only: submit a pre-optimized URL produced by
+        // the /api/uploads/optimize endpoint. Public users must use multipart.
         if (contentType.includes('application/json')) {
+            const session = await getServerSession(authOptions);
+            if (session?.user?.role !== 'ADMIN') {
+                return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+            }
+
             const body = await req.json();
             const { imageUrl, artistName } = body;
 
@@ -84,9 +90,10 @@ export async function POST(req: NextRequest) {
 
             notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
 
-            return NextResponse.json({ message: 'Artwork submitted for approval' }, { status: 201 });
+            return NextResponse.json(newGraffiti, { status: 201 });
         }
 
+        // Public multipart submission (scanned + optimized server-side).
         const formData = await req.formData();
         const file = formData.get('image') as File | null;
         const artistName = (formData.get('artistName') as string ?? '').trim().slice(0, 60);
@@ -121,7 +128,7 @@ export async function POST(req: NextRequest) {
 
         notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
 
-        return NextResponse.json({ message: 'Artwork submitted for approval' }, { status: 201 });
+        return NextResponse.json(newGraffiti, { status: 201 });
     } catch {
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }

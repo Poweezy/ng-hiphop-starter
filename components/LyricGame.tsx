@@ -130,7 +130,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const res = await fetch('/api/lyric-game', {
+            const res = await fetch('/api/lyrics', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

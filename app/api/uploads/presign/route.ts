@@ -30,15 +30,15 @@ export async function POST(req: NextRequest) {
 
     const { folder, contentType, filename } = validation.data;
 
-    // If S3 is not configured, presigned uploads are not available
-    if (!('getPresignedUploadUrl' in storage)) {
+    // If S3 is not configured, presigned uploads are not available.
+    if (!storage.supportsPresign()) {
       return NextResponse.json(
         { message: 'Presigned uploads require S3 configuration' },
         { status: 501 }
       );
     }
 
-    const result = await (storage as any).getPresignedUploadUrl(folder, contentType, filename);
+    const result = await storage.getPresignedUploadUrl(folder, contentType, filename);
 
     return NextResponse.json(result);
   } catch (error) {

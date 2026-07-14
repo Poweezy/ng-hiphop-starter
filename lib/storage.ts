@@ -22,6 +22,26 @@ function required(name: string, value: string | undefined) {
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
 }
 
+// Only allow safe folder names (no path separators, dots, etc.) to prevent
+// path traversal when callers pass a `folder` for local storage.
+function sanitizeFolder(folder: string): string {
+  const cleaned = (folder || 'uploads').replace(/[^a-zA-Z0-9_-]/g, '');
+  return cleaned || 'uploads';
+}
+
+// Strip path separators from a single segment (filename/key piece).
+function sanitizeSegment(name: string): string {
+  return (name || '').replace(/[^a-zA-Z0-9._-]/g, '');
+}
+
+// Resolve a local public path and confirm it stays inside publicDir.
+function safeLocalPath(publicDir: string, relativeUrl: string): string | null {
+  const resolved = path.resolve(publicDir, relativeUrl.replace(/^\/+/, ''));
+  const dir = path.resolve(publicDir);
+  if (resolved !== dir && !resolved.startsWith(dir + path.sep)) return null;
+  return resolved;
+}
+
 export class LocalStorageProvider implements StorageProvider {
   private publicDir: string;
 
@@ -30,10 +50,14 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<string> {
-    const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? file.name.split('.').pop() || 'bin' : 'bin');
+    const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? sanitizeSegment(file.name.split('.').pop() || 'bin') : 'bin');
     const filename = `${uuidv4()}.${ext}`;
-    const relativePath = path.join('uploads', folder, filename);
-    const absolutePath = path.join(this.publicDir, relativePath);
+    const relativePath = path.join('uploads', sanitizeFolder(folder), filename);
+    const absolutePath = path.resolve(this.publicDir, relativePath);
+
+    if (!absolutePath.startsWith(path.resolve(this.publicDir) + path.sep)) {
+      throw new Error('Invalid upload path');
+    }
 
     await mkdir(path.dirname(absolutePath), { recursive: true });
     const buffer = file instanceof File ? Buffer.from(await file.arrayBuffer().then(ab => new Uint8Array(ab))) : Buffer.from(file);
@@ -45,7 +69,9 @@ export class LocalStorageProvider implements StorageProvider {
   async deleteFile(fileUrl: string): Promise<void> {
     if (!fileUrl.startsWith('/uploads/')) return;
 
-    const absolutePath = path.join(this.publicDir, fileUrl);
+    const absolutePath = safeLocalPath(this.publicDir, fileUrl);
+    if (!absolutePath) return;
+
     try {
       await unlink(absolutePath);
     } catch (err) {
@@ -56,6 +82,10 @@ export class LocalStorageProvider implements StorageProvider {
 
   async getPresignedUploadUrl(_folder: string, _contentType: string, _filename?: string): Promise<{ url: string; key: string }> {
     throw new Error('Presigned upload URLs are only supported with S3 storage');
+  }
+
+  supportsPresign(): boolean {
+    return false;
   }
 }
 
@@ -71,7 +101,15 @@ export class S3StorageProvider implements StorageProvider {
     this.bucket = bucket;
     this.region = region;
     this.publicBaseUrl = publicBaseUrl;
-    this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '3600');
+    this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '604800');
+
+    if (!publicBaseUrl && process.env.NODE_ENV === 'production') {
+      console.warn(
+        'S3 storage is configured without S3_PUBLIC_BASE_URL. Media will be served via ' +
+        `short-lived signed URLs (TTL ${this.signedUrlTtlSeconds}s) that expire and break playback. ` +
+        'Set S3_PUBLIC_BASE_URL to a public bucket/CDN base URL for durable media.'
+      );
+    }
 
     required('AWS_ACCESS_KEY_ID', process.env.AWS_ACCESS_KEY_ID);
     required('AWS_SECRET_ACCESS_KEY', process.env.AWS_SECRET_ACCESS_KEY);
@@ -86,11 +124,11 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   private keyFor(folder: string, filename: string) {
-    return `${folder}/${filename}`;
+    return `${sanitizeFolder(folder)}/${sanitizeSegment(filename)}`;
   }
 
   async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<string> {
-    const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? file.name.split('.').pop() || 'bin' : 'bin');
+    const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? sanitizeSegment(file.name.split('.').pop() || 'bin') : 'bin');
     const filename = `${uuidv4()}.${ext}`;
     const key = this.keyFor(folder, filename);
 
@@ -118,7 +156,7 @@ export class S3StorageProvider implements StorageProvider {
 
   async getPresignedUploadUrl(folder: string, contentType: string, filename?: string): Promise<{ url: string; key: string }> {
     const ext = contentType.split('/')[1] || 'bin';
-    const uniqueFilename = filename ? `${filename}-${uuidv4()}.${ext}` : `${uuidv4()}.${ext}`;
+    const uniqueFilename = filename ? `${sanitizeSegment(filename)}-${uuidv4()}.${ext}` : `${uuidv4()}.${ext}`;
     const key = this.keyFor(folder, uniqueFilename);
 
     const url = await getSignedUrl(this.s3, new PutObjectCommand({ Bucket: this.bucket, Key: key }), {
@@ -126,6 +164,10 @@ export class S3StorageProvider implements StorageProvider {
     });
 
     return { url, key };
+  }
+
+  supportsPresign(): boolean {
+    return true;
   }
 
   async deleteFile(fileUrl: string): Promise<void> {
