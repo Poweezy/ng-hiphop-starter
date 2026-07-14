@@ -8,6 +8,7 @@ export async function GET() {
         const lyrics = await prisma.lyricGame.findMany({
             where: { is_active: true },
             orderBy: { createdAt: 'asc' },
+            take: 200,
         });
         return NextResponse.json(lyrics);
     } catch {

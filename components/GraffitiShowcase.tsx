@@ -79,28 +79,14 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
         setSubmitting(true);
         try {
-            // Optimize image server-side first
+            // Submit the artwork directly; the API scans + optimizes server-side.
             const formData = new FormData();
             formData.append('image', file);
-            formData.append('folder', 'graffiti');
+            formData.append('artistName', artistName);
 
-            const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: formData });
-            if (!optimizeRes.ok) {
-                const err = await optimizeRes.json();
-                setMessage(err.message || 'Upload failed');
-                setSubmitting(false);
-                return;
-            }
-            const { url: imageUrl } = await optimizeRes.json();
-
-            // Submit graffiti with optimized image URL
-            const res = await fetch('/api/graffiti', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageUrl, artistName }),
-            });
+            const res = await fetch('/api/graffiti', { method: 'POST', body: formData });
             const data = await res.json();
-            setMessage(data.message);
+            setMessage(res.ok ? 'Thanks! Your tag is pending approval.' : (data.message || 'Upload failed'));
             if (res.ok) {
                 setArtistName('');
                 setFile(null);

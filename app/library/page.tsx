@@ -13,6 +13,7 @@ export default async function LibraryPage() {
     const songs = await prisma.song.findMany({
         where: { is_active: true },
         orderBy: { createdAt: 'desc' },
+        take: 100,
     });
 
     return <MusicLibrary songs={songs} />;

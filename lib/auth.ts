@@ -3,6 +3,12 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/app/db';
 
+// Fail fast in production if the session signing secret is missing. Without it
+// NextAuth falls back to an insecure/undefined secret and sessions are unsafe.
+if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET must be set in production');
+}
+
 export const authOptions: AuthOptions = {
     providers: [
         CredentialsProvider({
@@ -30,7 +36,7 @@ export const authOptions: AuthOptions = {
     ],
     callbacks: {
         async jwt({ token, user }) {
-            if (user) token.role = (user as any).role;
+            if (user) token.role = (user as { role?: string }).role;
             return token;
         },
         async session({ session, token }) {

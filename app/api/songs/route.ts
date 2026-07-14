@@ -22,8 +22,8 @@ export async function GET(req: NextRequest) {
 
         if (isAdmin) {
             const { searchParams } = new URL(req.url);
-            const page = parseInt(searchParams.get('page') || '1');
-            const limit = parseInt(searchParams.get('limit') || '10');
+            const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10) || 10));
             const skip = (page - 1) * limit;
 
             const [songs, total] = await Promise.all([
@@ -62,23 +62,31 @@ export async function POST(req: NextRequest) {
             const body = await req.json();
             const { title, description, distributionLinks, publisherLink, fileUrl, coverUrl } = body;
 
-            if (!title || !fileUrl || !coverUrl) {
+            if (typeof title !== 'string' || typeof fileUrl !== 'string' || typeof coverUrl !== 'string') {
                 return NextResponse.json({ message: 'Title, file URL, and cover URL are required' }, { status: 400 });
             }
+            try {
+                new URL(fileUrl);
+                new URL(coverUrl);
+            } catch {
+                return NextResponse.json({ message: 'Invalid file or cover URL' }, { status: 400 });
+            }
 
-            await prisma.song.updateMany({ data: { is_active: false } });
-
-            const song = await prisma.song.create({
-                data: {
-                    title,
-                    description: description || null,
-                    file_url: fileUrl,
-                    cover_url: coverUrl,
-                    distribution_links: distributionLinks || null,
-                    publisher_link: publisherLink || null,
-                    is_active: true,
-                },
-            });
+            // Atomically deactivate all songs and create the new active one.
+            const [, song] = await prisma.$transaction([
+                prisma.song.updateMany({ data: { is_active: false } }),
+                prisma.song.create({
+                    data: {
+                        title,
+                        description: description || null,
+                        file_url: fileUrl,
+                        cover_url: coverUrl,
+                        distribution_links: distributionLinks || null,
+                        publisher_link: publisherLink || null,
+                        is_active: true,
+                    },
+                }),
+            ]);
 
             return NextResponse.json(song, { status: 201 });
         }
@@ -142,20 +150,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Cover image is required' }, { status: 400 });
         }
 
-        // Deactivate others if setting active
-        await prisma.song.updateMany({ data: { is_active: false } });
-
-        const song = await prisma.song.create({
-            data: {
-                title,
-                description: description || null,
-                file_url: audioUrl,
-                cover_url: finalCoverUrl,
-                distribution_links: distributionLinks || null,
-                publisher_link: publisherLink || null,
-                is_active: true,
-            },
-        });
+        // Atomically deactivate all songs and create the new active one.
+        const [, song] = await prisma.$transaction([
+            prisma.song.updateMany({ data: { is_active: false } }),
+            prisma.song.create({
+                data: {
+                    title,
+                    description: description || null,
+                    file_url: audioUrl,
+                    cover_url: finalCoverUrl,
+                    distribution_links: distributionLinks || null,
+                    publisher_link: publisherLink || null,
+                    is_active: true,
+                },
+            }),
+        ]);
 
         return NextResponse.json(song, { status: 201 });
     } catch (err) {
@@ -181,12 +190,19 @@ export async function PATCH(req: NextRequest) {
 
         const { id, is_active } = validation.data;
 
-        // Only one song active at a time
+        // Only one song active at a time. Deactivate all then activate this one
+        // atomically so concurrent requests can't leave two active songs.
         if (is_active) {
-            await prisma.song.updateMany({ data: { is_active: false } });
+            await prisma.$transaction([
+                prisma.song.updateMany({ data: { is_active: false } }),
+                prisma.song.update({ where: { id }, data: { is_active } }),
+            ]);
+        } else {
+            const updated = await prisma.song.update({ where: { id }, data: { is_active } });
+            return NextResponse.json(updated);
         }
 
-        const updated = await prisma.song.update({ where: { id }, data: { is_active } });
+        const updated = await prisma.song.findUnique({ where: { id } });
         return NextResponse.json(updated);
     } catch (error) {
         console.error('Song update error:', error);

@@ -38,6 +38,7 @@ model Song {
   updatedAt          DateTime @updatedAt
 
   @@index([is_active])
+  @@index([createdAt])
 }
 
 model QuoteSubmission {
@@ -54,6 +55,7 @@ model QuoteSubmission {
 
   @@index([approved, is_featured, display_until])
   @@index([display_until])
+  @@index([createdAt])
 }
 
 model GraffitiSubmission {
@@ -69,6 +71,7 @@ model GraffitiSubmission {
 
   @@index([approved, display_until])
   @@index([display_until])
+  @@index([createdAt])
 }
 
 model LyricGame {
@@ -80,6 +83,7 @@ model LyricGame {
   updatedAt      DateTime @updatedAt
 
   @@index([is_active])
+  @@index([createdAt])
 }
 
 model Job {

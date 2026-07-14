@@ -22,6 +22,19 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'picsum.photos',
             },
+            // S3 / object storage hosts. Add your CDN/bucket host here too.
+            {
+                protocol: 'https',
+                hostname: 's3.amazonaws.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.s3.amazonaws.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.s3.*.amazonaws.com',
+            },
         ],
     },
     async headers() {
@@ -35,7 +48,10 @@ const nextConfig = {
                     { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; upgrade-insecure-requests;",
+                        // NOTE: 'unsafe-inline' is required for Next.js + styled-jsx.
+                        // 'unsafe-eval' has been removed. For admin routes consider a
+                        // nonce-based CSP to further reduce XSS blast radius.
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; upgrade-insecure-requests;",
                     },
                 ],
             },

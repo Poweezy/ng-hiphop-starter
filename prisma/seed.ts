@@ -41,42 +41,50 @@ async function main() {
     });
     console.log(`✅ Admin user seeded: ${adminEmail}`);
 
-    // Seed sample lyric game entries
-    await prisma.lyricGame.createMany({
-        data: [
-            {
-                lyric_text: "Started from the bottom, now we're here",
-                correct_artist: 'Drake',
-                is_active: true,
-            },
-            {
-                lyric_text: "I got 99 problems but a pitch ain't one",
-                correct_artist: 'Jay-Z',
-                is_active: true,
-            },
-            {
-                lyric_text: "Sit down, be humble",
-                correct_artist: 'Kendrick Lamar',
-                is_active: true,
-            },
-            {
-                lyric_text: "Real Gs move in silence like lasagna",
-                correct_artist: 'Lil Wayne',
-                is_active: true,
-            },
-        ],
-    });
-    console.log('✅ Lyric game entries seeded');
+    // Seed sample lyric game entries (only on first run)
+    const lyricCount = await prisma.lyricGame.count();
+    if (lyricCount === 0) {
+        await prisma.lyricGame.createMany({
+            data: [
+                {
+                    lyric_text: "Started from the bottom, now we're here",
+                    correct_artist: 'Drake',
+                    is_active: true,
+                },
+                {
+                    lyric_text: "I got 99 problems but a pitch ain't one",
+                    correct_artist: 'Jay-Z',
+                    is_active: true,
+                },
+                {
+                    lyric_text: "Sit down, be humble",
+                    correct_artist: 'Kendrick Lamar',
+                    is_active: true,
+                },
+                {
+                    lyric_text: "Real Gs move in silence like lasagna",
+                    correct_artist: 'Lil Wayne',
+                    is_active: true,
+                },
+            ],
+        });
+        console.log('✅ Lyric game entries seeded');
+    } else {
+        console.log('✅ Lyric game entries already present, skipping');
+    }
 
-    // Create default song
-    await prisma.song.create({
-        data: {
+    // Create default song (idempotent upsert)
+    await prisma.song.upsert({
+        where: { id: 'seed-default-song' },
+        update: {},
+        create: {
+            id: 'seed-default-song',
             title: 'Ascension (Placeholder track)',
             description: 'This is a sample track injected during initialization. Upload your own tracks from the Admin portal.',
             file_url: 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg',
             cover_url: '/images/cover.png',
             is_active: true,
-        }
+        },
     });
     console.log('✅ Default song seeded');
 

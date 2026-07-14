@@ -16,10 +16,10 @@ export default async function AdminPage() {
     // Fetch all admin data in parallel
     const [slogan, songs, quotes, graffiti, lyrics] = await Promise.all([
         prisma.slogan.findUnique({ where: { id: 1 } }),
-        prisma.song.findMany({ orderBy: { createdAt: 'desc' } }),
-        prisma.quoteSubmission.findMany({ orderBy: { createdAt: 'desc' } }),
-        prisma.graffitiSubmission.findMany({ orderBy: { createdAt: 'desc' } }),
-        prisma.lyricGame.findMany({ orderBy: { createdAt: 'desc' } }),
+        prisma.song.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
+        prisma.quoteSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
+        prisma.graffitiSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
+        prisma.lyricGame.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
     ]);
 
     const serializeDate = (value: Date | string | null) => {
