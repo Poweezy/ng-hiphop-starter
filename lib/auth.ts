@@ -2,6 +2,7 @@ import NextAuth, { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/app/db';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Fail fast in production if the session signing secret is missing. Without it
 // NextAuth falls back to an insecure/undefined secret and sessions are unsafe.
@@ -17,8 +18,21 @@ export const authOptions: AuthOptions = {
                 email: { label: 'Email', type: 'email' },
                 password: { label: 'Password', type: 'password' },
             },
-            async authorize(credentials) {
+            async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) return null;
+
+                // Throttle brute-force attempts per IP + email before any DB hit.
+                const headers = (req as { headers?: Record<string, string | string[] | undefined> } | undefined)?.headers;
+                const xffRaw = headers?.['x-forwarded-for'];
+                const xff = Array.isArray(xffRaw) ? xffRaw[0] : (xffRaw as string | undefined);
+                const ip = (headers?.['x-real-ip'] as string | undefined) || xff?.split(',')[0]?.trim() || 'unknown';
+
+                const { allowed } = await checkRateLimit({
+                    key: `login:${ip}:${String(credentials.email).toLowerCase()}`,
+                    max: 5,
+                    periodSeconds: 900,
+                });
+                if (!allowed) return null;
 
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email.toLowerCase().trim() },

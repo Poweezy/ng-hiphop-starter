@@ -15,10 +15,15 @@ export default function SplashScreen() {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
 
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const delay = reduceMotion ? 300 : 2200;
+
     const timer = setTimeout(() => {
       setIsVisible(false);
       document.body.style.overflow = '';
-    }, 2200);
+    }, delay);
 
     return () => {
       clearTimeout(timer);
