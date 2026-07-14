@@ -29,6 +29,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     
     // Timer interval ref
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const correctArtistRef = useRef<string>('');
 
     // Initialize game
     useEffect(() => {
@@ -51,6 +52,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         
         const current = allLyrics[index];
         const correctArtist = current.correct_artist;
+        correctArtistRef.current = correctArtist;
         
         // Pick 3 random distractors from ALL other artists
         const rawArtists = allLyrics.map(l => l.correct_artist).filter(a => a !== correctArtist);
@@ -76,16 +78,24 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         // Start timer
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
-            setTimeLeft(prev => {
+            setTimeLeft((prev) => {
                 if (prev <= 1) {
                     clearInterval(timerRef.current!);
-                    handleTimeout(correctArtist);
                     return 0;
                 }
                 return prev - 1;
             });
         }, 1000);
     };
+
+    // Trigger the timeout handler once the countdown reaches zero.
+    // Kept outside the state updater to avoid updating another component
+    // during render.
+    useEffect(() => {
+        if (timeLeft === 0 && isPlaying) {
+            handleTimeout(correctArtistRef.current);
+        }
+    }, [timeLeft, isPlaying]);
 
     const handleTimeout = (correctArtist: string) => {
         setSelectedOption("TIMEOUT");
