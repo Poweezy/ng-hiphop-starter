@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
-import { Analytics } from '@vercel/analytics/react';
+import ConsentAwareAnalytics from '@/components/ConsentAwareAnalytics';
 
 export const metadata: Metadata = {
     title: {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         address: false,
         telephone: false,
     },
-    metadataBase: new URL('https://ng-hiphop.com'), // Replace with actual domain
+    metadataBase: new URL('https://ng-hiphop.com'),
     openGraph: {
         title: 'NG — Authentic Hip-Hop Platform',
         description: 'Built From Bars. Raised By Beats. Experience the sound of the streets.',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
         siteName: 'NG Hip Hop',
         images: [
             {
-                url: '/og-image.jpg', // Placeholder for OG image
+                url: '/og-image.jpg',
                 width: 1200,
                 height: 630,
                 alt: 'NG Hip Hop Platform',
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'NG — Built From Bars. Raised By Beats.',
         description: 'Authentic hip-hop, community-driven, and legally distributed.',
-        creator: '@nghiphop', // Replace with actual handle
-        images: ['/twitter-image.jpg'], // Placeholder
+        creator: '@nghiphop',
+        images: ['/twitter-image.jpg'],
     },
     robots: {
         index: true,
@@ -72,7 +72,7 @@ export default function RootLayout({
             <body>
                 <SplashScreenWrapper />
                 <LayoutWrapper>{children}</LayoutWrapper>
-                <Analytics />
+                <ConsentAwareAnalytics />
             </body>
         </html>
     );
