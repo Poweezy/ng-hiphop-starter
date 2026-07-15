@@ -22,7 +22,6 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'picsum.photos',
             },
-            // S3 / object storage hosts. Add your CDN/bucket host here too.
             {
                 protocol: 'https',
                 hostname: 's3.amazonaws.com',
@@ -36,6 +35,11 @@ const nextConfig = {
                 hostname: '*.s3.*.amazonaws.com',
             },
         ],
+    },
+    experimental: {
+      serverActions: {
+        bodySizeLimit: '50mb',
+      },
     },
     async headers() {
         const isProd = process.env.NODE_ENV === 'production';
