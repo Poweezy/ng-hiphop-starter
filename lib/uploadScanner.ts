@@ -24,6 +24,7 @@ type ScannerAdapter = {
 
 const CLAMAV_TIMEOUT_MS = Number(process.env.CLAMAV_TIMEOUT_MS || '30000');
 const WEBHOOK_TIMEOUT_MS = Number(process.env.SCAN_WEBHOOK_TIMEOUT_MS || '15000');
+const SCAN_OVERALL_TIMEOUT_MS = Number(process.env.SCAN_OVERALL_TIMEOUT_MS || '60000');
 
 const clamavAdapter: ScannerAdapter = {
   name: 'clamav',
@@ -31,7 +32,7 @@ const clamavAdapter: ScannerAdapter = {
     const host = process.env.CLAMAV_HOST || '127.0.0.1';
     const port = parseInt(process.env.CLAMAV_PORT || '3310', 10);
 
-    return await new Promise<ScanResult>((resolve, reject) => {
+    const scanPromise = new Promise<ScanResult>((resolve, reject) => {
       const socket = net.createConnection({ host, port });
       let settled = false;
 
@@ -80,6 +81,12 @@ const clamavAdapter: ScannerAdapter = {
         });
       });
     });
+
+    const timeoutPromise = new Promise<ScanResult>((_, reject) => {
+      setTimeout(() => reject(new Error('ClamAV scan overall timeout')), SCAN_OVERALL_TIMEOUT_MS);
+    });
+
+    return Promise.race([scanPromise, timeoutPromise]);
   },
 };
 
@@ -94,21 +101,26 @@ const webhookAdapter: ScannerAdapter = {
     const form = new FormData();
     form.append('file', buffer as unknown as Blob, filename);
 
-    const res = await fetch(url, {
+    const scanPromise = fetch(url, {
       method: 'POST',
       body: form,
       signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
+    }).then(async (res) => {
+      if (!res.ok) {
+        throw new Error(`Scan webhook returned ${res.status}`);
+      }
+      const data = (await res.json()) as { clean?: boolean; reason?: string };
+      return {
+        clean: data.clean ?? false,
+        reason: data.reason,
+      } as ScanResult;
     });
 
-    if (!res.ok) {
-      throw new Error(`Scan webhook returned ${res.status}`);
-    }
+    const timeoutPromise = new Promise<ScanResult>((_, reject) => {
+      setTimeout(() => reject(new Error('Webhook scan overall timeout')), SCAN_OVERALL_TIMEOUT_MS);
+    });
 
-    const data = (await res.json()) as { clean?: boolean; reason?: string };
-    return {
-      clean: data.clean ?? false,
-      reason: data.reason,
-    };
+    return Promise.race([scanPromise, timeoutPromise]);
   },
 };
 
