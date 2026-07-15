@@ -1,4 +1,6 @@
 import { writeFile, mkdir, unlink, stat } from 'fs/promises';
+import { createWriteStream } from 'fs';
+import { Readable } from 'stream';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -6,6 +8,7 @@ import type { StorageProvider } from './storageProvider';
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Upload } from '@aws-sdk/lib-storage';
 
 // NOTE: This file previously only supported local filesystem storage.
 // It now supports S3 (prod) and keeps a Local fallback (dev).
@@ -20,6 +23,33 @@ export type S3StorageOptions = {
 
 function required(name: string, value: string | undefined) {
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
+}
+
+async function streamToBuffer(stream: ReadableStream): Promise<Buffer> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks);
+}
+
+function webStreamToNodeStream(stream: ReadableStream): Readable {
+  return new Readable({
+    async read() {
+      const reader = stream.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          this.push(null);
+          break;
+        }
+        this.push(Buffer.from(value));
+      }
+    },
+  });
 }
 
 // Only allow safe folder names (no path separators, dots, etc.) to prevent
@@ -49,7 +79,7 @@ export class LocalStorageProvider implements StorageProvider {
     this.publicDir = path.join(process.cwd(), 'public');
   }
 
-  async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<string> {
+  async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<{ url: string; key: string }> {
     const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? sanitizeSegment(file.name.split('.').pop() || 'bin') : 'bin');
     const filename = `${uuidv4()}.${ext}`;
     const relativePath = path.join('uploads', sanitizeFolder(folder), filename);
@@ -60,10 +90,22 @@ export class LocalStorageProvider implements StorageProvider {
     }
 
     await mkdir(path.dirname(absolutePath), { recursive: true });
-    const buffer = file instanceof File ? Buffer.from(await file.arrayBuffer().then(ab => new Uint8Array(ab))) : Buffer.from(file);
-    await writeFile(absolutePath, buffer);
 
-    return `/${relativePath.replace(/\\/g, '/')}`;
+    if (file instanceof File) {
+      const stream = webStreamToNodeStream(file.stream());
+      await new Promise<void>((resolve, reject) => {
+        const ws = createWriteStream(absolutePath);
+        stream.pipe(ws);
+        ws.on('finish', resolve);
+        ws.on('error', reject);
+      });
+    } else {
+      await writeFile(absolutePath, file);
+    }
+
+    const url = `/${relativePath.replace(/\\/g, '/')}`;
+    const key = relativePath.replace(/\\/g, '/');
+    return { url, key };
   }
 
   async deleteFile(fileUrl: string): Promise<void> {
@@ -77,6 +119,18 @@ export class LocalStorageProvider implements StorageProvider {
     } catch (err) {
       // ignore missing
       return;
+    }
+  }
+
+  async deleteByKey(key: string): Promise<void> {
+    if (!key.startsWith('uploads/')) return;
+    const absolutePath = path.resolve(this.publicDir, key);
+    if (!absolutePath.startsWith(path.resolve(this.publicDir) + path.sep)) return;
+
+    try {
+      await unlink(absolutePath);
+    } catch {
+      // ignore missing
     }
   }
 
@@ -127,31 +181,35 @@ export class S3StorageProvider implements StorageProvider {
     return `${sanitizeFolder(folder)}/${sanitizeSegment(filename)}`;
   }
 
-  async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<string> {
+  async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<{ url: string; key: string }> {
     const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? sanitizeSegment(file.name.split('.').pop() || 'bin') : 'bin');
     const filename = `${uuidv4()}.${ext}`;
     const key = this.keyFor(folder, filename);
 
-    const buffer = file instanceof File ? Buffer.from(await file.arrayBuffer().then(ab => new Uint8Array(ab))) : Buffer.from(file);
+    const body = file instanceof File ? webStreamToNodeStream(file.stream()) : file;
 
-    await this.s3.send(
-      new PutObjectCommand({
+    const upload = new Upload({
+      client: this.s3,
+      params: {
         Bucket: this.bucket,
         Key: key,
-        Body: buffer,
+        Body: body,
         ContentType: contentType || (file instanceof File ? file.type : undefined),
-      })
-    );
+      },
+    });
+
+    await upload.done();
 
     if (this.publicBaseUrl) {
       const base = this.publicBaseUrl.replace(/\/+$/g, '');
-      return `${base}/${key}`;
+      return { url: `${base}/${key}`, key };
     }
 
-    // Fallback: return signed URL
-    return await getSignedUrl(this.s3, new GetObjectCommand({ Bucket: this.bucket, Key: key }), {
+    const signedUrl = await getSignedUrl(this.s3, new GetObjectCommand({ Bucket: this.bucket, Key: key }), {
       expiresIn: this.signedUrlTtlSeconds,
     });
+
+    return { url: signedUrl, key };
   }
 
   async getPresignedUploadUrl(folder: string, contentType: string, filename?: string): Promise<{ url: string; key: string }> {
@@ -171,23 +229,22 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async deleteFile(fileUrl: string): Promise<void> {
-    // We support deletion only for URLs that include the S3 key (either publicBaseUrl path or signed URL won't be reliably parseable).
-    // For signed URLs, the safer approach would be to store the key separately in DB.
-    // Here we best-effort parse common public URL pattern.
-
     const publicBaseUrl = this.publicBaseUrl ? this.publicBaseUrl.replace(/\/+$/g, '') : null;
 
     let key: string | null = null;
     if (publicBaseUrl && fileUrl.startsWith(publicBaseUrl + '/')) {
       key = fileUrl.slice(publicBaseUrl.length + 1);
     } else {
-      // try strip protocol/host and use last path segments
       const u = new URL(fileUrl, 'http://localhost');
       key = u.pathname.replace(/^\/+/, '');
     }
 
     if (!key) return;
+    await this.deleteByKey(key);
+  }
 
+  async deleteByKey(key: string): Promise<void> {
+    if (!key) return;
     await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
 }

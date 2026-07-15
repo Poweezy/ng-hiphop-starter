@@ -31,7 +31,9 @@ model Song {
   title              String
   description        String?
   file_url           String
+  file_key           String?
   cover_url          String
+  cover_key          String?
   distribution_links String?    // { spotify, apple, distro, publisher } JSON stringified
   publisher_link     String?
   is_active          Boolean  @default(false)
@@ -62,6 +64,7 @@ model QuoteSubmission {
 model GraffitiSubmission {
   id            String    @id @default(cuid())
   image_url     String
+  image_key     String?
   artist_name   String
   approved      Boolean   @default(false)
   display_until DateTime?
@@ -93,7 +96,7 @@ model Job {
   payload   String   // JSON
   attempts  Int      @default(0)
   maxAttempts Int    @default(3)
-  status    String   @default("pending") // pending | processing | completed | failed
+  status    String   @default("pending") // pending | processing | completed | failed | deadLetter
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   nextRetryAt DateTime?

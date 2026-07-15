@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
             return errorResponse('Cover image or cover URL is required', 400, 'MISSING_COVER');
         }
 
+        // Validate audio
         if (!ALLOWED_AUDIO.includes(audioFile.type) && !audioFile.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
             return errorResponse('Invalid audio format', 400, 'INVALID_AUDIO_FORMAT');
         }
@@ -123,16 +124,19 @@ export async function POST(req: NextRequest) {
             return errorResponse('Audio must be under 50MB', 400, 'AUDIO_TOO_LARGE');
         }
 
+        // Scan audio (best-effort)
         const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
         const audioScan = await scanBuffer(audioBuffer, audioFile.name);
         if (!audioScan.clean) {
             return errorResponse(`Audio rejected: ${audioScan.reason}`, 400, 'AUDIO_REJECTED');
         }
 
+        // Save audio
         const audioResult = await storage.uploadFile(audioFile, 'songs');
         const audioUrl = audioResult.url;
         const audioKey = audioResult.key;
 
+        // Use pre-optimized cover URL if provided, otherwise optimize now
         let finalCoverUrl = coverUrl;
         let finalCoverKey: string | undefined;
         if (!finalCoverUrl && coverFile) {
@@ -159,6 +163,7 @@ export async function POST(req: NextRequest) {
             return errorResponse('Cover image is required', 400, 'MISSING_COVER');
         }
 
+        // Atomically deactivate all songs and create the new active one.
         const [, song] = await prisma.$transaction([
             prisma.song.updateMany({ data: { is_active: false } }),
             prisma.song.create({
@@ -169,6 +174,75 @@ export async function POST(req: NextRequest) {
                     file_key: audioKey,
                     cover_url: finalCoverUrl,
                     cover_key: finalCoverKey,
+                    distribution_links: distributionLinks || null,
+                    publisher_link: publisherLink || null,
+                    is_active: true,
+                },
+            }),
+        ]);
+
+        return successResponse(song, 201);
+    } catch (err) {
+        console.error(err);
+        return errorResponse('Server error', 500, 'SONG_CREATION_ERROR');
+    }
+}
+
+        if (!coverFile && !coverUrl) {
+            return NextResponse.json({ message: 'Cover image or cover URL is required' }, { status: 400 });
+        }
+
+        // Validate audio
+        if (!ALLOWED_AUDIO.includes(audioFile.type) && !audioFile.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+            return NextResponse.json({ message: 'Invalid audio format' }, { status: 400 });
+        }
+        if (audioFile.size > MAX_AUDIO_BYTES) {
+            return NextResponse.json({ message: 'Audio must be under 50MB' }, { status: 400 });
+        }
+
+        // Scan audio (best-effort)
+        const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+        const audioScan = await scanBuffer(audioBuffer, audioFile.name);
+        if (!audioScan.clean) {
+            return NextResponse.json({ message: `Audio rejected: ${audioScan.reason}` }, { status: 400 });
+        }
+
+        // Save audio
+        const audioUrl = await storage.uploadFile(audioFile, 'songs');
+
+        // Use pre-optimized cover URL if provided, otherwise optimize now
+        let finalCoverUrl = coverUrl;
+        if (!finalCoverUrl && coverFile) {
+            if (!ALLOWED_IMAGE.includes(coverFile.type)) {
+                return NextResponse.json({ message: 'Cover must be JPG, PNG, or WEBP' }, { status: 400 });
+            }
+            if (coverFile.size > MAX_IMAGE_BYTES) {
+                return NextResponse.json({ message: 'Cover image must be under 5MB' }, { status: 400 });
+            }
+
+            const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
+            const coverScan = await scanBuffer(coverBuffer, coverFile.name);
+            if (!coverScan.clean) {
+                return NextResponse.json({ message: `Cover rejected: ${coverScan.reason}` }, { status: 400 });
+            }
+
+            const optimizedCover = await optimizeImage(coverBuffer, { maxWidth: 1200, maxHeight: 1200, quality: 80, format: 'webp' });
+            finalCoverUrl = await storage.uploadFile(optimizedCover.buffer, 'covers', optimizedCover.format);
+        }
+
+        if (!finalCoverUrl) {
+            return NextResponse.json({ message: 'Cover image is required' }, { status: 400 });
+        }
+
+        // Atomically deactivate all songs and create the new active one.
+        const [, song] = await prisma.$transaction([
+            prisma.song.updateMany({ data: { is_active: false } }),
+            prisma.song.create({
+                data: {
+                    title,
+                    description: description || null,
+                    file_url: audioUrl,
+                    cover_url: finalCoverUrl,
                     distribution_links: distributionLinks || null,
                     publisher_link: publisherLink || null,
                     is_active: true,
@@ -213,5 +287,36 @@ export async function PATCH(req: NextRequest) {
     } catch (error) {
         console.error('Song update error:', error);
         return errorResponse('Server error', 500, 'SONG_UPDATE_ERROR');
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    const requestId = getRequestId(req);
+    try {
+        const { session } = await requireAdmin();
+        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+
+        const body = await req.json();
+        const { id } = z.object({ id: z.string().cuid() }).parse(body);
+
+        const song = await prisma.song.findUnique({ where: { id } });
+        if (song) {
+            if (song.file_key) {
+                await storage.deleteByKey(song.file_key);
+            } else if (song.file_url) {
+                await storage.deleteFile(song.file_url);
+            }
+            if (song.cover_key) {
+                await storage.deleteByKey(song.cover_key);
+            } else if (song.cover_url) {
+                await storage.deleteFile(song.cover_url);
+            }
+        }
+
+        await prisma.song.delete({ where: { id } });
+        return NextResponse.json(null, { status: 204 });
+    } catch (error) {
+        console.error('Song delete error:', error);
+        return errorResponse('Server error', 500, 'SONG_DELETE_ERROR');
     }
 }

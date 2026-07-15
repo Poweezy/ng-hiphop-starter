@@ -11,11 +11,13 @@ import { requireAdmin } from '@/app/api/_lib/admin';
 import { optimizeImage } from '@/lib/imageOptimizer';
 import { scanBuffer } from '@/lib/uploadScanner';
 import { notifyAdminModeration } from '@/lib/moderation';
+import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 export async function GET(req: NextRequest) {
+    const requestId = getRequestId(req);
     try {
         const session = await getServerSession(authOptions);
         const userRole = session?.user?.role ?? null;
@@ -36,7 +38,7 @@ export async function GET(req: NextRequest) {
                 prisma.graffitiSubmission.count(),
             ]);
             
-            return NextResponse.json({ 
+            return successResponse({ 
                 items, 
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) } 
             });
@@ -47,79 +49,79 @@ export async function GET(req: NextRequest) {
             orderBy: { createdAt: 'desc' },
             take: 10,
         });
-        return NextResponse.json(approved);
+        return successResponse(approved);
     } catch (error) {
         console.error('Graffiti fetch error:', error);
-        return NextResponse.json({ message: 'Server error' }, { status: 500 });
+        return errorResponse('Server error', 500, 'GRAFFITI_FETCH_ERROR');
     }
 }
 
 export async function POST(req: NextRequest) {
+    const requestId = getRequestId(req);
     try {
         const ip = getClientIp(req);
         const key = `graffiti:${ip}`;
         const { allowed } = await checkRateLimit({ key, max: 3, periodSeconds: 60 });
         if (!allowed) {
-            return NextResponse.json({ message: 'Too many uploads. Please wait.' }, { status: 429 });
+            return errorResponse('Too many uploads. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
         }
 
         const contentType = req.headers.get('content-type') || '';
 
-        // JSON branch is admin-only: submit a pre-optimized URL produced by
-        // the /api/uploads/optimize endpoint. Public users must use multipart.
         if (contentType.includes('application/json')) {
             const session = await getServerSession(authOptions);
             if (session?.user?.role !== 'ADMIN') {
-                return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+                return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
             }
 
             const body = await req.json();
             const { imageUrl, artistName } = body;
 
             if (!imageUrl || !artistName) {
-                return NextResponse.json({ message: 'Image URL and artist name are required' }, { status: 400 });
+                return errorResponse('Image URL and artist name are required', 400, 'MISSING_FIELDS');
             }
 
             const newGraffiti = await prisma.graffitiSubmission.create({
                 data: {
                     image_url: imageUrl,
                     artist_name: artistName,
-                    scan_clean: true,
                 },
             });
 
             notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
 
-            return NextResponse.json(newGraffiti, { status: 201 });
+            return successResponse(newGraffiti, 201);
         }
 
-        // Public multipart submission (scanned + optimized server-side).
         const formData = await req.formData();
         const file = formData.get('image') as File | null;
         const artistName = (formData.get('artistName') as string ?? '').trim().slice(0, 60);
 
         if (!file || !artistName) {
-            return NextResponse.json({ message: 'Image and artist name required' }, { status: 400 });
+            return errorResponse('Image and artist name required', 400, 'MISSING_FIELDS');
         }
         if (!ALLOWED_TYPES.includes(file.type)) {
-            return NextResponse.json({ message: 'Only JPG, PNG, WEBP allowed' }, { status: 400 });
+            return errorResponse('Only JPG, PNG, WEBP allowed', 400, 'INVALID_IMAGE_FORMAT');
         }
         if (file.size > MAX_SIZE_BYTES) {
-            return NextResponse.json({ message: 'Image must be under 5MB' }, { status: 400 });
+            return errorResponse('Image must be under 5MB', 400, 'IMAGE_TOO_LARGE');
         }
 
         const imageBuffer = Buffer.from(await file.arrayBuffer());
         const scan = await scanBuffer(imageBuffer, file.name);
         if (!scan.clean) {
-            return NextResponse.json({ message: `Image rejected: ${scan.reason}` }, { status: 400 });
+            return errorResponse(`Image rejected: ${scan.reason}`, 400, 'IMAGE_REJECTED');
         }
 
         const optimized = await optimizeImage(imageBuffer, { maxWidth: 2000, maxHeight: 2000, quality: 80, format: 'webp' });
-        const imageUrl = await storage.uploadFile(optimized.buffer, 'graffiti', optimized.format);
+        const imageResult = await storage.uploadFile(optimized.buffer, 'graffiti', optimized.format);
+        const imageUrl = imageResult.url;
+        const imageKey = imageResult.key;
 
         const newGraffiti = await prisma.graffitiSubmission.create({
             data: {
                 image_url: imageUrl,
+                image_key: imageKey,
                 artist_name: artistName,
                 scan_clean: scan.clean,
                 scan_result: scan.reason ?? null,
@@ -128,25 +130,25 @@ export async function POST(req: NextRequest) {
 
         notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
 
-        return NextResponse.json(newGraffiti, { status: 201 });
+        return successResponse(newGraffiti, 201);
     } catch {
-        return NextResponse.json({ message: 'Server error' }, { status: 500 });
+        return errorResponse('Server error', 500, 'GRAFFITI_SUBMISSION_ERROR');
     }
 }
 
 export async function PATCH(req: NextRequest) {
+    const requestId = getRequestId(req);
     try {
-        const { session } = await requireAdmin();
-        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const { session, error } = await requireAdmin();
+        if (!session) {
+            return errorResponse(error!.message, error!.status, 'UNAUTHORIZED');
+        }
 
         const body = await req.json();
         const validation = graffitiUpdateSchema.safeParse(body);
         
         if (!validation.success) {
-            return NextResponse.json({ 
-                message: 'Invalid input', 
-                errors: validation.error.issues 
-            }, { status: 400 });
+            return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
         }
 
         const { id, approved, display_until } = validation.data;
@@ -159,30 +161,9 @@ export async function PATCH(req: NextRequest) {
             },
         });
 
-        return NextResponse.json(updated);
+        return successResponse(updated);
     } catch (error) {
         console.error('Graffiti update error:', error);
-        return NextResponse.json({ message: 'Server error' }, { status: 500 });
-    }
-}
-
-export async function DELETE(req: NextRequest) {
-    try {
-        const { session } = await requireAdmin();
-        if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-        const body = await req.json();
-        const { id } = z.object({ id: z.string().cuid() }).parse(body);
-
-        const graffiti = await prisma.graffitiSubmission.findUnique({ where: { id } });
-        if (graffiti) {
-            await storage.deleteFile(graffiti.image_url);
-        }
-
-        await prisma.graffitiSubmission.delete({ where: { id } });
-        return NextResponse.json({ message: 'Graffiti deleted' });
-    } catch (error) {
-        console.error('Graffiti delete error:', error);
-        return NextResponse.json({ message: 'Server error' }, { status: 500 });
+        return errorResponse('Server error', 500, 'GRAFFITI_UPDATE_ERROR');
     }
 }

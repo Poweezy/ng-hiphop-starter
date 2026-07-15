@@ -44,7 +44,7 @@ export async function enqueue<T = unknown>(type: string, payload: T): Promise<Ta
   return task;
 }
 
-async function markJobDone(id: string, status: 'completed' | 'failed') {
+async function markJobDone(id: string, status: 'completed' | 'failed' | 'deadLetter') {
   await prisma.job.update({ where: { id }, data: { status, updatedAt: new Date() } });
 }
 
@@ -57,7 +57,7 @@ async function incrementJobAttempt(id: string, attempts: number, nextRetryAt: Da
     where: { id },
     data: {
       attempts,
-      status: nextRetryAt ? 'pending' : 'failed',
+      status: nextRetryAt ? 'pending' : 'deadLetter',
       nextRetryAt: nextRetryAt ?? undefined,
       updatedAt: new Date(),
     },
@@ -101,7 +101,7 @@ export async function processQueue() {
 
       const handler = handlers.get(job.type);
       if (!handler) {
-        await markJobDone(job.id, 'failed');
+        await markJobDone(job.id, 'deadLetter');
         continue;
       }
 
