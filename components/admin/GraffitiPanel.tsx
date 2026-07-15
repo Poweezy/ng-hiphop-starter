@@ -13,6 +13,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
     const [artistName, setArtistName] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [msg, setMsg] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,7 +28,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
 
             const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: formData });
             if (!optimizeRes.ok) {
-                const err = await optimizeRes.json();
+                const err = await optimizeRes.json().catch(() => ({}));
+                setStatus('error'); setMsg((err as { message?: string }).message || 'Cover optimization failed');
                 setUploading(false);
                 return;
             }
@@ -41,14 +44,20 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
             });
 
             if (res.ok) {
-                setItems([await res.json(), ...items]);
+                const created = await res.json();
+                setItems([created, ...items]);
                 setArtistName('');
                 setFile(null);
+                setStatus('success'); setMsg('Artwork submitted for approval!');
+            } else {
+                const err = await res.json().catch(() => ({}));
+                setStatus('error'); setMsg((err as { message?: string }).message || 'Upload failed');
             }
         } catch {
-            // Handle error
+            setStatus('error'); setMsg('Upload failed. Please try again.');
         }
         setUploading(false);
+        setTimeout(() => setStatus('idle'), 4000);
     };
 
     const handlePatch = async (id: string, patch: Partial<Graffiti>) => {
@@ -60,6 +69,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
         if (res.ok) {
             const updated = await res.json();
             setItems(items.map(g => g.id === id ? { ...g, ...updated } : g));
+        } else {
+            setStatus('error'); setMsg('Update failed');
         }
     };
 
@@ -67,6 +78,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
         if (!deleteId) return;
         const res = await fetch('/api/graffiti', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteId }) });
         if (res.ok) setItems(items.filter(g => g.id !== deleteId));
+        else { setStatus('error'); setMsg('Delete failed'); }
         setDeleteId(null);
     };
 
@@ -132,6 +144,9 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                         <button type="submit" className="btn-admin" disabled={uploading || !file || !artistName.trim()}>
                             {uploading ? '⏳ Uploading...' : '🎨 Submit Artwork'}
                         </button>
+                        {status !== 'idle' && (
+                            <div className={`status-message status-message--${status}`}>{msg}</div>
+                        )}
                     </form>
                 </div>
 

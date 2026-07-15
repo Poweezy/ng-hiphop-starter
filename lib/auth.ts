@@ -44,13 +44,34 @@ export const authOptions: AuthOptions = {
                 const isValid = await bcrypt.compare(credentials.password, user.password_hash);
                 if (!isValid) return null;
 
-                return { id: user.id, email: user.email, role: user.role };
+                return { id: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion };
             },
         }),
     ],
     callbacks: {
         async jwt({ token, user }) {
-            if (user) token.role = (user as { role?: string }).role;
+            if (user) {
+                token.role = (user as { role?: string }).role;
+                token.tokenVersion = (user as { tokenVersion?: number }).tokenVersion;
+            } else if (token.sub) {
+                try {
+                    const dbUser = await prisma.user.findUnique({
+                        where: { id: token.sub },
+                        select: { tokenVersion: true, role: true },
+                    });
+                    if (!dbUser) {
+                        token.sub = undefined;
+                    } else if (dbUser.tokenVersion !== token.tokenVersion) {
+                        token.sub = undefined;
+                    } else {
+                        token.role = dbUser.role;
+                    }
+                } catch {
+                    // If DB check fails, keep existing token to avoid
+                    // breaking sessions during transient issues. The short
+                    // 8h expiry limits exposure.
+                }
+            }
             return token;
         },
         async session({ session, token }) {
@@ -64,6 +85,17 @@ export const authOptions: AuthOptions = {
     },
     session: { strategy: 'jwt', maxAge: 8 * 60 * 60 },
     secret: process.env.NEXTAUTH_SECRET,
+    cookies: {
+      sessionToken: {
+        name: `__Secure-next-auth.session-token`,
+        options: {
+          httpOnly: true,
+          sameSite: 'lax',
+          path: '/',
+          secure: process.env.NODE_ENV === 'production',
+        },
+      },
+    },
 };
 
 export default authOptions;

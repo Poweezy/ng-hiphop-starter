@@ -11,7 +11,8 @@ export async function GET() {
             take: 200,
         });
         return NextResponse.json(lyrics);
-    } catch {
+    } catch (error) {
+        console.error('Lyric fetch error:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }

@@ -13,7 +13,7 @@ function isMasterSecretValid(provided: string): boolean {
   if (!expected) {
     throw new Error('ADMIN_RESET_SECRET is not configured');
   }
-  const a = Buffer.from(provided);
+  const a = Buffer.from(provided.trim());
   const b = Buffer.from(expected);
   if (a.length !== b.length) return false;
   return crypto.timingSafeEqual(a, b);
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { password_hash: hashedPassword },
+      data: { password_hash: hashedPassword, tokenVersion: { increment: 1 } },
     });
 
     // NOTE: existing sessions are not invalidated here. To fully revoke active
