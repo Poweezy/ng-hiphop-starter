@@ -3,7 +3,8 @@ import { prisma } from '@/app/db';
 import bcrypt from 'bcryptjs';
 import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
+import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 
 // Constant-time comparison against the configured master secret. We compare
 // the raw value directly instead of caching a module-level bcrypt hash, which
@@ -20,28 +21,27 @@ function isMasterSecretValid(provided: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const requestId = getRequestId(req);
   try {
     const ip = getClientIp(req);
     const key = `reset-password:${ip}`;
     const { allowed } = await checkRateLimit({ key, max: 3, periodSeconds: 300 });
     if (!allowed) {
-      return NextResponse.json({ error: 'Too many attempts. Please wait.' }, { status: 429 });
+      return errorResponse('Too many attempts. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
     }
 
     const { email, resetSecret, newPassword } = await req.json();
 
     if (!email || !resetSecret || !newPassword) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+      return errorResponse('All fields are required', 400, 'MISSING_FIELDS');
     }
 
-    // Generic error for both invalid secret and unknown admin to avoid an
-    // account-enumeration oracle.
     if (!isMasterSecretValid(resetSecret)) {
-      return NextResponse.json({ error: 'Invalid reset secret or admin email' }, { status: 403 });
+      return errorResponse('Invalid reset secret or admin email', 403, 'INVALID_RESET_SECRET');
     }
 
     if (newPassword.length < 8) {
-      return NextResponse.json({ error: 'New password must be at least 8 characters long' }, { status: 400 });
+      return errorResponse('New password must be at least 8 characters long', 400, 'PASSWORD_TOO_SHORT');
     }
 
     const user = await prisma.user.findUnique({
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Invalid reset secret or admin email' }, { status: 403 });
+      return errorResponse('Invalid reset secret or admin email', 403, 'INVALID_RESET_SECRET');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
@@ -59,11 +59,9 @@ export async function POST(req: NextRequest) {
       data: { password_hash: hashedPassword, tokenVersion: { increment: 1 } },
     });
 
-    // NOTE: existing sessions are not invalidated here. To fully revoke active
-    // JWTs, add a token-version column to User and check it in the JWT callback.
-    return NextResponse.json({ message: 'Password reset successful. You can now log in.' });
+    return successResponse({ message: 'Password reset successful. You can now log in.' });
   } catch (error) {
     console.error('Reset password error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Internal server error', 500, 'PASSWORD_RESET_ERROR');
   }
 }
