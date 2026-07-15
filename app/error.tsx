@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
+import { useCookieConsent } from '@/lib/consent';
 
 export default function Error({
   error,
@@ -10,13 +11,17 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { consent } = useCookieConsent();
+
   useEffect(() => {
     console.error('App error:', error);
-    Sentry.captureException(error, {
-      tags: { digest: error.digest },
-      extra: { message: error.message },
-    });
-  }, [error]);
+    if (consent?.analytics) {
+      Sentry.captureException(error, {
+        tags: { digest: error.digest },
+        extra: { message: error.message },
+      });
+    }
+  }, [error, consent]);
 
   return (
     <div
