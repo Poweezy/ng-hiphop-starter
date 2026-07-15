@@ -255,11 +255,17 @@ Create account at [Upstash](https://upstash.com) (free tier available)
 
 Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in production.
 
-**Fallback:** Without Upstash, rate limiting is disabled (allow-all). This is fine for internal/admin-only usage but should be enabled for public submission endpoints.
+**Fallback:** Without Upstash configured, rate limiting **fails closed in production** (requests are denied) to avoid silently disabling abuse controls. In local development it allows. Always configure Upstash Redis in production.
 
 ### 3. CORS Configuration
 
-Already configured in `next.config.js`:
+The app's API is **same-origin** (the browser UI calls `/api/*` from the same host), so
+no cross-origin resource sharing is required for normal operation. A defense-in-depth
+CSRF/origin guard in `middleware.ts` rejects any state-changing request whose `Origin`
+header does not match the `Host` header.
+
+If you expose the API to a **different** frontend origin, add explicit CORS headers in
+`next.config.js` (and keep the origin guard in mind):
 ```javascript
 async headers() {
   return [
@@ -276,7 +282,9 @@ async headers() {
 
 ### 4. Content Security Policy
 
-Already configured in `next.config.js`:
+Already configured in `next.config.js`. The policy keeps `'unsafe-inline'` (required
+for Next.js + styled-jsx) but **removes `'unsafe-eval'`**, and whitelists the Google
+Fonts hosts used by the brand typography:
 ```javascript
 async headers() {
   return [
@@ -285,13 +293,15 @@ async headers() {
       headers: [
         {
           key: 'Content-Security-Policy',
-          value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:;"
+          value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; upgrade-insecure-requests;"
         },
       ],
     },
   ];
 }
 ```
+
+> For admin routes, prefer a nonce-based CSP to further reduce XSS blast radius.
 
 ### 5. Upload Scanning
 
@@ -506,11 +516,11 @@ jobs:
 
 ### Moderation Queue
 
-Currently uses an in-memory queue with retry logic:
-- `lib/queue.ts` — async task queue
-- `lib/moderation.ts` — moderation notification handlers
+Uses a **database-backed job queue** that survives restarts and cold starts:
+- `lib/queue.ts` — Prisma `Job` model, atomic claiming (no double-execution across instances), retry with backoff.
+- `lib/moderation.ts` — notification handler delivered to `MODERATION_WEBHOOK_URL` (Slack/Discord-compatible `POST { text }`); falls back to `console.info` if unset.
 
-**Production consideration:** Replace with a durable queue (e.g., database-backed jobs, QStash, BullMQ) to survive serverless cold starts.
+Set `MODERATION_WEBHOOK_URL` so admins are actually notified of pending submissions.
 
 ---
 **Ready to deploy? Follow this checklist and you'll be live in minutes!** 🚀

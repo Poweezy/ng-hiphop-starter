@@ -147,10 +147,10 @@ ADMIN_PASSWORD=<strong-password>
 
 - SQLite not suitable for production (use PostgreSQL)
 - Local file uploads are public; use S3/Cloudinary in production
-- Rate limiting requires Upstash Redis env vars (falls back to allow-all locally)
-- Virus scanning is opt-in and fail-open by default
-- In-memory moderation queue is lost on cold restart; use a durable queue in production
-- No email notifications yet (queue scaffold is in place)
+- Rate limiting fails closed in production when Upstash Redis is not configured (allows in local dev)
+- Virus scanning is opt-in; when disabled it fails closed in production (set `VIRUS_SCANNER_FAIL_OPEN=true` for dev only)
+- Moderation queue is database-backed and survives restarts; notifications are sent via `MODERATION_WEBHOOK_URL` (console fallback)
+- Public graffiti submissions are scanned + optimized server-side at `/api/graffiti`; admin-only uploads use `/api/uploads/optimize`
 - No user registration (admin only)
 
 ## 🔄 Recent Improvements
