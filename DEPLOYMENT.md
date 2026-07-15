@@ -13,8 +13,10 @@ openssl rand -base64 32
 
 Create production `.env`:
 ```env
-# Database (PostgreSQL required)
-DATABASE_URL="postgresql://user:password@host:5432/database"
+# Database (SQLite for local/dev; PostgreSQL for production)
+# SQLite (default): file:./dev.db
+# PostgreSQL: update prisma/schema.prisma provider and use:
+DATABASE_URL="file:./dev.db"
 
 # NextAuth
 NEXTAUTH_SECRET="your-generated-secret-here"
@@ -27,7 +29,7 @@ ADMIN_PASSWORD="strong-secure-password"
 # Security
 ADMIN_RESET_SECRET="strong-master-reset-key"
 
-# Rate Limiting (Upstash Redis)
+# Rate Limiting (Upstash Redis) - Required in production
 UPSTASH_REDIS_REST_URL="https://..."
 UPSTASH_REDIS_REST_TOKEN="..."
 
@@ -45,12 +47,24 @@ VIRUS_SCANNER="clamav" # or "webhook"
 CLAMAV_HOST="127.0.0.1"
 CLAMAV_PORT="3310"
 # SCAN_WEBHOOK_URL="https://scanner.example.com/scan"
+
+# Sentry Error Tracking (optional)
+SENTRY_DSN=""
+SENTRY_ORG=""
+SENTRY_PROJECT=""
+NEXT_PUBLIC_SENTRY_DSN=""
 ```
 
 ### 2. Database Migration
 
-Switch from SQLite to PostgreSQL:
+**Local development (SQLite):**
+```bash
+npm run db:generate
+npx prisma db push
+npm run db:seed
+```
 
+**Production (PostgreSQL):**
 1. Update `prisma/schema.prisma`:
 ```prisma
 datasource db {
@@ -72,13 +86,16 @@ npm run db:seed
 
 - [ ] Remove `.env` from git history
 - [ ] Change default admin password
-- [ ] Enable HTTPS/SSL
-- [ ] Set up CORS policies
+- [ ] Enable HTTPS/SSL (HSTS is configured in `next.config.js`)
+- [ ] Set secure cookies (`__Secure-next-auth.session-token` with `httpOnly`, `sameSite: 'lax'`, `secure` in production)
 - [ ] Configure CSP headers (already in `next.config.js`)
-- [ ] Configure rate limiting with Upstash Redis
+- [ ] Configure rate limiting with Upstash Redis (fails closed in production if missing)
 - [ ] Enable upload virus scanning (`VIRUS_SCANNER_ENABLED=true`)
 - [ ] Use S3/Cloudinary for file storage
 - [ ] Set strong `ADMIN_RESET_SECRET`
+- [ ] Verify JWT token versioning is active (password changes invalidate existing sessions)
+- [ ] Enable Sentry error tracking (`SENTRY_DSN`)
+- [ ] Review CORS policies if exposing API to external frontends
 
 ## 📦 Deployment Options
 
@@ -114,8 +131,9 @@ git push origin main
 
 **Important Vercel Notes:**
 - Serverless functions have a 4.5MB body limit — use presigned S3 uploads for large files
+- Body size limit is configured in `next.config.js` (`experimental.serverActions.bodySizeLimit: '50mb'`)
 - Add S3 domains to `next.config.js` `remotePatterns` if using signed URLs
-- Set `NEXT_PUBLIC_S3_PUBLIC_BASE_URL` if serving public S3 objects
+- Set `S3_PUBLIC_BASE_URL` if serving public S3 objects
 
 **Database Options:**
 - [Vercel Postgres](https://vercel.com/storage/postgres) (Recommended)
@@ -324,18 +342,28 @@ SCAN_WEBHOOK_URL=https://scanner.example.com/scan
 
 ### Error Tracking
 
-**Sentry** (Recommended)
-```bash
-npm install @sentry/nextjs
-npx @sentry/wizard@latest -i nextjs
+Sentry is integrated. Configure it in your `.env`:
+```env
+SENTRY_DSN="your-sentry-dsn"
+SENTRY_ORG="your-org"
+SENTRY_PROJECT="your-project"
+NEXT_PUBLIC_SENTRY_DSN="your-public-dsn"
 ```
+
+Client-side errors are captured in `app/error.tsx` and `app/global-error.tsx`. Server-side errors are automatically captured by the Sentry Next.js SDK.
 
 ### Analytics
 
-**Vercel Analytics**
-```bash
-npm install @vercel/analytics
-```
+Vercel Analytics is integrated. It automatically tracks page views and web vitals when deployed on Vercel.
+
+### SLO Metrics
+
+The application exposes `GET /api/slo` (admin-only) returning real-time SLO metrics:
+- Availability (success rate)
+- p95 / p99 latency
+- Error rate (5xx)
+
+Configure alerting based on these metrics.
 
 ## 🧪 Pre-Launch Testing
 
