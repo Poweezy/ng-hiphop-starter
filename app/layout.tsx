@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
     title: {
@@ -71,6 +72,7 @@ export default function RootLayout({
             <body>
                 <SplashScreenWrapper />
                 <LayoutWrapper>{children}</LayoutWrapper>
+                <Analytics />
             </body>
         </html>
     );
