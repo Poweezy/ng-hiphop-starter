@@ -44,11 +44,7 @@ export default function LyricsPanel({ initialLyrics }: Props) {
     };
 
     const remove = async (id: string) => {
-        const res = await fetch('/api/lyrics', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id }),
-        });
+        const res = await fetch(`/api/lyrics/${id}`, { method: 'DELETE' });
         if (res.ok) setLyrics(lyrics.filter(l => l.id !== id));
     };
 

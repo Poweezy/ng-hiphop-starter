@@ -76,7 +76,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
 
     const handleDelete = async () => {
         if (!deleteId) return;
-        const res = await fetch('/api/graffiti', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteId }) });
+        const res = await fetch(`/api/graffiti/${deleteId}`, { method: 'DELETE' });
         if (res.ok) setItems(items.filter(g => g.id !== deleteId));
         else { setStatus('error'); setMsg('Delete failed'); }
         setDeleteId(null);

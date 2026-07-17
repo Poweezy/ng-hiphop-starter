@@ -125,10 +125,11 @@ export default function AdminLoginPage() {
                     }}
                 >
                     {!forgotPassword ? (
-                        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} aria-live="polite">
                             <div className="form-group">
-                                <label className="form-label" style={{ color: 'var(--color-green-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Email</label>
+                                <label htmlFor="admin-email" className="form-label" style={{ color: 'var(--color-green-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Email</label>
                                 <input
+                                    id="admin-email"
                                     type="email"
                                     className="admin-input"
                                     placeholder="admin@ng.com"
@@ -137,14 +138,15 @@ export default function AdminLoginPage() {
                                     required
                                     autoComplete="email"
                                     disabled={loading}
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? 'login-error' : undefined}
                                 />
                             </div>
 
                             <div className="form-group">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <label className="form-label" style={{ color: 'var(--color-green-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Password</label>
-                                </div>
+                                <label htmlFor="admin-password" className="form-label" style={{ color: 'var(--color-green-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Password</label>
                                 <input
+                                    id="admin-password"
                                     type="password"
                                     className="admin-input"
                                     placeholder="••••••••"
@@ -153,10 +155,12 @@ export default function AdminLoginPage() {
                                     required
                                     autoComplete="current-password"
                                     disabled={loading}
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? 'login-error' : undefined}
                                 />
                             </div>
 
-                            {error && <div className="error-alert">{error}</div>}
+                            {error && <div id="login-error" className="error-alert" role="alert">{error}</div>}
 
                             <button type="submit" className="btn-admin" disabled={loading}>
                                 {loading ? '⏳ Authenticating...' : '🔐 Access Dashboard'}
@@ -171,10 +175,11 @@ export default function AdminLoginPage() {
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} aria-live="polite">
                             <div className="form-group">
-                                <label className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Admin Email</label>
+                                <label htmlFor="reset-email" className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Admin Email</label>
                                 <input
+                                    id="reset-email"
                                     type="email"
                                     className="admin-input"
                                     placeholder="Confirm your email"
@@ -182,12 +187,15 @@ export default function AdminLoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={loading}
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? 'reset-error' : undefined}
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Master Secret Key</label>
+                                <label htmlFor="reset-secret" className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Master Secret Key</label>
                                 <input
+                                    id="reset-secret"
                                     type="password"
                                     className="admin-input"
                                     placeholder="Enter reset secret from .env"
@@ -195,12 +203,15 @@ export default function AdminLoginPage() {
                                     onChange={(e) => setResetSecret(e.target.value)}
                                     required
                                     disabled={loading}
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? 'reset-error' : undefined}
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>New Password</label>
+                                <label htmlFor="reset-password" className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>New Password</label>
                                 <input
+                                    id="reset-password"
                                     type="password"
                                     className="admin-input"
                                     placeholder="Min 8 characters"
@@ -208,12 +219,14 @@ export default function AdminLoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     disabled={loading}
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? 'reset-error' : undefined}
                                 />
                             </div>
 
-                            {error && <div className="error-alert">{error}</div>}
+                            {error && <div id="reset-error" className="error-alert" role="alert">{error}</div>}
                             {success && (
-                                <div style={{ padding: '12px', background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', borderRadius: '6px', color: '#10b981', fontSize: '0.85rem' }}>
+                                <div style={{ padding: '12px', background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', borderRadius: '6px', color: '#10b981', fontSize: '0.85rem' }} role="status">
                                     ✅ {success}
                                 </div>
                             )}
