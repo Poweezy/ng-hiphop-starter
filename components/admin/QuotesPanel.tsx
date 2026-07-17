@@ -36,11 +36,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     };
 
     const handleDelete = async (id: string) => {
-        const res = await fetch('/api/quotes', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id }),
-        });
+        const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
         if (res.ok) {
             setQuotes(quotes.filter(q => q.id !== id));
             toast.success('Quote deleted');

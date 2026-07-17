@@ -73,7 +73,7 @@ export default function SongsPanel({ initialSongs }: Props) {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const handleDelete = async () => {
         if (!deleteId) return;
-        const res = await fetch('/api/songs', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteId }) });
+        const res = await fetch(`/api/songs/${deleteId}`, { method: 'DELETE' });
         if (res.ok) setSongs(songs.filter(s => s.id !== deleteId));
         setDeleteId(null);
     };
