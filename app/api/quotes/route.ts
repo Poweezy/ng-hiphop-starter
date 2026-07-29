@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { quoteSubmissionSchema, quoteUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
 
@@ -18,7 +17,7 @@ export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
     const start = performance.now();
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         const userRole = session?.user?.role ?? null;
         const isAdmin = userRole === 'ADMIN';
 

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { storage } from '@/lib/storage';
 import { optimizeImage } from '@/lib/imageOptimizer';

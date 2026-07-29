@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { storage } from '@/lib/storage';
 import { z } from 'zod';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
@@ -14,7 +13,7 @@ const presignSchema = z.object({
 export async function POST(req: NextRequest) {
   const requestId = getRequestId(req);
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     const userRole = session?.user?.role ?? null;
     if (!session || userRole !== 'ADMIN') {
       return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
