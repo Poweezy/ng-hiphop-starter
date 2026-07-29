@@ -38,10 +38,8 @@ const nextConfig = {
             },
         ],
     },
-    experimental: {
-      serverActions: {
-        bodySizeLimit: '50mb',
-      },
+    serverActions: {
+      bodySizeLimit: '50mb',
     },
     async headers() {
         const isProd = process.env.NODE_ENV === 'production';

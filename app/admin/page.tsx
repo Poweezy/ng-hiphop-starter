@@ -1,12 +1,11 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { prisma } from '@/app/db';
 import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
 
 export default async function AdminPage() {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     const userRole = session?.user?.role ?? null;
     
     if (!session || userRole !== 'ADMIN') {

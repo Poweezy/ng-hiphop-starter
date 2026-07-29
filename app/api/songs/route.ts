@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { storage } from '@/lib/storage';
 import { songUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
@@ -29,7 +28,7 @@ const songCreateSchema = z.object({
 export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         const userRole = session?.user?.role ?? null;
         const isAdmin = userRole === 'ADMIN';
 

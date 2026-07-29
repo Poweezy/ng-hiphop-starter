@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/app/db';
 import bcrypt from 'bcryptjs';
 import { requireAdmin } from '@/app/api/_lib/admin';

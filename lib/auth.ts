@@ -1,16 +1,14 @@
-import NextAuth, { AuthOptions } from 'next-auth';
+import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/app/db';
 import { checkRateLimit } from '@/lib/ratelimit';
 
-// Fail fast in production if the session signing secret is missing. Without it
-// NextAuth falls back to an insecure/undefined secret and sessions are unsafe.
 if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
   throw new Error('NEXTAUTH_SECRET must be set in production');
 }
 
-export const authOptions: AuthOptions = {
+export const { auth, handlers, signIn, signOut } = NextAuth({
     providers: [
         CredentialsProvider({
             name: 'credentials',
@@ -21,7 +19,6 @@ export const authOptions: AuthOptions = {
             async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) return null;
 
-                // Throttle brute-force attempts per IP + email before any DB hit.
                 const headers = (req as { headers?: Record<string, string | string[] | undefined> } | undefined)?.headers;
                 const xffRaw = headers?.['x-forwarded-for'];
                 const xff = Array.isArray(xffRaw) ? xffRaw[0] : (xffRaw as string | undefined);
@@ -67,9 +64,6 @@ export const authOptions: AuthOptions = {
                         token.role = dbUser.role;
                     }
                 } catch {
-                    // If DB check fails, keep existing token to avoid
-                    // breaking sessions during transient issues. The short
-                    // 8h expiry limits exposure.
                 }
             }
             return token;
@@ -96,6 +90,6 @@ export const authOptions: AuthOptions = {
         },
       },
     },
-};
+});
 
-export default authOptions;
+export { auth, handlers, signIn, signOut };

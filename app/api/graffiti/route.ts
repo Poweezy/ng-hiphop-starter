@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { storage } from '@/lib/storage';
 import { graffitiUpdateSchema } from '@/lib/validations';
 import { z } from 'zod';
@@ -19,7 +18,7 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         const userRole = session?.user?.role ?? null;
         const isAdmin = userRole === 'ADMIN';
 
@@ -69,7 +68,7 @@ export async function POST(req: NextRequest) {
         const contentType = req.headers.get('content-type') || '';
 
         if (contentType.includes('application/json')) {
-            const session = await getServerSession(authOptions);
+            const session = await auth();
             if (session?.user?.role !== 'ADMIN') {
                 return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
             }
