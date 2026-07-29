@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 import Image from 'next/image';
 
@@ -14,27 +13,24 @@ export default function AdminLoginPage() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [forgotPassword, setForgotPassword] = useState(false);
-    const router = useRouter();
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+     const handleLogin = async (e: React.FormEvent) => {
+         e.preventDefault();
+         setLoading(true);
+         setError('');
 
-        const result = await signIn('credentials', {
-            redirect: false,
-            email: email.trim().toLowerCase(),
-            password,
-        });
-
-        setLoading(false);
-        if (result?.error) {
-            setError('Invalid credentials. Access denied.');
-        } else {
-            router.push('/admin');
-            router.refresh();
-        }
-    };
+         try {
+             await signIn('credentials', {
+                 callbackUrl: '/admin',
+                 email: email.trim().toLowerCase(),
+                 password,
+             });
+         } catch (err) {
+             console.error('signIn exception:', err);
+             setError('An unexpected error occurred. Please try again.');
+             setLoading(false);
+         }
+     };
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();

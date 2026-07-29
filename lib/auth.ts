@@ -63,7 +63,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     } else {
                         token.role = dbUser.role;
                     }
-                } catch {
+                } catch (err) {
+                    console.error('JWT callback DB error', err);
                 }
             }
             return token;
@@ -81,7 +82,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     secret: process.env.NEXTAUTH_SECRET,
     cookies: {
       sessionToken: {
-        name: `__Secure-next-auth.session-token`,
+        name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
         options: {
           httpOnly: true,
           sameSite: 'lax',
@@ -91,5 +92,3 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       },
     },
 });
-
-export { auth, handlers, signIn, signOut };
