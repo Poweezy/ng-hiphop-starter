@@ -3,13 +3,14 @@ import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse } from '@/lib/api';
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const requestId = getRequestId(req);
     try {
+        const { id } = await params;
         const { session } = await requireAdmin();
         if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
 
-        await prisma.lyricGame.delete({ where: { id: params.id } });
+        await prisma.lyricGame.delete({ where: { id } });
         return NextResponse.json(null, { status: 204 });
     } catch (error) {
         console.error('Lyric delete error:', error);
