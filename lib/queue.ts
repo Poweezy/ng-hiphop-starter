@@ -51,17 +51,25 @@ async function markJobDone(
   id: string,
   status: "completed" | "failed" | "deadLetter",
 ) {
-  await prisma.job.update({
-    where: { id },
-    data: { status, updatedAt: new Date() },
-  });
+  try {
+    await prisma.job.update({
+      where: { id },
+      data: { status, updatedAt: new Date() },
+    });
+  } catch (err) {
+    console.error(`Failed to mark job ${id} as ${status}:`, err);
+  }
 }
 
 async function markJobProcessing(id: string) {
-  await prisma.job.update({
-    where: { id },
-    data: { status: "processing", updatedAt: new Date() },
-  });
+  try {
+    await prisma.job.update({
+      where: { id },
+      data: { status: "processing", updatedAt: new Date() },
+    });
+  } catch (err) {
+    console.error(`Failed to mark job ${id} as processing:`, err);
+  }
 }
 
 async function incrementJobAttempt(
@@ -69,15 +77,19 @@ async function incrementJobAttempt(
   attempts: number,
   nextRetryAt: Date | null,
 ) {
-  await prisma.job.update({
-    where: { id },
-    data: {
-      attempts,
-      status: nextRetryAt ? "pending" : "deadLetter",
-      nextRetryAt: nextRetryAt ?? undefined,
-      updatedAt: new Date(),
-    },
-  });
+  try {
+    await prisma.job.update({
+      where: { id },
+      data: {
+        attempts,
+        status: nextRetryAt ? "pending" : "deadLetter",
+        nextRetryAt: nextRetryAt ?? undefined,
+        updatedAt: new Date(),
+      },
+    });
+  } catch (err) {
+    console.error(`Failed to increment attempt for job ${id}:`, err);
+  }
 }
 
 // Atomically claim a single pending job. The conditional updateMany ensures
@@ -117,15 +129,21 @@ async function claimNextJob(): Promise<{
   return null;
 }
 
+let pollIntervalMs = 1000;
+const MIN_POLL_INTERVAL = 1000;
+const MAX_POLL_INTERVAL = 30000;
+const POLL_BACKOFF_MULTIPLIER = 2;
+
 export async function processQueue() {
   if (processing) return;
   processing = true;
 
   try {
-    // Claim and process one job at a time for safe concurrency.
+    let jobsProcessed = 0;
     while (true) {
       const job = await claimNextJob();
       if (!job) break;
+      jobsProcessed++;
 
       const handler = handlers.get(job.type);
       if (!handler) {
@@ -153,21 +171,27 @@ export async function processQueue() {
         await incrementJobAttempt(job.id, attempts, nextRetryAt);
       }
     }
+
+    if (jobsProcessed === 0) {
+      pollIntervalMs = Math.min(pollIntervalMs * POLL_BACKOFF_MULTIPLIER, MAX_POLL_INTERVAL);
+    } else {
+      pollIntervalMs = MIN_POLL_INTERVAL;
+    }
   } finally {
     processing = false;
   }
 }
 
-// Auto-process jobs in the background when running in Node.js.
-// The interval callback is wrapped in a catch so a transient DB failure
-// (including during `next build`'s module evaluation) never crashes the
-// process. During build, the DB is not reachable, but the first tick fires
-// only after the 5s delay — well after build-time static analysis completes —
-// and any error is swallowed here.
 if (typeof window === "undefined") {
-  setInterval(() => {
-    processQueue().catch((err) => {
-      console.error("processQueue background tick failed:", err);
-    });
-  }, 5000);
+  const tick = () => {
+    processQueue()
+      .then(() => {
+        setTimeout(tick, pollIntervalMs);
+      })
+      .catch((err) => {
+        console.error("processQueue background tick failed:", err);
+        setTimeout(tick, pollIntervalMs);
+      });
+  };
+  setTimeout(tick, pollIntervalMs);
 }

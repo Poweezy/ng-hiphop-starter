@@ -30,7 +30,6 @@ export function registerModerationHandlers() {
         return;
       } catch (error) {
         console.error('Moderation webhook delivery failed:', error);
-        // Fall back to console so the notification is never fully lost.
       }
     }
 
