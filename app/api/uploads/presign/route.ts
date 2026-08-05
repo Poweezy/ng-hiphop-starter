@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { NextRequest } from 'next/server';
+import { requireAdmin } from '@/app/api/_lib/admin';
 import { storage } from '@/lib/storage';
 import { z } from 'zod';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
@@ -15,9 +15,8 @@ export async function POST(req: NextRequest) {
   const requestId = getRequestId(req);
   const start = performance.now();
   try {
-    const session = await auth();
-    const userRole = session?.user?.role ?? null;
-    if (!session || userRole !== 'ADMIN') {
+    const { session } = await requireAdmin();
+    if (!session) {
       recordRequest('POST', '/api/uploads/presign', 401, performance.now() - start, requestId);
       return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
     }
