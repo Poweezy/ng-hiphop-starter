@@ -19,10 +19,13 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(
-        credentials: Record<string, string> | undefined,
+        credentials: Partial<Record<"email" | "password", unknown>> | undefined,
         req: Request,
       ) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        const email = String(credentials.email).toLowerCase().trim();
+        const password = String(credentials.password);
 
         const xff = req.headers.get("x-forwarded-for");
         const xffFirst = xff?.split(",")[0]?.trim();
@@ -30,23 +33,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           req.headers.get("x-real-ip")?.trim() || xffFirst || "unknown";
 
         const { allowed } = await checkRateLimit({
-          key: `login:${ip}:${String(credentials.email).toLowerCase()}`,
+          key: `login:${ip}:${email}`,
           max: 5,
           periodSeconds: 900,
         });
         if (!allowed) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase().trim() },
+          where: { email },
         });
 
         if (!user) return null;
         if (user.role !== "ADMIN") return null;
 
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password_hash,
-        );
+        const isValid = await bcrypt.compare(password, user.password_hash);
         if (!isValid) return null;
 
         return {
