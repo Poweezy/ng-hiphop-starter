@@ -183,15 +183,18 @@ export async function processQueue() {
 }
 
 if (typeof window === "undefined") {
-  const tick = () => {
-    processQueue()
-      .then(() => {
-        setTimeout(tick, pollIntervalMs);
-      })
-      .catch((err) => {
-        console.error("processQueue background tick failed:", err);
-        setTimeout(tick, pollIntervalMs);
-      });
-  };
-  setTimeout(tick, pollIntervalMs);
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+  if (!isBuildPhase) {
+    const tick = () => {
+      processQueue()
+        .then(() => {
+          setTimeout(tick, pollIntervalMs);
+        })
+        .catch((err) => {
+          console.error("processQueue background tick failed:", err);
+          setTimeout(tick, pollIntervalMs);
+        });
+    };
+    setTimeout(tick, pollIntervalMs);
+  }
 }
