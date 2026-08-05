@@ -9,6 +9,7 @@ import type { StorageProvider } from './storageProvider';
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
+import { createClient } from '@supabase/supabase-js';
 
 // NOTE: This file previously only supported local filesystem storage.
 // It now supports S3 (prod) and keeps a Local fallback (dev).
@@ -21,8 +22,9 @@ export type S3StorageOptions = {
   publicBaseUrl?: string; // e.g. https://my-bucket.s3.amazonaws.com
 };
 
-function required(name: string, value: string | undefined) {
+function required(name: string, value: string | undefined): string {
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
 }
 
 async function streamToBuffer(stream: ReadableStream): Promise<Buffer> {
@@ -249,7 +251,103 @@ export class S3StorageProvider implements StorageProvider {
   }
 }
 
+export class SupabaseStorageProvider implements StorageProvider {
+  private client: ReturnType<typeof createClient>;
+  private bucket: string;
+  private publicBaseUrl?: string;
+
+  constructor() {
+    const url = required('SUPABASE_URL', process.env.SUPABASE_URL);
+    const serviceRoleKey = required('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY);
+    this.bucket = process.env.SUPABASE_STORAGE_BUCKET || 'uploads';
+    this.publicBaseUrl = process.env.SUPABASE_STORAGE_PUBLIC_URL?.replace(/\/+$/g, '');
+    this.client = createClient(url, serviceRoleKey);
+  }
+
+  private pathFor(folder: string, filename: string): string {
+    return `${sanitizeFolder(folder)}/${sanitizeSegment(filename)}`;
+  }
+
+  async uploadFile(file: File | Buffer, folder: string, contentType?: string): Promise<{ url: string; key: string }> {
+    const ext = contentType ? contentType.split('/')[1] || 'bin' : (file instanceof File ? sanitizeSegment(file.name.split('.').pop() || 'bin') : 'bin');
+    const filename = `${uuidv4()}.${ext}`;
+    const key = this.pathFor(folder, filename);
+
+    const body = file instanceof File ? file : Buffer.from(file);
+    const { error } = await this.client.storage.from(this.bucket).upload(key, body, {
+      contentType: contentType || (file instanceof File ? file.type : undefined),
+      upsert: true,
+    });
+
+    if (error) {
+      throw new Error(`Supabase upload failed: ${error.message}`);
+    }
+
+    const publicUrl = this.publicBaseUrl
+      ? `${this.publicBaseUrl}/${key}`
+      : this.client.storage.from(this.bucket).getPublicUrl(key).data.publicUrl;
+
+    return { url: publicUrl, key };
+  }
+
+  async getPresignedUploadUrl(folder: string, contentType: string, filename?: string): Promise<{ url: string; key: string }> {
+    const ext = contentType.split('/')[1] || 'bin';
+    const uniqueFilename = filename ? `${sanitizeSegment(filename)}-${uuidv4()}.${ext}` : `${uuidv4()}.${ext}`;
+    const key = this.pathFor(folder, uniqueFilename);
+
+    const { data, error } = await this.client.storage.from(this.bucket).createSignedUploadUrl(key);
+    if (error || !data) {
+      throw new Error(`Supabase presign failed: ${error?.message || 'unknown error'}`);
+    }
+
+    return { url: data.signedUrl, key };
+  }
+
+  supportsPresign(): boolean {
+    return true;
+  }
+
+  async deleteFile(fileUrl: string): Promise<void> {
+    const key = this.extractKey(fileUrl);
+    if (!key) return;
+    await this.deleteByKey(key);
+  }
+
+  async deleteByKey(key: string): Promise<void> {
+    if (!key) return;
+    const { error } = await this.client.storage.from(this.bucket).remove([key]);
+    if (error) {
+      console.error(`Supabase delete failed for ${key}:`, error.message);
+    }
+  }
+
+  private extractKey(fileUrl: string): string | null {
+    if (this.publicBaseUrl) {
+      const base = this.publicBaseUrl.replace(/\/+$/g, '');
+      if (fileUrl.startsWith(base + '/')) {
+        return fileUrl.slice(base.length + 1);
+      }
+    }
+
+    try {
+      const u = new URL(fileUrl, 'http://localhost');
+      const segments = u.pathname.replace(/^\/+/, '').split('/');
+      const bucketIndex = segments.indexOf(this.bucket);
+      if (bucketIndex >= 0 && segments.length > bucketIndex + 1) {
+        return segments.slice(bucketIndex + 1).join('/');
+      }
+      return u.pathname.replace(/^\/+/, '') || null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 function makeStorage(): StorageProvider {
+  const hasSupabase = !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (hasSupabase) {
+    return new SupabaseStorageProvider();
+  }
   const hasS3 = !!process.env.S3_BUCKET && !!process.env.AWS_REGION;
   if (hasS3) {
     const bucket = process.env.S3_BUCKET!;
