@@ -6,10 +6,6 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/app/db";
 import { checkRateLimit } from "@/lib/ratelimit";
 
-if (process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_SECRET) {
-  throw new Error("NEXTAUTH_SECRET must be set in production");
-}
-
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     CredentialsProvider({
@@ -22,6 +18,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         credentials: Partial<Record<"email" | "password", unknown>> | undefined,
         req: Request,
       ) {
+        if (
+          process.env.NODE_ENV === "production" &&
+          !process.env.NEXTAUTH_SECRET
+        ) {
+          throw new Error("NEXTAUTH_SECRET must be set in production");
+        }
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = String(credentials.email).toLowerCase().trim();
