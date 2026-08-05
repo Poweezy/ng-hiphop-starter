@@ -1,0 +1,6 @@
+lib/auth.ts(19,29): error TS7006: Parameter 'credentials' implicitly has an 'any' type.
+lib/auth.ts(19,42): error TS7006: Parameter 'req' implicitly has an 'any' type.
+lib/auth.ts(49,21): error TS7031: Binding element 'token' implicitly has an 'any' type.
+lib/auth.ts(49,28): error TS7031: Binding element 'user' implicitly has an 'any' type.
+lib/auth.ts(72,25): error TS7031: Binding element 'session' implicitly has an 'any' type.
+lib/auth.ts(72,34): error TS7031: Binding element 'token' implicitly has an 'any' type.
