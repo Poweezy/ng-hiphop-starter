@@ -22,6 +22,7 @@ prisma/dev.db
 /build/
 /dist/
 *.log
+*.tsbuildinfo
 
 # IDE
 .vscode/
