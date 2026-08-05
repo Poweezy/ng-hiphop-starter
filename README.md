@@ -1,6 +1,6 @@
 # NG Hip-Hop Platform
 
-A modern, full-stack hip-hop music platform built with Next.js 14, featuring music streaming, community engagement, and admin content management.
+A modern, full-stack hip-hop music platform built with Next.js 15, featuring music streaming, community engagement, and admin content management.
 
 ## 🎵 Features
 
@@ -13,7 +13,7 @@ A modern, full-stack hip-hop music platform built with Next.js 14, featuring mus
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Database**: Prisma ORM with SQLite (dev) / PostgreSQL (production)
 - **Authentication**: NextAuth.js
 - **Styling**: CSS Custom Properties
@@ -171,7 +171,7 @@ ADMIN_PASSWORD=<strong-password>
 - ✅ Added SLO definitions and request observability logging
 - ✅ Added upload scanning scaffold (ClamAV + webhook adapters)
 - ✅ Added async moderation queue with retry logic
-- ✅ Updated Next.js to 14.2.28
+- ✅ Updated Next.js to 15.x
 
 ## 📄 License
 
