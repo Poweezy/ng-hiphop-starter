@@ -173,6 +173,42 @@ ADMIN_PASSWORD=<strong-password>
 - ✅ Added async moderation queue with retry logic
 - ✅ Updated Next.js to 15.x
 
+## 🤖 AI Coding Tools
+
+This project ships with specialized AI agent configs and skills so coding assistants can work with both domain expertise and platform-specific best practices.
+
+### Agency Agents
+
+Specialized AI agent personalities for every role — from frontend wizards to DevOps automators, from Reddit community ninjas to reality checkers. Each agent has a unique voice, process, and proven deliverables.
+
+**Location:** [`agency-agents/`](agency-agents)
+
+Key agents for this project:
+- **Frontend Developer** — React/Vue/Angular, UI implementation, performance
+- **Backend Architect** — API design, database architecture, scalability
+- **DevOps Automator** — CI/CD, infrastructure automation, cloud ops
+- **SRE** — SLOs, error budgets, observability, chaos engineering
+- **Code Reviewer** — Constructive code review, security, maintainability
+- **Database Optimizer** — Schema design, query optimization, indexing strategies
+
+### Supabase Skills
+
+Two Supabase agent skills are installed in [`.agents/skills/`](.agents/skills):
+- **supabase** — Platform guidance for Database, Auth, Storage, Edge Functions, Realtime, and the Supabase CLI/MCP server
+- **supabase-postgres-best-practices** — Postgres performance rules across queries, connections, RLS, schema, locking, and monitoring
+
+**MCP Server:** `.vscode/mcp.json` configures the Supabase MCP server for VS Code.
+
+### How They Work Together
+
+When using an AI coding assistant (Claude Code, Cursor, GitHub Copilot, etc.) on this project:
+
+1. The assistant can activate an **agency-agent** personality for role-specific expertise and communication style
+2. The **Supabase skills** provide platform-specific implementation rules, security checklists, and CLI commands
+3. Together they ensure every database change, auth flow, or storage operation follows both the agent's domain process AND Supabase's best practices
+
+Example: A **Backend Architect** agent implementing a new API endpoint will use Supabase skills to apply correct RLS policies, connection pooling, and indexing strategies.
+
 ## 📄 License
 
 Private - All rights reserved
