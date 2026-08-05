@@ -18,7 +18,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             } else if (graffiti.image_url) {
                 await storage.deleteFile(graffiti.image_url);
             }
-}
+        }
 
         await prisma.graffitiSubmission.delete({ where: { id } });
         return NextResponse.json(null, { status: 204 });
