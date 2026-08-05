@@ -41,6 +41,12 @@ AWS_SECRET_ACCESS_KEY="..."
 S3_PUBLIC_BASE_URL="https://your-bucket.s3.amazonaws.com"
 S3_SIGNED_URL_TTL_SECONDS="3600"
 
+# Supabase Storage (alternative to S3)
+# SUPABASE_URL="https://your-project.supabase.co"
+# SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+# SUPABASE_STORAGE_BUCKET="uploads"
+# SUPABASE_STORAGE_PUBLIC_URL="https://your-project.supabase.co/storage/v1/object/public/uploads"
+
 # Upload Scanning (Optional but recommended)
 VIRUS_SCANNER_ENABLED="true"
 VIRUS_SCANNER="clamav" # or "webhook"
@@ -91,7 +97,7 @@ npm run db:seed
 - [ ] Configure CSP headers (already in `next.config.js`)
 - [ ] Configure rate limiting with Upstash Redis (fails closed in production if missing)
 - [ ] Enable upload virus scanning (`VIRUS_SCANNER_ENABLED=true`)
-- [ ] Use S3/Cloudinary for file storage
+- [ ] Use cloud storage (S3, Supabase Storage, Cloudinary)
 - [ ] Set strong `ADMIN_RESET_SECRET`
 - [ ] Verify JWT token versioning is active (password changes invalidate existing sessions)
 - [ ] Enable Sentry error tracking (`SENTRY_DSN`)
@@ -232,9 +238,23 @@ npm run db:seed
 
 ## 📁 File Storage
 
-### Production: S3 / Cloud Storage
+### Production: S3 / Supabase Storage / Cloud Storage
 
-The app supports local storage in development and S3 in production.
+The app supports local storage in development and S3 or Supabase Storage in production.
+
+**Priority:** Supabase Storage > S3 > Local filesystem
+
+If `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set, uploads go to Supabase Storage.
+Otherwise, if `S3_BUCKET` and `AWS_REGION` are set, uploads go to S3.
+Otherwise, files are stored in `/public/uploads/` (dev only).
+
+**Supabase Storage Configuration:**
+1. Create a public bucket in Supabase (e.g., `uploads`)
+2. Set environment variables:
+    - `SUPABASE_URL`
+    - `SUPABASE_SERVICE_ROLE_KEY`
+    - `SUPABASE_STORAGE_BUCKET` (default: `uploads`)
+    - `SUPABASE_STORAGE_PUBLIC_URL` (optional, for custom domain/CDN)
 
 **S3 Configuration:**
 1. Create an S3 bucket
@@ -529,6 +549,12 @@ jobs:
 1. Client uploads file to `/api/songs` or `/api/graffiti`
 2. Server stores in `/public/uploads/`
 3. Server returns local URL
+
+**Production (Supabase Storage):**
+1. Client uploads file to `/api/songs` or `/api/graffiti`
+2. Server optimizes with Sharp, scans for malware, uploads to Supabase Storage
+3. Server returns public Supabase URL
+4. Database record stores the URL
 
 **Production (Direct S3):**
 1. Client requests presigned URL from `/api/uploads/presign`
