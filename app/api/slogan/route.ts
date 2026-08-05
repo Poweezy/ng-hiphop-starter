@@ -3,29 +3,38 @@ import { prisma } from '@/app/db';
 import { sloganUpdateSchema } from '@/lib/validations';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
+import { recordRequest } from '@/lib/observability';
 import { extractIdempotencyKey, getCachedIdempotentResponse, withIdempotency } from '@/lib/idempotency';
 
 export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const slogan = await prisma.slogan.findUnique({ where: { id: 1 } });
+        recordRequest('GET', '/api/slogan', 200, performance.now() - start, requestId);
         return successResponse({ text: slogan?.text ?? 'Built From Bars. Raised By Beats.' });
     } catch (error) {
         console.error('Slogan fetch error:', error);
+        recordRequest('GET', '/api/slogan', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SLOGAN_FETCH_ERROR');
     }
 }
 
 export async function POST(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        if (!session) {
+            recordRequest('POST', '/api/slogan', 401, performance.now() - start, requestId);
+            return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
         
         const idempotencyKey = extractIdempotencyKey(req);
         if (idempotencyKey) {
             const cached = getCachedIdempotentResponse(idempotencyKey);
             if (cached) {
+                recordRequest('POST', '/api/slogan', cached.status, performance.now() - start, requestId);
                 return NextResponse.json(cached.response, { status: cached.status });
             }
         }
@@ -34,6 +43,7 @@ export async function POST(req: NextRequest) {
         const validation = sloganUpdateSchema.safeParse(body);
         
         if (!validation.success) {
+            recordRequest('POST', '/api/slogan', 400, performance.now() - start, requestId);
             return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
         }
         
@@ -45,17 +55,18 @@ export async function POST(req: NextRequest) {
                 update: { text: slogan },
                 create: { id: 1, text: slogan },
             });
-            const response = { message: 'Slogan updated', text: updated.text };
-            return { response, status: 200 as const };
+            return { response: { message: 'Slogan updated', text: updated.text }, status: 200 as const };
         };
 
         const { response, status } = idempotencyKey
             ? await withIdempotency(idempotencyKey, update)
             : await update();
 
+        recordRequest('POST', '/api/slogan', status, performance.now() - start, requestId);
         return successResponse(response, status);
     } catch (error) {
         console.error('Slogan update error:', error);
+        recordRequest('POST', '/api/slogan', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SLOGAN_UPDATE_ERROR');
     }
 }

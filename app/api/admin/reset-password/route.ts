@@ -5,6 +5,7 @@ import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
 import crypto from 'node:crypto';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
+import { recordRequest } from '@/lib/observability';
 
 // Constant-time comparison against the configured master secret. We compare
 // the raw value directly instead of caching a module-level bcrypt hash, which
@@ -22,25 +23,30 @@ function isMasterSecretValid(provided: string): boolean {
 
 export async function POST(req: NextRequest) {
   const requestId = getRequestId(req);
+  const start = performance.now();
   try {
     const ip = getClientIp(req);
     const key = `reset-password:${ip}`;
     const { allowed } = await checkRateLimit({ key, max: 3, periodSeconds: 300 });
     if (!allowed) {
+      recordRequest('POST', '/api/admin/reset-password', 429, performance.now() - start, requestId);
       return errorResponse('Too many attempts. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
     }
 
     const { email, resetSecret, newPassword } = await req.json();
 
     if (!email || !resetSecret || !newPassword) {
+      recordRequest('POST', '/api/admin/reset-password', 400, performance.now() - start, requestId);
       return errorResponse('All fields are required', 400, 'MISSING_FIELDS');
     }
 
     if (!isMasterSecretValid(resetSecret)) {
+      recordRequest('POST', '/api/admin/reset-password', 403, performance.now() - start, requestId);
       return errorResponse('Invalid reset secret or admin email', 403, 'INVALID_RESET_SECRET');
     }
 
     if (newPassword.length < 8) {
+      recordRequest('POST', '/api/admin/reset-password', 400, performance.now() - start, requestId);
       return errorResponse('New password must be at least 8 characters long', 400, 'PASSWORD_TOO_SHORT');
     }
 
@@ -49,6 +55,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user || user.role !== 'ADMIN') {
+      recordRequest('POST', '/api/admin/reset-password', 403, performance.now() - start, requestId);
       return errorResponse('Invalid reset secret or admin email', 403, 'INVALID_RESET_SECRET');
     }
 
@@ -59,9 +66,11 @@ export async function POST(req: NextRequest) {
       data: { password_hash: hashedPassword, tokenVersion: { increment: 1 } },
     });
 
+    recordRequest('POST', '/api/admin/reset-password', 200, performance.now() - start, requestId);
     return successResponse({ message: 'Password reset successful. You can now log in.' });
   } catch (error) {
     console.error('Reset password error:', error);
+    recordRequest('POST', '/api/admin/reset-password', 500, performance.now() - start, requestId);
     return errorResponse('Internal server error', 500, 'PASSWORD_RESET_ERROR');
   }
 }

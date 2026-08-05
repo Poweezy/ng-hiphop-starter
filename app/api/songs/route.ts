@@ -8,6 +8,7 @@ import { requireAdmin } from '@/app/api/_lib/admin';
 import { optimizeImage } from '@/lib/imageOptimizer';
 import { scanBuffer } from '@/lib/uploadScanner';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
+import { recordRequest } from '@/lib/observability';
 
 const ALLOWED_AUDIO = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4'];
 const ALLOWED_IMAGE = ['image/jpeg', 'image/png', 'image/webp'];
@@ -27,6 +28,7 @@ const songCreateSchema = z.object({
 
 export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const session = await auth();
         const userRole = session?.user?.role ?? null;
@@ -47,6 +49,7 @@ export async function GET(req: NextRequest) {
                 prisma.song.count(),
             ]);
             
+            recordRequest('GET', '/api/songs', 200, performance.now() - start, requestId);
             return successResponse({ 
                 songs, 
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) } 
@@ -54,18 +57,24 @@ export async function GET(req: NextRequest) {
         }
         
         const song = await prisma.song.findFirst({ where: { is_active: true }, orderBy: { updatedAt: 'desc' } });
+        recordRequest('GET', '/api/songs', 200, performance.now() - start, requestId);
         return successResponse(song);
     } catch (error) {
         console.error('Song fetch error:', error);
+        recordRequest('GET', '/api/songs', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SONG_FETCH_ERROR');
     }
 }
 
 export async function POST(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        if (!session) {
+            recordRequest('POST', '/api/songs', 401, performance.now() - start, requestId);
+            return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
         const contentType = req.headers.get('content-type') || '';
 
@@ -73,6 +82,7 @@ export async function POST(req: NextRequest) {
             const body = await req.json();
             const validation = songCreateSchema.safeParse(body);
             if (!validation.success) {
+                recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
                 return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
             }
 
@@ -95,6 +105,7 @@ export async function POST(req: NextRequest) {
                 }),
             ]);
 
+            recordRequest('POST', '/api/songs', 201, performance.now() - start, requestId);
             return successResponse(song, 201);
         }
 
@@ -108,23 +119,28 @@ export async function POST(req: NextRequest) {
         const publisherLink = formData.get('publisherLink') as string | null;
 
         if (!audioFile || !title) {
+            recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse('Audio file and title are required', 400, 'MISSING_FIELDS');
         }
 
         if (!coverFile && !coverUrl) {
+            recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse('Cover image or cover URL is required', 400, 'MISSING_COVER');
         }
 
         if (!ALLOWED_AUDIO.includes(audioFile.type) && !audioFile.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+            recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse('Invalid audio format', 400, 'INVALID_AUDIO_FORMAT');
         }
         if (audioFile.size > MAX_AUDIO_BYTES) {
+            recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse('Audio must be under 50MB', 400, 'AUDIO_TOO_LARGE');
         }
 
         const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
         const audioScan = await scanBuffer(audioBuffer, audioFile.name);
         if (!audioScan.clean) {
+            recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse(`Audio rejected: ${audioScan.reason}`, 400, 'AUDIO_REJECTED');
         }
 
@@ -136,15 +152,18 @@ export async function POST(req: NextRequest) {
         let finalCoverKey: string | undefined;
         if (!finalCoverUrl && coverFile) {
             if (!ALLOWED_IMAGE.includes(coverFile.type)) {
+                recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
                 return errorResponse('Cover must be JPG, PNG, or WEBP', 400, 'INVALID_COVER_FORMAT');
             }
             if (coverFile.size > MAX_IMAGE_BYTES) {
+                recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
                 return errorResponse('Cover image must be under 5MB', 400, 'COVER_TOO_LARGE');
             }
 
             const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
             const coverScan = await scanBuffer(coverBuffer, coverFile.name);
             if (!coverScan.clean) {
+                recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
                 return errorResponse(`Cover rejected: ${coverScan.reason}`, 400, 'COVER_REJECTED');
             }
 
@@ -155,6 +174,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!finalCoverUrl) {
+            recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse('Cover image is required', 400, 'MISSING_COVER');
         }
 
@@ -175,23 +195,30 @@ export async function POST(req: NextRequest) {
             }),
         ]);
 
+        recordRequest('POST', '/api/songs', 201, performance.now() - start, requestId);
         return successResponse(song, 201);
     } catch (err) {
         console.error(err);
+        recordRequest('POST', '/api/songs', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SONG_CREATION_ERROR');
     }
 }
 
 export async function PATCH(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        if (!session) {
+            recordRequest('PATCH', '/api/songs', 401, performance.now() - start, requestId);
+            return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
         const body = await req.json();
         const validation = songUpdateSchema.safeParse(body);
         
         if (!validation.success) {
+            recordRequest('PATCH', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
         }
 
@@ -204,13 +231,16 @@ export async function PATCH(req: NextRequest) {
             ]);
         } else {
             const updated = await prisma.song.update({ where: { id }, data: { is_active } });
+            recordRequest('PATCH', '/api/songs', 200, performance.now() - start, requestId);
             return successResponse(updated);
         }
 
         const updated = await prisma.song.findUnique({ where: { id } });
+        recordRequest('PATCH', '/api/songs', 200, performance.now() - start, requestId);
         return successResponse(updated);
     } catch (error) {
         console.error('Song update error:', error);
+        recordRequest('PATCH', '/api/songs', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SONG_UPDATE_ERROR');
     }
 }

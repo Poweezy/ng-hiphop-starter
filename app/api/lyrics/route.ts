@@ -3,33 +3,42 @@ import { prisma } from '@/app/db';
 import { lyricCreateSchema, lyricUpdateSchema, lyricDeleteSchema } from '@/lib/validations';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
+import { recordRequest } from '@/lib/observability';
 import { extractIdempotencyKey, getCachedIdempotentResponse, withIdempotency } from '@/lib/idempotency';
 
 export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const lyrics = await prisma.lyricGame.findMany({
             where: { is_active: true },
             orderBy: { createdAt: 'asc' },
             take: 200,
         });
+        recordRequest('GET', '/api/lyrics', 200, performance.now() - start, requestId);
         return successResponse(lyrics);
     } catch (error) {
         console.error('Lyric fetch error:', error);
+        recordRequest('GET', '/api/lyrics', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'LYRIC_FETCH_ERROR');
     }
 }
 
 export async function POST(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        if (!session) {
+            recordRequest('POST', '/api/lyrics', 401, performance.now() - start, requestId);
+            return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
         const idempotencyKey = extractIdempotencyKey(req);
         if (idempotencyKey) {
             const cached = getCachedIdempotentResponse(idempotencyKey);
             if (cached) {
+                recordRequest('POST', '/api/lyrics', cached.status, performance.now() - start, requestId);
                 return NextResponse.json(cached.response, { status: cached.status });
             }
         }
@@ -38,6 +47,7 @@ export async function POST(req: NextRequest) {
         const validation = lyricCreateSchema.safeParse(body);
         
         if (!validation.success) {
+            recordRequest('POST', '/api/lyrics', 400, performance.now() - start, requestId);
             return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
         }
 
@@ -54,23 +64,30 @@ export async function POST(req: NextRequest) {
             ? await withIdempotency(idempotencyKey, create)
             : await create();
 
+        recordRequest('POST', '/api/lyrics', status, performance.now() - start, requestId);
         return successResponse(response, status);
     } catch (error) {
         console.error('Lyric creation error:', error);
+        recordRequest('POST', '/api/lyrics', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'LYRIC_CREATION_ERROR');
     }
 }
 
 export async function PATCH(req: NextRequest) {
     const requestId = getRequestId(req);
+    const start = performance.now();
     try {
         const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        if (!session) {
+            recordRequest('PATCH', '/api/lyrics', 401, performance.now() - start, requestId);
+            return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
         const body = await req.json();
         const validation = lyricUpdateSchema.safeParse(body);
         
         if (!validation.success) {
+            recordRequest('PATCH', '/api/lyrics', 400, performance.now() - start, requestId);
             return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
         }
 
@@ -84,9 +101,11 @@ export async function PATCH(req: NextRequest) {
                 ...(correct_artist ? { correct_artist } : {}),
             },
         });
+        recordRequest('PATCH', '/api/lyrics', 200, performance.now() - start, requestId);
         return successResponse(updated);
     } catch (error) {
         console.error('Lyric update error:', error);
+        recordRequest('PATCH', '/api/lyrics', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'LYRIC_UPDATE_ERROR');
     }
 }
