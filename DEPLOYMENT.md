@@ -13,10 +13,9 @@ openssl rand -base64 32
 
 Create production `.env`:
 ```env
-# Database (SQLite for local/dev; PostgreSQL for production)
-# SQLite (default): file:./dev.db
-# PostgreSQL: update prisma/schema.prisma provider and use:
-DATABASE_URL="file:./dev.db"
+# Database (PostgreSQL required for production)
+# Vercel: Use Vercel Postgres, Neon, or Supabase
+DATABASE_URL="postgresql://username:password@host:5432/database?sslmode=require"
 
 # NextAuth
 NEXTAUTH_SECRET="your-generated-secret-here"
@@ -469,6 +468,12 @@ rm -rf node_modules package-lock.json .next
 npm install
 npm run build
 ```
+
+**Vercel:** `PrismaClientInitializationError: DATABASE_URL not found`
+This happens when `DATABASE_URL` is not set in Vercel's environment.
+During `next build`, pages with `revalidate` are prerendered and query the database.
+Fix: Add `DATABASE_URL` to Vercel project settings (Settings → Environment Variables).
+Use Vercel Postgres, Neon, or Supabase for production PostgreSQL.
 
 ### Database Connection Issues
 
