@@ -4,13 +4,14 @@ import { storage } from '@/lib/storage';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse } from '@/lib/api';
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const requestId = getRequestId(req);
     try {
+        const { id } = await params;
         const { session } = await requireAdmin();
         if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
 
-        const song = await prisma.song.findUnique({ where: { id: params.id } });
+        const song = await prisma.song.findUnique({ where: { id } });
         if (song) {
             if (song.file_key) {
                 await storage.deleteByKey(song.file_key);
@@ -24,7 +25,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
             }
         }
 
-        await prisma.song.delete({ where: { id: params.id } });
+        await prisma.song.delete({ where: { id } });
         return NextResponse.json(null, { status: 204 });
     } catch (error) {
         console.error('Song delete error:', error);
