@@ -9,6 +9,31 @@ on:
 jobs:
   lint-and-typecheck:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ng_hiphop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ng_hiphop
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: test_secret_for_ci_build
+      ADMIN_EMAIL: admin@test.com
+      ADMIN_PASSWORD: test_password
+      ADMIN_RESET_SECRET: test_reset_secret
+      UPSTASH_REDIS_REST_URL: ""
+      UPSTASH_REDIS_REST_TOKEN: ""
+      VIRUS_SCANNER_ENABLED: "false"
+      VIRUS_SCANNER_FAIL_OPEN: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,5 +41,6 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - run: npx prisma migrate deploy
       - run: npx tsc --noEmit
       - run: npm run build
