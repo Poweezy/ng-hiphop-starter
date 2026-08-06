@@ -1,4 +1,5 @@
 import { prisma } from '@/app/db';
+import type { Song } from '@prisma/client';
 import MusicLibrary from '@/components/MusicLibrary';
 
 // Revalidate every 60 seconds
@@ -10,7 +11,7 @@ export const metadata = {
 };
 
 export default async function LibraryPage() {
-    let songs = [];
+    let songs: Song[] = [];
     try {
         songs = await prisma.song.findMany({
             where: { is_active: true },
