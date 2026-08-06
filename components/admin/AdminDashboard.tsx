@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
 
@@ -44,6 +44,21 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const tab = searchParams.get('tab') as Tab | null;
+        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'security'].includes(tab)) {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
+
+    const handleTabChange = (tab: Tab) => {
+        setActiveTab(tab);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('tab', tab);
+        router.replace(`/admin?${params.toString()}`, { scroll: false });
+    };
 
     const handleBackToSite = () => {
         router.push('/');
@@ -93,7 +108,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     {TABS.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => handleTabChange(tab.id)}
                             className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
                         >
                             <motion.span 

@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import ConfirmDialog from '../ConfirmDialog';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 20;
 
 interface Lyric { id: string; lyric_text: string; correct_artist: string; is_active: boolean; }
 interface Props { initialLyrics: Lyric[]; }
@@ -14,6 +17,9 @@ export default function LyricsPanel({ initialLyrics }: Props) {
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [msg, setMsg] = useState('');
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [search, setSearch] = useState('');
+    const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [page, setPage] = useState(1);
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,10 +57,48 @@ export default function LyricsPanel({ initialLyrics }: Props) {
         setDeleteId(null);
     };
 
+    const filtered = lyrics.filter(l => {
+        const matchesSearch = l.lyric_text.toLowerCase().includes(search.toLowerCase()) || l.correct_artist.toLowerCase().includes(search.toLowerCase());
+        const matchesActive = activeFilter === 'all' || (activeFilter === 'active' ? l.is_active : !l.is_active);
+        return matchesSearch && matchesActive;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
     return (
         <div>
             <h2 className="panel-title">LYRIC GAME</h2>
             <p className="panel-desc">Add and manage &quot;Guess the Artist&quot; game entries.</p>
+
+            <div className="form-stack glass-panel glass-panel--padded" style={{ marginBottom: 24 }}>
+                <div className="panel-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div className="form-group">
+                        <label htmlFor="lyric-search" className="form-label admin-label--green">Search</label>
+                        <input
+                            id="lyric-search"
+                            type="text"
+                            className="admin-input"
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                            placeholder="Search lyrics or artists..."
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="lyric-status" className="form-label admin-label--green">Status</label>
+                        <select
+                            id="lyric-status"
+                            className="admin-input"
+                            value={activeFilter}
+                            onChange={e => { setActiveFilter(e.target.value as any); setPage(1); }}
+                        >
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <div className="panel-grid">
                 <div className="form-stack glass-panel">
@@ -98,30 +142,34 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                 </div>
 
                 <div>
-                    <h3 className="admin-section-title admin-section-title--green">All Entries ({lyrics.length})</h3>
-                    {lyrics.length === 0 ? (
-                        <p className="admin-text-muted">No lyrics added yet.</p>
+                    <h3 className="admin-section-title admin-section-title--green">All Entries ({filtered.length})</h3>
+                    {filtered.length === 0 ? (
+                        <p className="admin-text-muted">No lyrics found.</p>
                     ) : (
-                        <div className="admin-lyrics-list">
-                            {lyrics.map(l => (
-                                <div key={l.id} className={`admin-card ${l.is_active ? 'admin-card--active' : ''}`}>
-                                    <div className="admin-card-body">
-                                        <p className="admin-text-quote">"{l.lyric_text}"</p>
-                                        <p className="admin-text-artist">— {l.correct_artist}</p>
+                        <>
+                            <div className="admin-lyrics-list">
+                                {paginated.map(l => (
+                                    <div key={l.id} className={`admin-card ${l.is_active ? 'admin-card--active' : ''}`}>
+                                        <div className="admin-card-body">
+                                            <p className="admin-text-quote">"{l.lyric_text}"</p>
+                                            <p className="admin-text-artist">— {l.correct_artist}</p>
+                                        </div>
+                                        <div className="admin-card-actions">
+                                            <button
+                                                onClick={() => toggle(l.id, l.is_active)}
+                                                className={`admin-lyric-toggle ${l.is_active ? 'admin-lyric-toggle--on' : 'admin-lyric-toggle--off'}`}
+                                            >
+                                                {l.is_active ? 'ON' : 'OFF'}
+                                            </button>
+                                            <button onClick={() => setDeleteId(l.id)} className="btn-danger btn-sm">Del</button>
+                                        </div>
                                     </div>
-                                    <div className="admin-card-actions">
-                                        <button
-                                            onClick={() => toggle(l.id, l.is_active)}
-                                            className={`admin-lyric-toggle ${l.is_active ? 'admin-lyric-toggle--on' : 'admin-lyric-toggle--off'}`}
-                                        >
-                                            {l.is_active ? 'ON' : 'OFF'}
-                                        </button>
-                                        <button onClick={() => setDeleteId(l.id)} className="btn-danger btn-sm">Del</button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                )}
+                                ))}
+                            </div>
+                            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                        </>
+                    )}
+                </div>
             </div>
 
             <ConfirmDialog

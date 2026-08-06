@@ -175,7 +175,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                                 height={800}
                                 style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                             />
-                            <button className="close-btn" onClick={() => setSelectedImage(null)}>✕</button>
+                            <button className="close-btn" onClick={() => setSelectedImage(null)} aria-label="Close image preview">✕</button>
                         </motion.div>
                     </motion.div>
                 )}

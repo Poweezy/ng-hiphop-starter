@@ -2,6 +2,39 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
+import PasswordStrength from '@/components/PasswordStrength';
+
+function PasswordInput({ id, label, value, onChange, placeholder, required = true }: { id: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
+    const [visible, setVisible] = useState(false);
+    return (
+        <div className="form-group">
+            <label htmlFor={id}>{label}</label>
+            <div style={{ position: 'relative' }}>
+                <input
+                    id={id}
+                    type={visible ? 'text' : 'password'}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    required={required}
+                    style={{ paddingRight: 44 }}
+                />
+                <button
+                    type="button"
+                    onClick={() => setVisible(v => !v)}
+                    aria-label={visible ? 'Hide password' : 'Show password'}
+                    style={{
+                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
+                        cursor: 'pointer', fontSize: '0.8rem', padding: '4px 8px'
+                    }}
+                >
+                    {visible ? '🙈' : '👁️'}
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export default function SecurityPanel() {
     const [currentPassword, setCurrentPassword] = useState('');
@@ -54,38 +87,30 @@ export default function SecurityPanel() {
             </div>
 
             <form onSubmit={handleSubmit} className="security-form">
-                <div className="form-group">
-                    <label>Current Password</label>
-                    <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                    />
-                </div>
+                <PasswordInput
+                    id="current-password"
+                    label="Current Password"
+                    value={currentPassword}
+                    onChange={setCurrentPassword}
+                    placeholder="••••••••"
+                />
 
-                <div className="form-group">
-                    <label>New Password</label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Min 8 characters"
-                        required
-                    />
-                </div>
+                <PasswordInput
+                    id="new-password"
+                    label="New Password"
+                    value={newPassword}
+                    onChange={setNewPassword}
+                    placeholder="Min 8 characters"
+                />
+                <PasswordStrength password={newPassword} />
 
-                <div className="form-group">
-                    <label>Confirm New Password</label>
-                    <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Retype password"
-                        required
-                    />
-                </div>
+                <PasswordInput
+                    id="confirm-password"
+                    label="Confirm New Password"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    placeholder="Retype password"
+                />
 
                 <button type="submit" className="btn-save" disabled={loading}>
                     {loading ? 'Updating...' : 'Update Password'}

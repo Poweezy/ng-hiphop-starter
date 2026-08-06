@@ -4,6 +4,44 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 
 import Image from 'next/image';
+import PasswordStrength from '@/components/PasswordStrength';
+
+function PasswordField({ id, label, value, onChange, placeholder, autoComplete, disabled, ariaInvalid, ariaDescribedby, required = true }: any) {
+    const [visible, setVisible] = useState(false);
+    return (
+        <div className="form-group">
+            <label htmlFor={id} className="form-label" style={{ color: 'var(--color-green-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>{label}</label>
+            <div style={{ position: 'relative' }}>
+                <input
+                    id={id}
+                    type={visible ? 'text' : 'password'}
+                    className="admin-input"
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    required={required}
+                    autoComplete={autoComplete}
+                    disabled={disabled}
+                    aria-invalid={ariaInvalid}
+                    aria-describedby={ariaDescribedby}
+                    style={{ paddingRight: 44 }}
+                />
+                <button
+                    type="button"
+                    onClick={() => setVisible(v => !v)}
+                    aria-label={visible ? 'Hide password' : 'Show password'}
+                    style={{
+                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
+                        cursor: 'pointer', fontSize: '0.8rem', padding: '4px 8px'
+                    }}
+                >
+                    {visible ? '🙈' : '👁️'}
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export default function AdminLoginPage() {
     const [email, setEmail] = useState('');
@@ -139,22 +177,17 @@ export default function AdminLoginPage() {
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label htmlFor="admin-password" className="form-label" style={{ color: 'var(--color-green-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Password</label>
-                                <input
-                                    id="admin-password"
-                                    type="password"
-                                    className="admin-input"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    autoComplete="current-password"
-                                    disabled={loading}
-                                    aria-invalid={!!error}
-                                    aria-describedby={error ? 'login-error' : undefined}
-                                />
-                            </div>
+                            <PasswordField
+                                id="admin-password"
+                                label="Password"
+                                value={password}
+                                onChange={setPassword}
+                                placeholder="••••••••"
+                                autoComplete="current-password"
+                                disabled={loading}
+                                ariaInvalid={!!error}
+                                ariaDescribedby={error ? 'login-error' : undefined}
+                            />
 
                             {error && <div id="login-error" className="error-alert" role="alert">{error}</div>}
 
@@ -188,37 +221,30 @@ export default function AdminLoginPage() {
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label htmlFor="reset-secret" className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Master Secret Key</label>
-                                <input
-                                    id="reset-secret"
-                                    type="password"
-                                    className="admin-input"
-                                    placeholder="Enter reset secret from .env"
-                                    value={resetSecret}
-                                    onChange={(e) => setResetSecret(e.target.value)}
-                                    required
-                                    disabled={loading}
-                                    aria-invalid={!!error}
-                                    aria-describedby={error ? 'reset-error' : undefined}
-                                />
-                            </div>
+                            <PasswordField
+                                id="reset-secret"
+                                label="Master Secret Key"
+                                value={resetSecret}
+                                onChange={setResetSecret}
+                                placeholder="Enter reset secret from .env"
+                                autoComplete="off"
+                                disabled={loading}
+                                ariaInvalid={!!error}
+                                ariaDescribedby={error ? 'reset-error' : undefined}
+                            />
 
-                            <div className="form-group">
-                                <label htmlFor="reset-password" className="form-label" style={{ color: 'var(--color-purple-light)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>New Password</label>
-                                <input
-                                    id="reset-password"
-                                    type="password"
-                                    className="admin-input"
-                                    placeholder="Min 8 characters"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    disabled={loading}
-                                    aria-invalid={!!error}
-                                    aria-describedby={error ? 'reset-error' : undefined}
-                                />
-                            </div>
+                            <PasswordField
+                                id="reset-password"
+                                label="New Password"
+                                value={password}
+                                onChange={setPassword}
+                                placeholder="Min 8 characters"
+                                autoComplete="new-password"
+                                disabled={loading}
+                                ariaInvalid={!!error}
+                                ariaDescribedby={error ? 'reset-error' : undefined}
+                            />
+                            <PasswordStrength password={password} />
 
                             {error && <div id="reset-error" className="error-alert" role="alert">{error}</div>}
                             {success && (
