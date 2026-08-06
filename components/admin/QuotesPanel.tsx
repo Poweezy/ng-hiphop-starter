@@ -4,6 +4,9 @@ import { useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useToast } from '@/components/ToastProvider';
 import { patchDisplayUntil } from '@/lib/adminHooks';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 20;
 
 interface Quote { id: string; quote_text: string; submitted_by: string; approved: boolean; is_featured: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialQuotes: Quote[]; }
@@ -17,6 +20,12 @@ export default function QuotesPanel({ initialQuotes }: Props) {
         message: '' 
     });
     const toast = useToast();
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved'>('all');
+    const [pendingPage, setPendingPage] = useState(1);
+    const [approvedPage, setApprovedPage] = useState(1);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [batchLoading, setBatchLoading] = useState(false);
 
     const handlePatch = async (id: string, patch: Partial<Quote>) => {
         const res = await fetch('/api/quotes', {
@@ -57,6 +66,81 @@ export default function QuotesPanel({ initialQuotes }: Props) {
         setConfirmDialog({ isOpen: false, action: () => {}, title: '', message: '' });
     };
 
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = (ids: string[]) => {
+        const allSelected = ids.every(id => selectedIds.has(id));
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (allSelected) {
+                ids.forEach(id => next.delete(id));
+            } else {
+                ids.forEach(id => next.add(id));
+            }
+            return next;
+        });
+    };
+
+    const batchApprove = async () => {
+        setBatchLoading(true);
+        try {
+            await Promise.all(Array.from(selectedIds).map(id =>
+                fetch('/api/quotes', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, approved: true }),
+                })
+            ));
+            setQuotes(quotes.map(q => selectedIds.has(q.id) ? { ...q, approved: true } : q));
+            setSelectedIds(new Set());
+            toast.success(`${selectedIds.size} quotes approved`);
+        } catch {
+            toast.error('Batch approve failed');
+        }
+        setBatchLoading(false);
+    };
+
+    const batchReject = async () => {
+        setBatchLoading(true);
+        try {
+            await Promise.all(Array.from(selectedIds).map(id =>
+                fetch('/api/quotes', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, approved: false, is_featured: false }),
+                })
+            ));
+            setQuotes(quotes.map(q => selectedIds.has(q.id) ? { ...q, approved: false, is_featured: false } : q));
+            setSelectedIds(new Set());
+            toast.success(`${selectedIds.size} quotes rejected`);
+        } catch {
+            toast.error('Batch reject failed');
+        }
+        setBatchLoading(false);
+    };
+
+    const batchDelete = async () => {
+        setBatchLoading(true);
+        try {
+            await Promise.all(Array.from(selectedIds).map(id =>
+                fetch(`/api/quotes/${id}`, { method: 'DELETE' })
+            ));
+            setQuotes(quotes.filter(q => !selectedIds.has(q.id)));
+            setSelectedIds(new Set());
+            toast.success(`${selectedIds.size} quotes deleted`);
+        } catch {
+            toast.error('Batch delete failed');
+        }
+        setBatchLoading(false);
+    };
+
     const confirmDelete = (id: string, quoteName: string) => {
         setConfirmDialog({
             isOpen: true,
@@ -69,13 +153,30 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     const pending = quotes.filter(q => !q.approved);
     const approved = quotes.filter(q => q.approved);
 
+    const filteredPending = pending.filter(q => q.quote_text.toLowerCase().includes(search.toLowerCase()) || q.submitted_by.toLowerCase().includes(search.toLowerCase()));
+    const filteredApproved = approved.filter(q => q.quote_text.toLowerCase().includes(search.toLowerCase()) || q.submitted_by.toLowerCase().includes(search.toLowerCase()));
+
+    const pendingTotalPages = Math.max(1, Math.ceil(filteredPending.length / PAGE_SIZE));
+    const approvedTotalPages = Math.max(1, Math.ceil(filteredApproved.length / PAGE_SIZE));
+
+    const paginatedPending = filteredPending.slice((pendingPage - 1) * PAGE_SIZE, pendingPage * PAGE_SIZE);
+    const paginatedApproved = filteredApproved.slice((approvedPage - 1) * PAGE_SIZE, approvedPage * PAGE_SIZE);
+
     const renderQuote = (q: Quote) => (
         <div
             key={q.id}
-            className={`admin-card ${q.is_featured ? 'admin-card--featured' : ''}`}
+            className={`admin-card ${q.is_featured ? 'admin-card--featured' : ''} ${selectedIds.has(q.id) ? 'admin-card--selected' : ''}`}
         >
             <div className="admin-card-header">
                 <div className="admin-card-body">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <input
+                            type="checkbox"
+                            checked={selectedIds.has(q.id)}
+                            onChange={() => toggleSelect(q.id)}
+                            style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                        />
+                    </label>
                     <p className="admin-text-quote">"{q.quote_text}"</p>
                     <p className="admin-text-artist">— {q.submitted_by}</p>
                     {q.is_featured && <span className="badge-approved badge-approved--inline badge-approved--mt">FEATURED</span>}
@@ -118,14 +219,86 @@ export default function QuotesPanel({ initialQuotes }: Props) {
             <h2 className="panel-title">QUOTE MODERATION</h2>
             <p className="panel-desc">Approve fan-submitted quotes and feature one on the homepage.</p>
 
+            <div className="form-stack glass-panel glass-panel--padded" style={{ marginBottom: 24 }}>
+                <div className="panel-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div className="form-group">
+                        <label htmlFor="quote-search" className="form-label admin-label--green">Search</label>
+                        <input
+                            id="quote-search"
+                            type="text"
+                            className="admin-input"
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setPendingPage(1); setApprovedPage(1); }}
+                            placeholder="Search quotes or authors..."
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="quote-status" className="form-label admin-label--green">Status</label>
+                        <select
+                            id="quote-status"
+                            className="admin-input"
+                            value={statusFilter}
+                            onChange={e => { setStatusFilter(e.target.value as any); setPendingPage(1); setApprovedPage(1); }}
+                        >
+                            <option value="all">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div className="panel-grid">
                 <div>
-                    <h3 className="admin-section-title">Pending Approval ({pending.length})</h3>
-                    {pending.length === 0 ? <p className="admin-text-muted">No pending quotes.</p> : pending.map(renderQuote)}
+                    <h3 className="admin-section-title">Pending Approval ({filteredPending.length})</h3>
+                    {selectedIds.size > 0 && (
+                        <div className="batch-actions" style={{ marginBottom: 16 }}>
+                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>{selectedIds.size} selected</span>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button onClick={batchApprove} className="btn-admin btn-sm" disabled={batchLoading}>✓ Approve Selected</button>
+                                <button onClick={batchReject} className="btn-danger btn-sm" disabled={batchLoading}>✗ Reject Selected</button>
+                                <button onClick={batchDelete} className="btn-danger btn-sm" disabled={batchLoading}>🗑️ Delete Selected</button>
+                                <button onClick={() => setSelectedIds(new Set())} className="btn-outline-cancel btn-sm">Cancel</button>
+                            </div>
+                        </div>
+                    )}
+                    {(statusFilter === 'all' || statusFilter === 'pending') ? (
+                        filteredPending.length === 0 ? <p className="admin-text-muted">No pending quotes.</p> : (
+                            <>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={filteredPending.length > 0 && filteredPending.every(q => selectedIds.has(q.id))}
+                                        onChange={() => toggleSelectAll(filteredPending.map(q => q.id))}
+                                        style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                                    />
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-grey-blue)' }}>Select all pending</span>
+                                </div>
+                                {paginatedPending.map(q => renderQuote(q))}
+                                <Pagination currentPage={pendingPage} totalPages={pendingTotalPages} onPageChange={setPendingPage} />
+                            </>
+                        )
+                    ) : null}
                 </div>
                 <div>
-                    <h3 className="admin-section-title admin-section-title--green">Approved ({approved.length})</h3>
-                    {approved.length === 0 ? <p className="admin-text-muted">No approved quotes.</p> : approved.map(renderQuote)}
+                    <h3 className="admin-section-title admin-section-title--green">Approved ({filteredApproved.length})</h3>
+                    {(statusFilter === 'all' || statusFilter === 'approved') ? (
+                        filteredApproved.length === 0 ? <p className="admin-text-muted">No approved quotes.</p> : (
+                            <>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={filteredApproved.length > 0 && filteredApproved.every(q => selectedIds.has(q.id))}
+                                        onChange={() => toggleSelectAll(filteredApproved.map(q => q.id))}
+                                        style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                                    />
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-grey-blue)' }}>Select all approved</span>
+                                </div>
+                                {paginatedApproved.map(q => renderQuote(q))}
+                                <Pagination currentPage={approvedPage} totalPages={approvedTotalPages} onPageChange={setApprovedPage} />
+                            </>
+                        )
+                    ) : null}
                 </div>
             </div>
             

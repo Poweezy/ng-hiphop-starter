@@ -218,15 +218,9 @@ export default function SongsPanel({ initialSongs }: Props) {
             />
 
             {editingId && (
-                <div style={{
-                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px'
-                }} onClick={() => setEditingId(null)}>
-                    <div style={{
-                        background: 'var(--color-bg-card)', border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 12, padding: 28, maxWidth: 600, width: '100%', maxHeight: '90vh', overflowY: 'auto'
-                    }} onClick={e => e.stopPropagation()}>
-                        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: 20, color: 'white' }}>Edit Song</h3>
+                <div className="modal-overlay" onClick={() => setEditingId(null)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <h3 className="modal-title">Edit Song</h3>
                         <form onSubmit={handleEdit} className="form-stack">
                             <div className="form-group">
                                 <label className="form-label admin-label--green">Song Title</label>
@@ -252,8 +246,8 @@ export default function SongsPanel({ initialSongs }: Props) {
                                 <label className="form-label admin-label--green">Publisher URL</label>
                                 <input className="admin-input" value={editPubLink} onChange={e => setEditPubLink(e.target.value)} placeholder="https://..." />
                             </div>
-                            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                                <button type="button" onClick={() => setEditingId(null)} className="btn-danger" style={{ background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.2)' }}>Cancel</button>
+                            <div className="modal-actions">
+                                <button type="button" onClick={() => setEditingId(null)} className="btn-outline-cancel">Cancel</button>
                                 <button type="submit" className="btn-admin" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
                             </div>
                         </form>

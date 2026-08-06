@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 20;
 
 interface UserData {
     id: string;
@@ -25,6 +28,7 @@ export default function UsersPanel({ initialUsers }: Props) {
     const [msg, setMsg] = useState('');
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('');
+    const [page, setPage] = useState(1);
 
     const handleRoleChange = async (id: string, newRole: string) => {
         setLoading(true);
@@ -69,6 +73,9 @@ export default function UsersPanel({ initialUsers }: Props) {
         return matchesSearch && matchesRole;
     });
 
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
     return (
         <div>
             <h2 className="panel-title">USER MANAGEMENT</h2>
@@ -83,7 +90,7 @@ export default function UsersPanel({ initialUsers }: Props) {
                             type="text"
                             className="admin-input"
                             value={search}
-                            onChange={e => setSearch(e.target.value)}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
                             placeholder="Search by email..."
                         />
                     </div>
@@ -93,7 +100,7 @@ export default function UsersPanel({ initialUsers }: Props) {
                             id="role-filter"
                             className="admin-input"
                             value={roleFilter}
-                            onChange={e => setRoleFilter(e.target.value)}
+                            onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
                         >
                             <option value="">All Roles</option>
                             <option value="USER">USER</option>
@@ -111,34 +118,37 @@ export default function UsersPanel({ initialUsers }: Props) {
                 {filtered.length === 0 ? (
                     <p className="admin-text-muted">No users found.</p>
                 ) : (
-                    <div className="admin-users-list">
-                        {filtered.map(u => (
-                            <div key={u.id} className="admin-card admin-card--compact">
-                                <div className="admin-card-body admin-card-body--no-shrink">
-                                    <div className="admin-text-ellipsis">{u.email}</div>
-                                    <span className={`badge-approved ${u.role === 'ADMIN' ? 'badge-approved--inline' : ''}`} style={{ marginTop: 4, display: 'inline-block' }}>
-                                        {u.role}
-                                    </span>
-                                    <span className="admin-text-muted" style={{ marginLeft: 8, fontSize: '0.75rem' }}>
-                                        {u.submissionCount} submissions
-                                    </span>
+                    <>
+                        <div className="admin-users-list">
+                            {paginated.map(u => (
+                                <div key={u.id} className="admin-card admin-card--compact">
+                                    <div className="admin-card-body admin-card-body--no-shrink">
+                                        <div className="admin-text-ellipsis">{u.email}</div>
+                                        <span className={`badge-approved ${u.role === 'ADMIN' ? 'badge-approved--inline' : ''}`} style={{ marginTop: 4, display: 'inline-block' }}>
+                                            {u.role}
+                                        </span>
+                                        <span className="admin-text-muted" style={{ marginLeft: 8, fontSize: '0.75rem' }}>
+                                            {u.submissionCount} submissions
+                                        </span>
+                                    </div>
+                                    <div className="admin-card-actions">
+                                        <select
+                                            value={u.role}
+                                            onChange={e => handleRoleChange(u.id, e.target.value)}
+                                            className="admin-input"
+                                            style={{ width: 'auto', padding: '6px 10px', fontSize: '0.8rem' }}
+                                            disabled={loading}
+                                        >
+                                            <option value="USER">USER</option>
+                                            <option value="ADMIN">ADMIN</option>
+                                        </select>
+                                        <button onClick={() => setDeleteId(u.id)} className="btn-danger btn-xs">Delete</button>
+                                    </div>
                                 </div>
-                                <div className="admin-card-actions">
-                                    <select
-                                        value={u.role}
-                                        onChange={e => handleRoleChange(u.id, e.target.value)}
-                                        className="admin-input"
-                                        style={{ width: 'auto', padding: '6px 10px', fontSize: '0.8rem' }}
-                                        disabled={loading}
-                                    >
-                                        <option value="USER">USER</option>
-                                        <option value="ADMIN">ADMIN</option>
-                                    </select>
-                                    <button onClick={() => setDeleteId(u.id)} className="btn-danger btn-xs">Delete</button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                    </>
                 )}
             </div>
 

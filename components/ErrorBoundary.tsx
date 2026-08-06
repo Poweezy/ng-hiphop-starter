@@ -31,28 +31,10 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div style={{ padding: '24px', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-condensed)', fontSize: '1.5rem', color: '#F87171' }}>
-            Something went wrong
-          </h2>
-          <p style={{ color: 'var(--color-grey-blue)', marginTop: '8px' }}>
-            {this.state.error.message}
-          </p>
-          <button
-            onClick={this.reset}
-            style={{
-              marginTop: '16px',
-              padding: '10px 24px',
-              background: 'var(--gradient-green)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-condensed)',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-            }}
-          >
+        <div className="error-boundary">
+          <h2 className="error-boundary-title">Something went wrong</h2>
+          <p className="error-boundary-message">{this.state.error.message}</p>
+          <button onClick={this.reset} className="error-boundary-btn">
             Try Again
           </button>
         </div>
