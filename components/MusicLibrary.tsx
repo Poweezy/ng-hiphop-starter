@@ -165,6 +165,7 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                                                 onPlay={() => handlePlay(song.id)}
                                                 onPause={() => handlePause(song.id)}
                                                 className="custom-audio"
+                                                aria-label={`Preview of ${song.title}`}
                                             />
                                         </div>
 

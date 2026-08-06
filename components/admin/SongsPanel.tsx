@@ -76,7 +76,7 @@ export default function SongsPanel({ initialSongs }: Props) {
 
     const toggleActive = async (id: string, current: boolean) => {
         const res = await fetch('/api/songs', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !current }) });
-        if (res.ok) setSongs(songs.map(s => ({ ...s, is_active: s.id === id ? !current : false })));
+        if (res.ok) setSongs(songs.map(s => ({ ...s, is_active: s.id === id ? !current : s.is_active })));
     };
 
     const [deleteId, setDeleteId] = useState<string | null>(null);
