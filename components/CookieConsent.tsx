@@ -33,7 +33,7 @@ export default function CookieConsent() {
         {open && (
           <div className="cookie-consent-options">
             <label className="cookie-consent-option">
-              <input type="checkbox" checked disabled />
+              <input type="checkbox" checked disabled tabIndex={-1} />
               <span>Necessary (always required)</span>
             </label>
             <label className="cookie-consent-option">

@@ -11,8 +11,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <ToastProvider>
+            <a href="#main-content" className="skip-link">Skip to content</a>
             {!isAdmin && <Navigation />}
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
             {!isAdmin && (
                 <footer className="disclaimer-footer" role="contentinfo" aria-label="Legal disclaimer">
                     ⚖️ All content published on this platform is licensed, owned, and legally distributed.

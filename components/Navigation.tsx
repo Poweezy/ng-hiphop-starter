@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 
 export default function Navigation() {
@@ -32,7 +33,7 @@ export default function Navigation() {
 
       <div className="nav-container">
         {/* Brand logo */}
-        <a href="/" className="nav-logo-link" aria-label="Nerd Gauge — go to homepage">
+        <Link href="/" className="nav-logo-link" aria-label="Nerd Gauge — go to homepage">
           <Image
             src="/images/logo.png"
             alt="Nerd Gauge"
@@ -42,16 +43,16 @@ export default function Navigation() {
             style={{ width: logoSize, height: logoSize }}
             priority
           />
-        </a>
+        </Link>
 
         {/* Desktop navigation */}
         <div className="nav-desktop-menu">
-          <a href="/#latest-release" className="nav-link">Music</a>
-          <a href="/library"          className="nav-link">Library</a>
-          <a href="/#community-quotes" className="nav-link">Community</a>
-          <a href="/#graffiti"        className="nav-link">Gallery</a>
-          <a href="/#lyric-game"      className="nav-link">Game</a>
-          <a href="/admin/login"      className="nav-link nav-link-admin">Admin</a>
+          <Link href="/#latest-release" className="nav-link">Music</Link>
+          <Link href="/library"          className="nav-link">Library</Link>
+          <Link href="/#community-quotes" className="nav-link">Community</Link>
+          <Link href="/#graffiti"        className="nav-link">Gallery</Link>
+          <Link href="/#lyric-game"      className="nav-link">Game</Link>
+          <Link href="/admin/login"      className="nav-link nav-link-admin">Admin</Link>
         </div>
 
         {/* Hamburger (mobile) */}
@@ -76,25 +77,25 @@ export default function Navigation() {
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="nav-mobile-menu"
           >
-            <nav className="nav-mobile-links" aria-label="Mobile navigation">
-              {[
-                { href: '/#latest-release',   label: 'Music' },
-                { href: '/library',           label: 'Library' },
-                { href: '/#community-quotes', label: 'Community' },
-                { href: '/#graffiti',         label: 'Gallery' },
-                { href: '/#lyric-game',       label: 'Game' },
-                { href: '/admin/login',       label: 'Admin' },
-              ].map(({ href, label }) => (
-                <a
-                  key={href}
-                  href={href}
-                  className="nav-mobile-link"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {label}
-                </a>
-              ))}
-            </nav>
+             <nav className="nav-mobile-links" aria-label="Mobile navigation">
+               {[
+                 { href: '/#latest-release',   label: 'Music' },
+                 { href: '/library',           label: 'Library' },
+                 { href: '/#community-quotes', label: 'Community' },
+                 { href: '/#graffiti',         label: 'Gallery' },
+                 { href: '/#lyric-game',       label: 'Game' },
+                 { href: '/admin/login',       label: 'Admin' },
+               ].map(({ href, label }) => (
+                 <Link
+                   key={href}
+                   href={href}
+                   className="nav-mobile-link"
+                   onClick={() => setMobileMenuOpen(false)}
+                 >
+                   {label}
+                 </Link>
+               ))}
+             </nav>
           </motion.div>
         )}
       </AnimatePresence>

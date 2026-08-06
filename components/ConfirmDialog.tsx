@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
@@ -23,6 +25,24 @@ export default function ConfirmDialog({
   variant = 'danger',
   disabled = false,
 }: ConfirmDialogProps) {
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    confirmButtonRef.current?.focus();
+
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onCancel]);
+
   if (!isOpen) return null;
 
   return (
@@ -38,8 +58,13 @@ export default function ConfirmDialog({
         padding: '20px',
       }}
       onClick={onCancel}
+      role="presentation"
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-message"
         style={{
           background: 'var(--color-bg-card)',
           border: `2px solid ${variant === 'danger' ? 'rgba(220,38,38,0.5)' : 'rgba(250,204,21,0.5)'}`,
@@ -51,6 +76,7 @@ export default function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <h3
+          id="confirm-dialog-title"
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: '1.5rem',
@@ -61,6 +87,7 @@ export default function ConfirmDialog({
           {title}
         </h3>
         <p
+          id="confirm-dialog-message"
           style={{
             color: 'rgba(255,255,255,0.8)',
             marginBottom: '28px',
@@ -90,6 +117,7 @@ export default function ConfirmDialog({
             {cancelText}
           </button>
           <button
+            ref={confirmButtonRef}
             onClick={onConfirm}
             disabled={disabled}
             style={{
