@@ -19,6 +19,7 @@ interface Props {
 export default function UsersPanel({ initialUsers }: Props) {
     const [users, setUsers] = useState<UserData[]>(initialUsers);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [msg, setMsg] = useState('');
@@ -49,6 +50,7 @@ export default function UsersPanel({ initialUsers }: Props) {
 
     const handleDelete = async () => {
         if (!deleteId) return;
+        setDeleteLoading(true);
         const res = await fetch(`/api/admin/users/${deleteId}`, { method: 'DELETE' });
         if (res.ok) {
             setUsers(users.filter(u => u.id !== deleteId));
@@ -57,6 +59,7 @@ export default function UsersPanel({ initialUsers }: Props) {
             setStatus('error'); setMsg('Delete failed');
         }
         setDeleteId(null);
+        setDeleteLoading(false);
         setTimeout(() => setStatus('idle'), 3000);
     };
 
@@ -143,8 +146,11 @@ export default function UsersPanel({ initialUsers }: Props) {
                 isOpen={!!deleteId}
                 title="Delete User?"
                 message="This will permanently delete the user account and all associated data. This cannot be undone."
+                confirmText="Delete"
                 onConfirm={handleDelete}
                 onCancel={() => setDeleteId(null)}
+                variant="danger"
+                disabled={deleteLoading}
             />
         </div>
     );
