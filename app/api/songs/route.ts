@@ -222,15 +222,15 @@ export async function PATCH(req: NextRequest) {
             return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
         }
 
-        const { id, is_active } = validation.data;
+        const { id, is_active, title, description, distribution_links, publisher_link } = validation.data;
 
         if (is_active) {
             await prisma.$transaction([
                 prisma.song.updateMany({ data: { is_active: false } }),
-                prisma.song.update({ where: { id }, data: { is_active } }),
+                prisma.song.update({ where: { id }, data: { is_active, title, description, distribution_links, publisher_link } }),
             ]);
         } else {
-            const updated = await prisma.song.update({ where: { id }, data: { is_active } });
+            const updated = await prisma.song.update({ where: { id }, data: { is_active, title, description, distribution_links, publisher_link } });
             recordRequest('PATCH', '/api/songs', 200, performance.now() - start, requestId);
             return successResponse(updated);
         }

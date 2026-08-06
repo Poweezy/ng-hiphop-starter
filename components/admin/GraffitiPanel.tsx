@@ -74,6 +74,22 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
         }
     };
 
+    const handleDisplayUntil = async (id: string, date: string) => {
+        const res = await fetch('/api/graffiti', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, display_until: date || null }),
+        });
+        if (res.ok) {
+            const updated = await res.json();
+            setItems(items.map(g => g.id === id ? { ...g, ...updated } : g));
+            setStatus('success'); setMsg('Display schedule updated');
+        } else {
+            setStatus('error'); setMsg('Update failed');
+        }
+        setTimeout(() => setStatus('idle'), 3000);
+    };
+
     const handleDelete = async () => {
         if (!deleteId) return;
         const res = await fetch(`/api/graffiti/${deleteId}`, { method: 'DELETE' });
@@ -101,6 +117,21 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                     {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn-admin btn-sm">✓ Approve</button>}
                     {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger btn-sm">✗ Remove</button>}
                     <button onClick={() => setDeleteId(g.id)} className="btn-danger btn-sm">Delete</button>
+                </div>
+                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <label style={{ fontSize: '0.7rem', color: 'var(--color-grey-blue)', fontFamily: 'var(--font-condensed)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                        Until:
+                    </label>
+                    <input
+                        type="datetime-local"
+                        className="admin-input"
+                        style={{ width: 'auto', padding: '4px 8px', fontSize: '0.75rem' }}
+                        value={g.display_until ? g.display_until.slice(0, 16) : ''}
+                        onChange={e => handleDisplayUntil(g.id, e.target.value ? new Date(e.target.value).toISOString() : '')}
+                    />
+                    {g.display_until && (
+                        <button onClick={() => handleDisplayUntil(g.id, '')} className="btn-danger btn-xs" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>Clear</button>
+                    )}
                 </div>
             </div>
         </div>

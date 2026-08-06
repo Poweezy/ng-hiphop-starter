@@ -19,6 +19,15 @@ export default function SongsPanel({ initialSongs }: Props) {
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
 
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editDesc, setEditDesc] = useState('');
+    const [editSpotify, setEditSpotify] = useState('');
+    const [editApple, setEditApple] = useState('');
+    const [editDistro, setEditDistro] = useState('');
+    const [editPubLink, setEditPubLink] = useState('');
+    const [editLoading, setEditLoading] = useState(false);
+
     const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -76,6 +85,48 @@ export default function SongsPanel({ initialSongs }: Props) {
         const res = await fetch(`/api/songs/${deleteId}`, { method: 'DELETE' });
         if (res.ok) setSongs(songs.filter(s => s.id !== deleteId));
         setDeleteId(null);
+    };
+
+    const openEdit = (song: Song) => {
+        setEditingId(song.id);
+        setEditTitle(song.title);
+        setEditDesc(song.description || '');
+        const links = typeof song.distribution_links === 'string' ? JSON.parse(song.distribution_links) : (song.distribution_links || {});
+        setEditSpotify(links.spotify || '');
+        setEditApple(links.apple || '');
+        setEditDistro(links.distro || '');
+        setEditPubLink(song.publisher_link || '');
+    };
+
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId) return;
+        setEditLoading(true);
+        try {
+            const res = await fetch('/api/songs', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: editingId,
+                    title: editTitle.trim(),
+                    description: editDesc.trim() || null,
+                    distribution_links: JSON.stringify({ spotify: editSpotify, apple: editApple, distro: editDistro }),
+                    publisher_link: editPubLink.trim() || null,
+                }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setSongs(songs.map(s => s.id === editingId ? { ...s, ...data, distribution_links: typeof data.distribution_links === 'string' ? data.distribution_links : JSON.stringify(data.distribution_links) } : s));
+                setEditingId(null);
+                setStatus('success'); setMsg('Song updated!');
+            } else {
+                setStatus('error'); setMsg(data.message || 'Update failed');
+            }
+        } catch {
+            setStatus('error'); setMsg('Update failed');
+        }
+        setEditLoading(false);
+        setTimeout(() => setStatus('idle'), 3000);
     };
 
     return (
@@ -137,6 +188,12 @@ export default function SongsPanel({ initialSongs }: Props) {
                                     </div>
                                     <div className="admin-card-actions">
                                         <button
+                                            onClick={() => openEdit(song)}
+                                            className="btn-badge"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
                                             onClick={() => toggleActive(song.id, song.is_active)}
                                             className={song.is_active ? 'btn-danger' : 'btn-badge'}
                                         >
@@ -158,6 +215,50 @@ export default function SongsPanel({ initialSongs }: Props) {
                 onConfirm={handleDelete}
                 onCancel={() => setDeleteId(null)}
             />
+
+            {editingId && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px'
+                }} onClick={() => setEditingId(null)}>
+                    <div style={{
+                        background: 'var(--color-bg-card)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 12, padding: 28, maxWidth: 600, width: '100%', maxHeight: '90vh', overflowY: 'auto'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: 20, color: 'white' }}>Edit Song</h3>
+                        <form onSubmit={handleEdit} className="form-stack">
+                            <div className="form-group">
+                                <label className="form-label admin-label--green">Song Title</label>
+                                <input className="admin-input" value={editTitle} onChange={e => setEditTitle(e.target.value)} required maxLength={120} />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label admin-label--green">Description</label>
+                                <input className="admin-input" value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label admin-label--green">Spotify URL</label>
+                                <input className="admin-input" value={editSpotify} onChange={e => setEditSpotify(e.target.value)} placeholder="https://open.spotify.com/..." />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label admin-label--green">Apple Music URL</label>
+                                <input className="admin-input" value={editApple} onChange={e => setEditApple(e.target.value)} placeholder="https://music.apple.com/..." />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label admin-label--green">Distro/Distribution URL</label>
+                                <input className="admin-input" value={editDistro} onChange={e => setEditDistro(e.target.value)} placeholder="https://..." />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label admin-label--green">Publisher URL</label>
+                                <input className="admin-input" value={editPubLink} onChange={e => setEditPubLink(e.target.value)} placeholder="https://..." />
+                            </div>
+                            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                                <button type="button" onClick={() => setEditingId(null)} className="btn-danger" style={{ background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.2)' }}>Cancel</button>
+                                <button type="submit" className="btn-admin" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
