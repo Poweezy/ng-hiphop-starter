@@ -10,11 +10,16 @@ export const metadata = {
 };
 
 export default async function LibraryPage() {
-    const songs = await prisma.song.findMany({
-        where: { is_active: true },
-        orderBy: { createdAt: 'desc' },
-        take: 100,
-    });
+    let songs = [];
+    try {
+        songs = await prisma.song.findMany({
+            where: { is_active: true },
+            orderBy: { createdAt: 'desc' },
+            take: 100,
+        });
+    } catch {
+        // Database unavailable during build or runtime — render empty library
+    }
 
     return <MusicLibrary songs={songs} />;
 }

@@ -11,30 +11,39 @@ export const revalidate = 60;
 const DEFAULT_SLOGAN = 'Built From Bars. Raised By Beats.';
 
 export default async function Home() {
-  // Fetch all data in parallel
-  const [sloganEntry, activeSong, featuredQuote, graffitiItems, lyrics] = await Promise.all([
-    prisma.slogan.findUnique({ where: { id: 1 } }),
-    prisma.song.findFirst({ where: { is_active: true }, orderBy: { updatedAt: 'desc' } }),
-    prisma.quoteSubmission.findFirst({
-      where: {
-        approved: true,
-        is_featured: true,
-        OR: [{ display_until: null }, { display_until: { gte: new Date() } }],
-      },
-    }),
-    prisma.graffitiSubmission.findMany({
-      where: {
-        approved: true,
-        OR: [{ display_until: null }, { display_until: { gte: new Date() } }],
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    }),
-    prisma.lyricGame.findMany({
-      where: { is_active: true },
-      orderBy: { createdAt: 'asc' },
-    }),
-  ]);
+  let sloganEntry: { text: string } | null = null;
+  let activeSong: { id: string; title: string; description: string | null; file_url: string; cover_url: string; distribution_links: string | null; publisher_link: string | null } | null = null;
+  let featuredQuote: { id: string; quote_text: string; submitted_by: string } | null = null;
+  let graffitiItems: { id: string; image_url: string; artist_name: string }[] = [];
+  let lyrics: { id: string; lyric_text: string; correct_artist: string }[] = [];
+
+  try {
+    [sloganEntry, activeSong, featuredQuote, graffitiItems, lyrics] = await Promise.all([
+      prisma.slogan.findUnique({ where: { id: 1 } }),
+      prisma.song.findFirst({ where: { is_active: true }, orderBy: { updatedAt: 'desc' } }),
+      prisma.quoteSubmission.findFirst({
+        where: {
+          approved: true,
+          is_featured: true,
+          OR: [{ display_until: null }, { display_until: { gte: new Date() } }],
+        },
+      }),
+      prisma.graffitiSubmission.findMany({
+        where: {
+          approved: true,
+          OR: [{ display_until: null }, { display_until: { gte: new Date() } }],
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      prisma.lyricGame.findMany({
+        where: { is_active: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+  } catch {
+    // Database unavailable during build or runtime — render with empty data
+  }
 
   const slogan = sloganEntry?.text ?? DEFAULT_SLOGAN;
 
@@ -42,17 +51,9 @@ export default async function Home() {
     <>
       <Hero slogan={slogan} />
       <LatestRelease song={activeSong} />
-      <CommunityQuote featuredQuote={featuredQuote ? {
-        id: featuredQuote.id,
-        quote_text: featuredQuote.quote_text,
-        submitted_by: featuredQuote.submitted_by,
-      } : null} />
-      <GraffitiShowcase graffiti={(graffitiItems || []).map((g) => ({
-        id: g.id,
-        image_url: g.image_url,
-        artist_name: g.artist_name,
-      }))} />
-      <LyricGame lyrics={lyrics || []} />
+      <CommunityQuote featuredQuote={featuredQuote} />
+      <GraffitiShowcase graffiti={graffitiItems} />
+      <LyricGame lyrics={lyrics} />
     </>
   );
 }
