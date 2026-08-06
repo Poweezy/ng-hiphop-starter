@@ -35,6 +35,21 @@ export default function QuotesPanel({ initialQuotes }: Props) {
         }
     };
 
+    const handleDisplayUntil = async (id: string, date: string) => {
+        const res = await fetch('/api/quotes', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, display_until: date || null }),
+        });
+        if (res.ok) {
+            const updated = await res.json();
+            setQuotes(quotes.map(q => q.id === id ? { ...q, ...updated } : q));
+            toast.success('Display schedule updated');
+        } else {
+            toast.error('Update failed');
+        }
+    };
+
     const handleDelete = async (id: string) => {
         const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
         if (res.ok) {
@@ -83,6 +98,21 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                         </>
                     )}
                 </div>
+            </div>
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <label style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)', fontFamily: 'var(--font-condensed)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    Display Until:
+                </label>
+                <input
+                    type="datetime-local"
+                    className="admin-input"
+                    style={{ width: 'auto', padding: '6px 10px', fontSize: '0.8rem' }}
+                    value={q.display_until ? q.display_until.slice(0, 16) : ''}
+                    onChange={e => handleDisplayUntil(q.id, e.target.value ? new Date(e.target.value).toISOString() : '')}
+                />
+                {q.display_until && (
+                    <button onClick={() => handleDisplayUntil(q.id, '')} className="btn-danger btn-xs">Clear</button>
+                )}
             </div>
         </div>
     );

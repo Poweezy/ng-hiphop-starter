@@ -41,7 +41,11 @@ export const lyricDeleteSchema = z.object({
 // Song validation
 export const songUpdateSchema = z.object({
   id: z.string().cuid(),
-  is_active: z.boolean(),
+  is_active: z.boolean().optional(),
+  title: z.string().min(1).max(120).optional(),
+  description: z.string().max(500).optional().nullable(),
+  distribution_links: z.string().optional().nullable(),
+  publisher_link: z.string().optional().nullable(),
 });
 
 // Slogan validation

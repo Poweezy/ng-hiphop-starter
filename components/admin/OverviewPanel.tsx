@@ -8,10 +8,11 @@ interface OverviewPanelProps {
     quotes: QuoteSummary[];
     graffiti: GraffitiSummary[];
     lyrics: LyricSummary[];
-    onNavigate: (tab: "slogan" | "songs" | "quotes" | "graffiti" | "lyrics") => void;
+    userCount?: number;
+    onNavigate: (tab: "slogan" | "songs" | "quotes" | "graffiti" | "lyrics" | "users") => void;
 }
 
-export default function OverviewPanel({ songs, quotes, graffiti, lyrics, onNavigate }: OverviewPanelProps) {
+export default function OverviewPanel({ songs, quotes, graffiti, lyrics, userCount = 0, onNavigate }: OverviewPanelProps) {
     const activeSong = songs.find(s => s.is_active);
     const pendingQuotes = quotes.filter(q => !q.approved).length;
     const pendingGraffiti = graffiti.filter(g => !g.approved).length;
@@ -26,6 +27,16 @@ export default function OverviewPanel({ songs, quotes, graffiti, lyrics, onNavig
             action: () => onNavigate('songs'),
             actionText: 'Manage Songs',
             color: 'var(--color-purple)'
+        },
+        {
+            title: 'Registered Users',
+            value: userCount,
+            label: 'Total Users',
+            highlight: 'Active community',
+            icon: '👥',
+            action: () => onNavigate('users'),
+            actionText: 'Manage Users',
+            color: 'var(--color-blue)'
         },
         {
             title: 'Community Quotes',

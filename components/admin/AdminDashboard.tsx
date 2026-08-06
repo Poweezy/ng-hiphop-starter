@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
 
@@ -13,11 +14,12 @@ import QuotesPanel from './QuotesPanel';
 import GraffitiPanel from './GraffitiPanel';
 import LyricsPanel from './LyricsPanel';
 import SecurityPanel from './SecurityPanel';
+import UsersPanel from './UsersPanel';
 
 import Image from 'next/image';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-export type Tab = 'overview' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'security';
+export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'security';
 
 interface Props {
     initialSlogan: string;
@@ -25,10 +27,12 @@ interface Props {
     initialQuotes: QuoteSummary[];
     initialGraffiti: GraffitiSummary[];
     initialLyrics: LyricSummary[];
+    initialUsers: { id: string; email: string; role: string; createdAt: string; updatedAt: string; submissionCount: number }[];
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'users', label: 'Users', icon: '👥' },
     { id: 'slogan', label: 'Slogan', icon: '✏️' },
     { id: 'songs', label: 'Songs', icon: '🎵' },
     { id: 'quotes', label: 'Quotes', icon: '💬' },
@@ -37,8 +41,17 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'security', label: 'Security', icon: '🔐' },
 ];
 
-export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics }: Props) {
+export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
+    const router = useRouter();
+
+    const handleBackToSite = () => {
+        router.push('/');
+    };
+
+    const handleViewSite = () => {
+        window.open('/', '_blank', 'noopener,noreferrer');
+    };
 
     return (
         <div className="admin-wrapper">
@@ -59,9 +72,12 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                 </div>
 
                 <div className="header-right">
-                    <a href="/" target="_blank" rel="noopener noreferrer" className="btn-outline">
+                    <button onClick={handleBackToSite} className="btn-outline">
+                        ← Back to Site
+                    </button>
+                    <button onClick={handleViewSite} className="btn-outline">
                         View Site ↗
-                    </a>
+                    </button>
                     <button
                         onClick={() => signOut({ callbackUrl: '/admin/login' })}
                         className="btn-danger"
@@ -112,9 +128,13 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                                         songs={initialSongs} 
                                         quotes={initialQuotes} 
                                         graffiti={initialGraffiti} 
-                                        lyrics={initialLyrics} 
+                                        lyrics={initialLyrics}
+                                        userCount={initialUsers.length}
                                         onNavigate={setActiveTab} 
                                     />
+                                )}
+                                {activeTab === 'users' && (
+                                    <UsersPanel initialUsers={initialUsers} />
                                 )}
                                 {activeTab === 'slogan' && <SloganPanel initialSlogan={initialSlogan} />}
                                 {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
