@@ -10,6 +10,7 @@ export function useToast() {
     success: (message: string) => addToast({ message, type: 'success' }),
     error: (message: string) => addToast({ message, type: 'error' }),
     info: (message: string) => addToast({ message, type: 'info' }),
+    warning: (message: string) => addToast({ message, type: 'warning' }),
   };
 }
 

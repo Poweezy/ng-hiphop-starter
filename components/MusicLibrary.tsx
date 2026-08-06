@@ -23,7 +23,6 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
-    // Keep visualizers animating while playing
     const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
 
     useEffect(() => {
@@ -36,19 +35,39 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
         return () => clearInterval(interval);
     }, [playingId]);
 
-    const handlePlay = (id: string) => {
-        // Pause all others
+    const playSong = (id: string) => {
         Object.keys(audioRefs.current).forEach(key => {
             if (key !== id && audioRefs.current[key]) {
                 audioRefs.current[key]?.pause();
             }
         });
+        const audio = audioRefs.current[id];
+        if (audio) {
+            audio.play().catch(() => {});
+        }
+        setPlayingId(id);
+    };
+
+    const handlePlay = (id: string) => {
         setPlayingId(id);
     };
 
     const handlePause = (id: string) => {
         if (playingId === id) {
             setPlayingId(null);
+        }
+    };
+
+    const handlePlayAll = () => {
+        if (songs.length > 0) {
+            playSong(songs[0].id);
+        }
+    };
+
+    const handleShuffle = () => {
+        if (songs.length > 0) {
+            const randomIndex = Math.floor(Math.random() * songs.length);
+            playSong(songs[randomIndex].id);
         }
     };
 
@@ -96,6 +115,15 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                     >
                         Stream all our releases, from the classics to the latest drops.
                     </motion.p>
+                </div>
+
+                <div className="library-controls">
+                    <button onClick={handlePlayAll} className="library-control-btn" aria-label="Play all songs">
+                        ▶ Play All
+                    </button>
+                    <button onClick={handleShuffle} className="library-control-btn library-control-btn--accent" aria-label="Shuffle and play">
+                        🔀 Shuffle
+                    </button>
                 </div>
 
                 <div className="library-grid">
@@ -241,6 +269,46 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                     color: rgba(255, 255, 255, 0.6);
                     max-width: 600px;
                     margin: 0 auto;
+                }
+
+                .library-controls {
+                    display: flex;
+                    justify-content: center;
+                    gap: 12px;
+                    margin-bottom: 32px;
+                }
+
+                .library-control-btn {
+                    padding: 10px 24px;
+                    border-radius: 99px;
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    background: rgba(255, 255, 255, 0.05);
+                    color: rgba(255, 255, 255, 0.9);
+                    font-family: var(--font-condensed);
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .library-control-btn:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(255, 255, 255, 0.3);
+                    transform: translateY(-2px);
+                }
+
+                .library-control-btn--accent {
+                    background: rgba(139, 92, 246, 0.15);
+                    border-color: rgba(139, 92, 246, 0.4);
+                    color: var(--color-purple-light);
+                }
+
+                .library-control-btn--accent:hover {
+                    background: rgba(139, 92, 246, 0.25);
+                    border-color: var(--color-purple);
+                    color: white;
                 }
 
                 .library-grid {

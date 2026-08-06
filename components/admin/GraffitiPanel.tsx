@@ -128,16 +128,22 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
     const batchApprove = async () => {
         setBatchLoading(true);
         try {
-            await Promise.all(Array.from(selectedIds).map(id =>
+            const results = await Promise.allSettled(Array.from(selectedIds).map(id =>
                 fetch('/api/graffiti', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id, approved: true }),
                 })
             ));
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
             setItems(items.map(g => selectedIds.has(g.id) ? { ...g, approved: true } : g));
             setSelectedIds(new Set());
-            setStatus('success'); setMsg(`${selectedIds.size} items approved`);
+            if (failed === 0) {
+                setStatus('success'); setMsg(`${succeeded} items approved`);
+            } else {
+                setStatus('error'); setMsg(`${succeeded} approved, ${failed} failed`);
+            }
         } catch {
             setStatus('error'); setMsg('Batch approve failed');
         }
@@ -148,16 +154,22 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
     const batchRemove = async () => {
         setBatchLoading(true);
         try {
-            await Promise.all(Array.from(selectedIds).map(id =>
+            const results = await Promise.allSettled(Array.from(selectedIds).map(id =>
                 fetch('/api/graffiti', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id, approved: false }),
                 })
             ));
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
             setItems(items.map(g => selectedIds.has(g.id) ? { ...g, approved: false } : g));
             setSelectedIds(new Set());
-            setStatus('success'); setMsg(`${selectedIds.size} items removed`);
+            if (failed === 0) {
+                setStatus('success'); setMsg(`${succeeded} items removed`);
+            } else {
+                setStatus('error'); setMsg(`${succeeded} removed, ${failed} failed`);
+            }
         } catch {
             setStatus('error'); setMsg('Batch remove failed');
         }

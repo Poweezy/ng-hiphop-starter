@@ -13,7 +13,20 @@ export default function PrivacyPage() {
         <h1>Privacy Policy</h1>
         <p className="legal-updated">Last updated: July 2026</p>
 
-        <section>
+        <nav className="legal-toc" aria-label="Table of contents">
+          <h2>Contents</h2>
+          <ol>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#information-we-collect">Information We Collect</a></li>
+            <li><a href="#how-we-use">How We Use Your Information</a></li>
+            <li><a href="#data-retention">Data Retention</a></li>
+            <li><a href="#your-rights">Your Rights</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ol>
+        </nav>
+
+        <section id="introduction">
           <h2>1. Introduction</h2>
           <p>
             This Privacy Policy describes how NG Hip Hop (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects,
@@ -22,7 +35,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section id="information-we-collect">
           <h2>2. Information We Collect</h2>
           <p>We may collect the following types of information:</p>
           <ul>
@@ -45,7 +58,7 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        <section>
+        <section id="how-we-use">
           <h2>3. How We Use Your Information</h2>
           <ul>
             <li>To provide and maintain our services</li>
@@ -56,7 +69,7 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        <section>
+        <section id="data-retention">
           <h2>4. Data Retention</h2>
           <p>
             We retain personal data only as long as necessary to provide our services and comply with legal
@@ -65,7 +78,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section id="your-rights">
           <h2>5. Your Rights</h2>
           <p>Depending on your jurisdiction, you may have the following rights:</p>
           <ul>
@@ -88,7 +101,7 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        <section>
+        <section id="security">
           <h2>6. Security</h2>
           <p>
             We implement industry-standard security measures including HTTPS, secure cookies, input validation, rate
@@ -96,7 +109,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section id="contact">
           <h2>7. Contact</h2>
           <p>
             For privacy-related inquiries, data requests, or to report a concern, please use the contact information

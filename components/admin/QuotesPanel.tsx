@@ -91,16 +91,22 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     const batchApprove = async () => {
         setBatchLoading(true);
         try {
-            await Promise.all(Array.from(selectedIds).map(id =>
+            const results = await Promise.allSettled(Array.from(selectedIds).map(id =>
                 fetch('/api/quotes', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id, approved: true }),
                 })
             ));
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
             setQuotes(quotes.map(q => selectedIds.has(q.id) ? { ...q, approved: true } : q));
             setSelectedIds(new Set());
-            toast.success(`${selectedIds.size} quotes approved`);
+            if (failed === 0) {
+                toast.success(`${succeeded} quotes approved`);
+            } else {
+                toast.warning(`${succeeded} approved, ${failed} failed`);
+            }
         } catch {
             toast.error('Batch approve failed');
         }
@@ -110,16 +116,22 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     const batchReject = async () => {
         setBatchLoading(true);
         try {
-            await Promise.all(Array.from(selectedIds).map(id =>
+            const results = await Promise.allSettled(Array.from(selectedIds).map(id =>
                 fetch('/api/quotes', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id, approved: false, is_featured: false }),
                 })
             ));
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
             setQuotes(quotes.map(q => selectedIds.has(q.id) ? { ...q, approved: false, is_featured: false } : q));
             setSelectedIds(new Set());
-            toast.success(`${selectedIds.size} quotes rejected`);
+            if (failed === 0) {
+                toast.success(`${succeeded} quotes rejected`);
+            } else {
+                toast.warning(`${succeeded} rejected, ${failed} failed`);
+            }
         } catch {
             toast.error('Batch reject failed');
         }
@@ -129,12 +141,18 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     const batchDelete = async () => {
         setBatchLoading(true);
         try {
-            await Promise.all(Array.from(selectedIds).map(id =>
+            const results = await Promise.allSettled(Array.from(selectedIds).map(id =>
                 fetch(`/api/quotes/${id}`, { method: 'DELETE' })
             ));
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
             setQuotes(quotes.filter(q => !selectedIds.has(q.id)));
             setSelectedIds(new Set());
-            toast.success(`${selectedIds.size} quotes deleted`);
+            if (failed === 0) {
+                toast.success(`${succeeded} quotes deleted`);
+            } else {
+                toast.warning(`${succeeded} deleted, ${failed} failed`);
+            }
         } catch {
             toast.error('Batch delete failed');
         }

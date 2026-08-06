@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import ConfirmDialog from '../ConfirmDialog';
 import Pagination from '@/components/Pagination';
 
@@ -20,6 +20,7 @@ export default function LyricsPanel({ initialLyrics }: Props) {
     const [search, setSearch] = useState('');
     const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [page, setPage] = useState(1);
+    const toggleInProgress = useRef<Set<string>>(new Set());
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,12 +44,18 @@ export default function LyricsPanel({ initialLyrics }: Props) {
     };
 
     const toggle = async (id: string, current: boolean) => {
-        const res = await fetch('/api/lyrics', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, is_active: !current }),
-        });
-        if (res.ok) setLyrics(lyrics.map(l => l.id === id ? { ...l, is_active: !current } : l));
+        if (toggleInProgress.current.has(id)) return;
+        toggleInProgress.current.add(id);
+        try {
+            const res = await fetch('/api/lyrics', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, is_active: !current }),
+            });
+            if (res.ok) setLyrics(lyrics.map(l => l.id === id ? { ...l, is_active: !current } : l));
+        } finally {
+            toggleInProgress.current.delete(id);
+        }
     };
 
     const remove = async (id: string) => {
