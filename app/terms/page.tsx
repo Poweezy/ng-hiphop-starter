@@ -13,7 +13,20 @@ export default function TermsPage() {
         <h1>Terms of Service</h1>
         <p className="legal-updated">Last updated: July 2026</p>
 
-        <section>
+        <nav className="legal-toc" aria-label="Table of contents">
+          <h2>Contents</h2>
+          <ol>
+            <li><a href="#acceptance">Acceptance of Terms</a></li>
+            <li><a href="#intellectual-property">Intellectual Property</a></li>
+            <li><a href="#user-content">User Content</a></li>
+            <li><a href="#prohibited">Prohibited Activities</a></li>
+            <li><a href="#disclaimer">Disclaimer</a></li>
+            <li><a href="#changes">Changes to Terms</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ol>
+        </nav>
+
+        <section id="acceptance">
           <h2>1. Acceptance of Terms</h2>
           <p>
             By accessing or using the NG Hip Hop platform, you agree to be bound by these Terms of Service. If you
@@ -21,7 +34,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section id="intellectual-property">
           <h2>2. Intellectual Property</h2>
           <p>
             All content published on this platform is licensed, owned, and legally distributed. Unauthorized use,
@@ -30,7 +43,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section id="user-content">
           <h2>3. User Content</h2>
           <p>
             Users may submit quotes, graffiti, lyrics, and other content. By submitting content, you represent that:
@@ -43,7 +56,7 @@ export default function TermsPage() {
           <p>We reserve the right to remove or moderate any content that violates these terms.</p>
         </section>
 
-        <section>
+        <section id="prohibited">
           <h2>4. Prohibited Activities</h2>
           <p>You may not:</p>
           <ul>
@@ -55,7 +68,7 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <section>
+        <section id="disclaimer">
           <h2>5. Disclaimer</h2>
           <p>
             The platform is provided on an &quot;as-is&quot; basis without warranties of any kind. We do not guarantee
@@ -64,7 +77,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section id="changes">
           <h2>6. Changes to Terms</h2>
           <p>
             We may update these terms from time to time. Continued use of the platform after changes constitutes
@@ -72,7 +85,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section id="contact">
           <h2>7. Contact</h2>
           <p>
             If you have questions about these terms, please contact us through the official channels provided on our

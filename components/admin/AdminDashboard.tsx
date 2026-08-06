@@ -54,7 +54,6 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
     }, [searchParams]);
 
     const handleTabChange = (tab: Tab) => {
-        setActiveTab(tab);
         const params = new URLSearchParams(searchParams.toString());
         params.set('tab', tab);
         router.replace(`/admin?${params.toString()}`, { scroll: false });
