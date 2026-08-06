@@ -18,7 +18,7 @@
 - ✅ Zustand notification store replaces `react-hot-toast`
 - ✅ GraffitiShowcase modal timing fixed with mountedRef guard
 - ✅ Documentation updated (README, QUICKSTART, DEPLOYMENT, .env.example)
-- ✅ GitHub Actions CI workflow with PostgreSQL service
+- ✅ Migrated database from Neon to Vercel Postgres
 - ✅ Sentry error tracking configured (client/edge/server)
 - ✅ Vercel Analytics integrated (consent-gated)
 - ✅ Supabase MCP configured in `.vscode/mcp.json`

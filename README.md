@@ -14,7 +14,7 @@ A modern, full-stack hip-hop music platform built with Next.js 15, featuring mus
 ## 🚀 Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **Database**: Prisma ORM with SQLite (dev) / PostgreSQL (production)
+- **Database**: Prisma ORM with PostgreSQL via Vercel Postgres
 - **Authentication**: NextAuth.js
 - **Styling**: CSS Custom Properties
 - **TypeScript**: Full type safety

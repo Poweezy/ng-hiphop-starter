@@ -14,7 +14,7 @@ openssl rand -base64 32
 Create production `.env`:
 ```env
 # Database (PostgreSQL required for production)
-# Vercel: Use Vercel Postgres, Neon, or Supabase
+# Vercel: Use Vercel Postgres or Supabase
 DATABASE_URL="postgresql://username:password@host:5432/database?sslmode=require"
 
 # NextAuth
@@ -124,15 +124,15 @@ git push origin main
    - Configure environment variables
 
 3. **Environment Variables in Vercel**
-   - Add all variables from `.env`
-   - Use Vercel Postgres for database
-   - Set `NEXTAUTH_URL` to your domain
-   - Configure S3 credentials if using direct uploads
+    - Add all variables from `.env`
+    - Use Vercel Postgres for database (add via Vercel dashboard: Storage → Postgres → Create Database)
+    - Set `NEXTAUTH_URL` to your domain
+    - Configure S3 credentials if using direct uploads
 
 4. **Deploy**
-   - Click "Deploy"
-   - Wait for build to complete
-   - Visit your live site
+    - Click "Deploy"
+    - Wait for build to complete
+    - Visit your live site
 
 **Important Vercel Notes:**
 - Serverless functions have a 4.5MB body limit — use presigned S3 uploads for large files
@@ -140,8 +140,40 @@ git push origin main
 - Add S3 domains to `next.config.js` `remotePatterns` if using signed URLs
 - Set `S3_PUBLIC_BASE_URL` if serving public S3 objects
 
-**Database Options:**
-- [Vercel Postgres](https://vercel.com/storage/postgres) (Recommended)
+### Database Setup with Vercel Postgres
+
+Vercel Postgres is the recommended database for this project. It provides:
+- Native Vercel integration with automatic `DATABASE_URL` injection
+- Built-in connection pooling (serverless Postgres)
+- Automatic SSL and zero-config setup
+- Built-in backups and scaling
+
+**To add Vercel Postgres:**
+1. In the Vercel dashboard, go to your project → Storage → Postgres → Create Database
+2. Vercel automatically injects `DATABASE_URL` as an environment variable
+3. Run migrations: `npm run db:migrate`
+4. Seed the database: `npm run db:seed`
+
+**Connection String Format:**
+```
+postgresql://user:password@host:port/database?sslmode=require
+```
+
+**Migration Workflow:**
+```bash
+# Generate Prisma client
+npm run db:generate
+
+# Create and apply migration
+npm run db:migrate
+
+# Seed initial data
+npm run db:seed
+```
+
+**Note:** Use `npm run db:migrate` in production instead of `db:push` to preserve migration history.
+
+### Database Options (if not using Vercel Postgres)
 - [Neon](https://neon.tech) (Free tier available)
 - [Supabase](https://supabase.com) (Free tier available)
 
@@ -213,7 +245,7 @@ railway up
 
 **Recommended Providers:**
 - **Vercel Postgres**: Integrated with Vercel
-- **Neon**: Serverless PostgreSQL with free tier
+- **Vercel Postgres**: Integrated with Vercel (Recommended)
 - **Supabase**: PostgreSQL + additional features
 - **Railway**: Simple managed PostgreSQL
 
@@ -473,7 +505,7 @@ npm run build
 This happens when `DATABASE_URL` is not set in Vercel's environment.
 During `next build`, pages with `revalidate` are prerendered and query the database.
 Fix: Add `DATABASE_URL` to Vercel project settings (Settings → Environment Variables).
-Use Vercel Postgres, Neon, or Supabase for production PostgreSQL.
+Use Vercel Postgres or Supabase for production PostgreSQL.
 
 ### Database Connection Issues
 
