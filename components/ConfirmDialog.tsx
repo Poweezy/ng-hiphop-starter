@@ -9,6 +9,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   variant?: 'danger' | 'warning';
+  disabled?: boolean;
 }
 
 export default function ConfirmDialog({
@@ -20,6 +21,7 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
   variant = 'danger',
+  disabled = false,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -89,13 +91,15 @@ export default function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
+            disabled={disabled}
             style={{
               padding: '10px 24px',
               borderRadius: '4px',
               border: 'none',
               background: variant === 'danger' ? '#DC2626' : 'var(--color-yellow)',
               color: variant === 'danger' ? 'white' : 'var(--color-black)',
-              cursor: 'pointer',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              opacity: disabled ? 0.6 : 1,
               fontFamily: 'var(--font-condensed)',
               fontSize: '0.9rem',
               fontWeight: 700,

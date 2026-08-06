@@ -91,7 +91,8 @@ export default function SongsPanel({ initialSongs }: Props) {
         setEditingId(song.id);
         setEditTitle(song.title);
         setEditDesc(song.description || '');
-        const links = typeof song.distribution_links === 'string' ? JSON.parse(song.distribution_links) : (song.distribution_links || {});
+        let links: Record<string, string> = {};
+        try { links = typeof song.distribution_links === 'string' ? JSON.parse(song.distribution_links) : (song.distribution_links || {}); } catch { /* ignore malformed JSON */ }
         setEditSpotify(links.spotify || '');
         setEditApple(links.apple || '');
         setEditDistro(links.distro || '');

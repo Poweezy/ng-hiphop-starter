@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useToast } from '@/components/ToastProvider';
+import { patchDisplayUntil } from '@/lib/adminHooks';
 
 interface Quote { id: string; quote_text: string; submitted_by: string; approved: boolean; is_featured: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialQuotes: Quote[]; }
@@ -36,17 +37,12 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     };
 
     const handleDisplayUntil = async (id: string, date: string) => {
-        const res = await fetch('/api/quotes', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, display_until: date || null }),
-        });
-        if (res.ok) {
-            const updated = await res.json();
+        try {
+            const updated = await patchDisplayUntil('quotes', id, date || null);
             setQuotes(quotes.map(q => q.id === id ? { ...q, ...updated } : q));
             toast.success('Display schedule updated');
-        } else {
-            toast.error('Update failed');
+        } catch (err: any) {
+            toast.error(err.message || 'Update failed');
         }
     };
 

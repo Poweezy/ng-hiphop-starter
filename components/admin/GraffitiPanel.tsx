@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import ConfirmDialog from '../ConfirmDialog';
+import { patchDisplayUntil } from '@/lib/adminHooks';
 
 interface Graffiti { id: string; image_url: string; artist_name: string; approved: boolean; display_until: string | null; createdAt: string; }
 interface Props { initialGraffiti: Graffiti[]; }
@@ -75,17 +76,12 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
     };
 
     const handleDisplayUntil = async (id: string, date: string) => {
-        const res = await fetch('/api/graffiti', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, display_until: date || null }),
-        });
-        if (res.ok) {
-            const updated = await res.json();
+        try {
+            const updated = await patchDisplayUntil('graffiti', id, date || null);
             setItems(items.map(g => g.id === id ? { ...g, ...updated } : g));
             setStatus('success'); setMsg('Display schedule updated');
-        } else {
-            setStatus('error'); setMsg('Update failed');
+        } catch (err: any) {
+            setStatus('error'); setMsg(err.message || 'Update failed');
         }
         setTimeout(() => setStatus('idle'), 3000);
     };
