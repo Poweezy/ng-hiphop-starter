@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 
 import Image from 'next/image';
 import PasswordStrength from '@/components/PasswordStrength';
@@ -51,24 +52,49 @@ export default function AdminLoginPage() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [forgotPassword, setForgotPassword] = useState(false);
+    const [nextAuthError, setNextAuthError] = useState<string | null>(null);
 
-     const handleLogin = async (e: React.FormEvent) => {
-         e.preventDefault();
-         setLoading(true);
-         setError('');
+    const searchParams = useSearchParams();
 
-         try {
-             await signIn('credentials', {
-                 callbackUrl: '/admin',
-                 email: email.trim().toLowerCase(),
-                 password,
-             });
-         } catch (err) {
-             console.error('signIn exception:', err);
-             setError('An unexpected error occurred. Please try again.');
-             setLoading(false);
-         }
-     };
+    useEffect(() => {
+        const err = searchParams.get('error');
+        if (err) {
+            setNextAuthError(err);
+        }
+    }, [searchParams]);
+
+    const getNextAuthErrorMessage = (errorCode: string): string => {
+        switch (errorCode) {
+            case 'Configuration':
+                return 'Authentication is not properly configured. Please contact the administrator.';
+            case 'AccessDenied':
+                return 'Access denied. You do not have permission to sign in.';
+            case 'Verification':
+                return 'The sign-in link is no longer valid. It may have been used already or it may have expired.';
+            case 'Default':
+            default:
+                return 'An authentication error occurred. Please try again.';
+        }
+    };
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        setNextAuthError(null);
+
+        try {
+            await signIn('credentials', {
+                callbackUrl: '/admin',
+                email: email.trim().toLowerCase(),
+                password,
+            });
+        } catch (err) {
+            console.error('signIn exception:', err);
+            setError('An unexpected error occurred. Please try again.');
+            setLoading(false);
+        }
+    };
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -158,6 +184,12 @@ export default function AdminLoginPage() {
                         gap: '20px',
                     }}
                 >
+                    {nextAuthError && (
+                        <div className="error-alert" role="alert">
+                            {getNextAuthErrorMessage(nextAuthError)}
+                        </div>
+                    )}
+
                     {!forgotPassword ? (
                         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} aria-live="polite">
                             <div className="form-group">
@@ -195,9 +227,9 @@ export default function AdminLoginPage() {
                                 {loading ? '⏳ Authenticating...' : '🔐 Access Dashboard'}
                             </button>
 
-                            <button 
-                                type="button" 
-                                onClick={() => { setForgotPassword(true); setError(''); }}
+                            <button
+                                type="button"
+                                onClick={() => { setForgotPassword(true); setError(''); setNextAuthError(null); }}
                                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer', marginTop: '10px' }}
                             >
                                 Forgot Password?
@@ -257,9 +289,9 @@ export default function AdminLoginPage() {
                                 {loading ? 'Processing...' : 'Reset Password'}
                             </button>
 
-                            <button 
-                                type="button" 
-                                onClick={() => { setForgotPassword(false); setError(''); setSuccess(''); }}
+                            <button
+                                type="button"
+                                onClick={() => { setForgotPassword(false); setError(''); setSuccess(''); setNextAuthError(null); }}
                                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer', marginTop: '10px' }}
                             >
                                 ← Back to Login
@@ -267,59 +299,6 @@ export default function AdminLoginPage() {
                         </form>
                     )}
                 </div>
-
-                <style jsx>{`
-                    .admin-input {
-                        width: 100%;
-                        padding: 12px 16px;
-                        background: rgba(255, 255, 255, 0.05);
-                        border: 1px solid rgba(255, 255, 255, 0.1);
-                        border-radius: 8px;
-                        color: white;
-                        outline: none;
-                        transition: all 0.2s;
-                    }
-                    .admin-input:focus {
-                        border-color: #047857;
-                        background: rgba(4, 120, 87, 0.05);
-                    }
-                    .error-alert {
-                        padding: 12px;
-                        background: rgba(220,38,38,0.1);
-                        border: 1px solid #ef4444;
-                        color: #f87171;
-                        border-radius: 6px;
-                        font-size: 0.85rem;
-                    }
-                    .btn-admin {
-                        background: #059669;
-                        color: white;
-                        border: none;
-                        padding: 14px;
-                        border-radius: 8px;
-                        font-weight: 700;
-                        cursor: pointer;
-                        transition: all 0.2s;
-                    }
-                    .btn-admin:hover {
-                        background: #047857;
-                        transform: translateY(-1px);
-                    }
-                    .btn-admin-purple {
-                        background: #7c3aed;
-                        color: white;
-                        border: none;
-                        padding: 14px;
-                        border-radius: 8px;
-                        font-weight: 700;
-                        cursor: pointer;
-                        transition: all 0.2s;
-                    }
-                    .btn-admin-purple:hover {
-                        background: #6d28d9;
-                        transform: translateY(-1px);
-                    }
-                `}</style>
 
                 <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', marginTop: '20px' }}>
                     Authorized access only · NG Platform {new Date().getFullYear()}

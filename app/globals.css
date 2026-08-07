@@ -1974,6 +1974,41 @@ img[loading="lazy"] {
   }
 }
 
+.btn-admin-purple {
+  background: #7c3aed;
+  color: var(--color-white);
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px 28px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-med);
+}
+
+.btn-admin-purple:hover {
+  background: #6d28d9;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-admin-purple:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-alert {
+  padding: 12px;
+  background: rgba(220,38,38,0.1);
+  border: 1px solid #ef4444;
+  color: #f87171;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
 /* ===================================
    LEGAL PAGES
    =================================== */
