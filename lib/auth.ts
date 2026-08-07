@@ -6,6 +6,15 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/app/db";
 import { checkRateLimit } from "@/lib/ratelimit";
 
+if (process.env.NODE_ENV === "production") {
+  const missing: string[] = [];
+  if (!process.env.NEXTAUTH_SECRET) missing.push("NEXTAUTH_SECRET");
+  if (!process.env.NEXTAUTH_URL) missing.push("NEXTAUTH_URL");
+  if (missing.length > 0) {
+    throw new Error(`Missing required NextAuth environment variables: ${missing.join(", ")}`);
+  }
+}
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     CredentialsProvider({
