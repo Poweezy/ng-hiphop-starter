@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
 
 import Image from 'next/image';
 import PasswordStrength from '@/components/PasswordStrength';
@@ -54,14 +53,15 @@ export default function AdminLoginPage() {
     const [forgotPassword, setForgotPassword] = useState(false);
     const [nextAuthError, setNextAuthError] = useState<string | null>(null);
 
-    const searchParams = useSearchParams();
-
     useEffect(() => {
-        const err = searchParams.get('error');
-        if (err) {
-            setNextAuthError(err);
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const err = params.get('error');
+            if (err) {
+                setNextAuthError(err);
+            }
         }
-    }, [searchParams]);
+    }, []);
 
     const getNextAuthErrorMessage = (errorCode: string): string => {
         switch (errorCode) {
