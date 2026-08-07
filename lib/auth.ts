@@ -16,6 +16,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     CredentialsProvider({
       name: "credentials",
