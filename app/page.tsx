@@ -4,6 +4,7 @@ import LatestRelease from '@/components/LatestRelease';
 import CommunityQuote from '@/components/CommunityQuote';
 import GraffitiShowcase from '@/components/GraffitiShowcase';
 import LyricGame from '@/components/LyricGame';
+import CompetitionBanner from '@/components/CompetitionBanner';
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
@@ -16,8 +17,15 @@ export default async function Home() {
   let featuredQuote: { id: string; quote_text: string; submitted_by: string } | null = null;
   let graffitiItems: { id: string; image_url: string; artist_name: string }[] = [];
   let lyrics: { id: string; lyric_text: string; correct_artist: string }[] = [];
+  let activeCompetition: { id: string; title: string; period: string; endDate: string; is_active: boolean; winnerId: string | null } | null = null;
+  let winner: { lyric_text: string; correct_artist: string } | null = null;
 
   try {
+    const competitionResult = await prisma.lyricCompetition.findFirst({
+      where: { is_active: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
     [sloganEntry, activeSong, featuredQuote, graffitiItems, lyrics] = await Promise.all([
       prisma.slogan.findUnique({ where: { id: 1 } }),
       prisma.song.findFirst({ where: { is_active: true }, orderBy: { updatedAt: 'desc' } }),
@@ -41,6 +49,23 @@ export default async function Home() {
         orderBy: { createdAt: 'asc' },
       }),
     ]);
+
+    if (competitionResult) {
+      activeCompetition = {
+        ...competitionResult,
+        endDate: competitionResult.endDate.toISOString(),
+      };
+    }
+
+    if (activeCompetition?.winnerId) {
+      const winnerLyric = await prisma.lyricGame.findUnique({
+        where: { id: activeCompetition.winnerId },
+        select: { lyric_text: true, correct_artist: true },
+      });
+      if (winnerLyric) {
+        winner = winnerLyric;
+      }
+    }
   } catch {
     // Database unavailable during build or runtime — render with empty data
   }
@@ -53,6 +78,7 @@ export default async function Home() {
       <LatestRelease song={activeSong} />
       <CommunityQuote featuredQuote={featuredQuote} />
       <GraffitiShowcase graffiti={graffitiItems} />
+      {activeCompetition && <CompetitionBanner competition={activeCompetition} winner={winner} />}
       <LyricGame lyrics={lyrics} />
     </>
   );

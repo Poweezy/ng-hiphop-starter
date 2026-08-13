@@ -13,13 +13,14 @@ import SongsPanel from './SongsPanel';
 import QuotesPanel from './QuotesPanel';
 import GraffitiPanel from './GraffitiPanel';
 import LyricsPanel from './LyricsPanel';
+import CompetitionsPanel from './CompetitionsPanel';
 import SecurityPanel from './SecurityPanel';
 import UsersPanel from './UsersPanel';
 
 import Image from 'next/image';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'security';
+export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'competitions' | 'security';
 
 interface Props {
     initialSlogan: string;
@@ -27,6 +28,7 @@ interface Props {
     initialQuotes: QuoteSummary[];
     initialGraffiti: GraffitiSummary[];
     initialLyrics: LyricSummary[];
+    initialCompetitions: { id: string; title: string; period: string; startDate: string; endDate: string; is_active: boolean; winnerId: string | null; createdAt: string; updatedAt: string; _count?: { lyrics: number; subscribers: number } }[];
     initialUsers: { id: string; email: string; role: string; createdAt: string; updatedAt: string; submissionCount: number }[];
 }
 
@@ -38,17 +40,18 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'quotes', label: 'Quotes', icon: '💬' },
     { id: 'graffiti', label: 'Graffiti', icon: '🎨' },
     { id: 'lyrics', label: 'Lyrics', icon: '🎤' },
+    { id: 'competitions', label: 'Competitions', icon: '🏆' },
     { id: 'security', label: 'Security', icon: '🔐' },
 ];
 
-export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialUsers }: Props) {
+export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialCompetitions, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const router = useRouter();
     const searchParams = useSearchParams();
 
     useEffect(() => {
         const tab = searchParams.get('tab') as Tab | null;
-        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'security'].includes(tab)) {
+        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'competitions', 'security'].includes(tab)) {
             setActiveTab(tab);
         }
     }, [searchParams]);
@@ -155,6 +158,12 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                                 {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
                                 {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
                                 {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
+                                {activeTab === 'competitions' && (
+                                    <CompetitionsPanel
+                                        initialCompetitions={initialCompetitions}
+                                        initialLyrics={initialLyrics}
+                                    />
+                                )}
                                 {activeTab === 'security' && <SecurityPanel />}
                             </motion.div>
                         </AnimatePresence>
