@@ -83,11 +83,45 @@ model LyricGame {
   lyric_text     String
   correct_artist String
   is_active      Boolean  @default(false)
+  competitionId  String?
+  competition    LyricCompetition? @relation(fields: [competitionId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([is_active])
   @@index([createdAt])
+  @@index([competitionId])
+}
+
+model LyricCompetition {
+  id          String   @id @default(cuid())
+  title       String
+  period      String   // "monthly" | "yearly"
+  startDate   DateTime
+  endDate     DateTime
+  is_active   Boolean  @default(false)
+  winnerId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lyrics      LyricGame[]
+  subscribers CompetitionSubscriber[]
+
+  @@index([is_active])
+  @@index([startDate, endDate])
+  @@index([createdAt])
+}
+
+model CompetitionSubscriber {
+  id             String   @id @default(cuid())
+  competitionId  String
+  competition    LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  email          String
+  subscribedAt   DateTime @default(now())
+
+  @@unique([competitionId, email])
+  @@index([competitionId])
+  @@index([subscribedAt])
 }
 
 model Job {

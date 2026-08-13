@@ -52,3 +52,27 @@ export const songUpdateSchema = z.object({
 export const sloganUpdateSchema = z.object({
   slogan: z.string().min(1).max(200).trim(),
 });
+
+// Competition validation
+export const competitionCreateSchema = z.object({
+  title: z.string().min(1).max(200).trim(),
+  period: z.enum(['monthly', 'yearly']),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  is_active: z.boolean().optional(),
+});
+
+export const competitionUpdateSchema = z.object({
+  id: z.string().cuid(),
+  title: z.string().min(1).max(200).trim().optional(),
+  period: z.enum(['monthly', 'yearly']).optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  is_active: z.boolean().optional(),
+  winnerId: z.string().cuid().optional().nullable(),
+});
+
+export const competitionSubscribeSchema = z.object({
+  competitionId: z.string().cuid(),
+  email: z.string().email(),
+});

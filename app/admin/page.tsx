@@ -12,13 +12,25 @@ export default async function AdminPage() {
         redirect('/admin/login');
     }
 
-    const [slogan, songs, quotes, graffiti, lyrics, users] = await Promise.all([
+    const [slogan, songs, quotes, graffiti, lyrics, users, competitions] = await Promise.all([
         prisma.slogan.findUnique({ where: { id: 1 } }),
         prisma.song.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
         prisma.quoteSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
         prisma.graffitiSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
         prisma.lyricGame.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
         prisma.user.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
+        prisma.lyricCompetition.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 100,
+            include: {
+                _count: {
+                    select: {
+                        lyrics: true,
+                        subscribers: true,
+                    },
+                },
+            },
+        }),
     ]);
 
     const serializeDate = (value: Date | string | null) => {
@@ -50,6 +62,14 @@ export default async function AdminPage() {
             initialQuotes={quotes.map(q => ({ ...q, display_until: serializeDate(q.display_until), createdAt: serializeDate(q.createdAt) })) as QuoteSummary[]}
             initialGraffiti={graffiti.map(g => ({ ...g, display_until: serializeDate(g.display_until), createdAt: serializeDate(g.createdAt) })) as GraffitiSummary[]}
             initialLyrics={lyrics as LyricSummary[]}
+            initialCompetitions={competitions.map(c => ({
+                ...c,
+                startDate: serializeDate(c.startDate) ?? new Date().toISOString(),
+                endDate: serializeDate(c.endDate) ?? new Date().toISOString(),
+                createdAt: serializeDate(c.createdAt) ?? new Date().toISOString(),
+                updatedAt: serializeDate(c.updatedAt) ?? new Date().toISOString(),
+                _count: c._count,
+            }))}
             initialUsers={usersWithData}
         />
     );

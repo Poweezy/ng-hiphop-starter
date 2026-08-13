@@ -1,7 +1,7 @@
 import { registerTask, enqueue, type Task } from '@/lib/queue';
 
 export type ModerationTaskPayload = {
-  submissionType: 'quote' | 'graffiti';
+  submissionType: 'quote' | 'graffiti' | 'competition_winner';
   submissionId: string;
   submittedBy: string;
 };
