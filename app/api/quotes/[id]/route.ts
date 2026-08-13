@@ -2,18 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse } from '@/lib/api';
+import { recordRequest } from '@/lib/observability';
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const requestId = getRequestId(req);
+    const start = performance.now();
+    const { id } = await params;
     try {
-        const { id } = await params;
-        const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        const { session, error } = await requireAdmin();
+        if (!session) {
+            recordRequest('DELETE', `/api/quotes/${id}`, error!.status, performance.now() - start, requestId);
+            return errorResponse(error!.message, error!.status, 'UNAUTHORIZED');
+        }
 
         await prisma.quoteSubmission.delete({ where: { id } });
+        recordRequest('DELETE', `/api/quotes/${id}`, 204, performance.now() - start, requestId);
         return NextResponse.json(null, { status: 204 });
     } catch (error) {
         console.error('Quote delete error:', error);
+        recordRequest('DELETE', `/api/quotes/${id}`, 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'QUOTE_DELETE_ERROR');
     }
 }

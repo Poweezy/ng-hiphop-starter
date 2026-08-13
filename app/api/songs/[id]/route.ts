@@ -3,13 +3,18 @@ import { prisma } from '@/app/db';
 import { storage } from '@/lib/storage';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse } from '@/lib/api';
+import { recordRequest } from '@/lib/observability';
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const requestId = getRequestId(req);
+    const start = performance.now();
+    const { id } = await params;
     try {
-        const { id } = await params;
-        const { session } = await requireAdmin();
-        if (!session) return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        const { session, error } = await requireAdmin();
+        if (!session) {
+            recordRequest('DELETE', `/api/songs/${id}`, error!.status, performance.now() - start, requestId);
+            return errorResponse(error!.message, error!.status, 'UNAUTHORIZED');
+        }
 
         const song = await prisma.song.findUnique({ where: { id } });
         if (song) {
@@ -26,9 +31,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         }
 
         await prisma.song.delete({ where: { id } });
+        recordRequest('DELETE', `/api/songs/${id}`, 204, performance.now() - start, requestId);
         return NextResponse.json(null, { status: 204 });
     } catch (error) {
         console.error('Song delete error:', error);
+        recordRequest('DELETE', `/api/songs/${id}`, 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SONG_DELETE_ERROR');
     }
 }
