@@ -47,11 +47,11 @@ export default function CompetitionBanner({ competition, winner }: Props) {
       const data = await res.json();
       if (res.ok) {
         setStatus('success');
-        setMessage(data.message || 'Subscribed!');
+        setMessage(data.data?.message || 'Subscribed!');
         setEmail('');
       } else {
         setStatus('error');
-        setMessage(data.error?.message || data.message || 'Subscription failed');
+        setMessage(data.error?.message || data.data?.message || 'Subscription failed');
       }
     } catch {
       setStatus('error');
@@ -91,7 +91,7 @@ export default function CompetitionBanner({ competition, winner }: Props) {
                 )}
               </div>
               <p className="competition-desc">
-                Submit your best bars and compete with the community. The winner will be announced when the competition ends.
+                Guess the artists and compete with the community. The winner will be announced when the competition ends.
               </p>
             </>
           )}

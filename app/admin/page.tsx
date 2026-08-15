@@ -61,7 +61,7 @@ export default async function AdminPage() {
             initialSongs={songs.map(s => ({ ...s, distribution_links: s.distribution_links ?? null })) as SongSummary[]}
             initialQuotes={quotes.map(q => ({ ...q, display_until: serializeDate(q.display_until), createdAt: serializeDate(q.createdAt) })) as QuoteSummary[]}
             initialGraffiti={graffiti.map(g => ({ ...g, display_until: serializeDate(g.display_until), createdAt: serializeDate(g.createdAt) })) as GraffitiSummary[]}
-            initialLyrics={lyrics as LyricSummary[]}
+            initialLyrics={lyrics.map(l => ({ ...l, competitionId: (l as any).competitionId ?? null })) as LyricSummary[]}
             initialCompetitions={competitions.map(c => ({
                 ...c,
                 startDate: serializeDate(c.startDate) ?? new Date().toISOString(),

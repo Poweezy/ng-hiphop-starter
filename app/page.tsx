@@ -16,7 +16,7 @@ export default async function Home() {
   let activeSong: { id: string; title: string; description: string | null; file_url: string; cover_url: string; distribution_links: string | null; publisher_link: string | null } | null = null;
   let featuredQuote: { id: string; quote_text: string; submitted_by: string } | null = null;
   let graffitiItems: { id: string; image_url: string; artist_name: string }[] = [];
-  let lyrics: { id: string; lyric_text: string; correct_artist: string }[] = [];
+  let lyrics: { id: string; lyric_text: string; correct_artist: string; competitionId?: string | null }[] = [];
   let activeCompetition: { id: string; title: string; period: string; endDate: string; is_active: boolean; winnerId: string | null } | null = null;
   let winner: { lyric_text: string; correct_artist: string } | null = null;
 
@@ -25,6 +25,13 @@ export default async function Home() {
       where: { is_active: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (competitionResult) {
+      activeCompetition = {
+        ...competitionResult,
+        endDate: competitionResult.endDate.toISOString(),
+      };
+    }
 
     [sloganEntry, activeSong, featuredQuote, graffitiItems, lyrics] = await Promise.all([
       prisma.slogan.findUnique({ where: { id: 1 } }),
@@ -45,17 +52,11 @@ export default async function Home() {
         take: 10,
       }),
       prisma.lyricGame.findMany({
-        where: { is_active: true },
+        where: activeCompetition ? { is_active: true, competitionId: activeCompetition.id } : { is_active: true },
         orderBy: { createdAt: 'asc' },
+        take: 200,
       }),
     ]);
-
-    if (competitionResult) {
-      activeCompetition = {
-        ...competitionResult,
-        endDate: competitionResult.endDate.toISOString(),
-      };
-    }
 
     if (activeCompetition?.winnerId) {
       const winnerLyric = await prisma.lyricGame.findUnique({

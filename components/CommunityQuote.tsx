@@ -58,7 +58,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 setName(''); setQuote('');
             } else {
                 setStatus('error');
-                setMessage(data.message || 'Something went wrong. Try again.');
+                setMessage(data.error?.message || 'Something went wrong. Try again.');
             }
         } catch {
             setStatus('error');

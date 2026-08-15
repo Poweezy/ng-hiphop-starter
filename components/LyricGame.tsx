@@ -162,7 +162,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         }
     };
 
-    const currentLyric = isPlaying || currentIndex < gameLyrics.length ? gameLyrics[currentIndex] : null;
+    const currentLyric = (isPlaying && currentIndex < gameLyrics.length) ? gameLyrics[currentIndex] : null;
 
     return (
         <section id="lyric-game" className="section game-section">
@@ -181,6 +181,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="game-card"
                             >
+                                
                                 {/* Game HUD */}
                                 <div className="game-hud">
                                     <div className="hud-stat">
@@ -347,7 +348,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
             <style jsx>{`
                 .game-section {
-                    background: #08080c;
+                    background: var(--color-black);
                     position: relative;
                 }
 
@@ -364,7 +365,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     padding: 60px;
                     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
                 }
-
+                }
                 .game-hud {
                     display: flex;
                     justify-content: space-between;
@@ -417,7 +418,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     margin-bottom: 48px;
                     position: relative;
                 }
-
+                }
                 .box-label {
                     position: absolute;
                     top: -12px;
@@ -439,7 +440,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     line-height: 1.4;
                     font-style: italic;
                 }
-
+                }
                 .options-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
@@ -450,10 +451,15 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     .options-grid {
                         grid-template-columns: 1fr;
                     }
-                    .game-card { padding: 40px 24px; }
-                    .lyric-text { font-size: 1.4rem; }
+                .game-card {
+                    background: rgba(255, 255, 255, 0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 40px;
+                    padding: 60px;
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
                 }
-
+                }
                 .option-btn {
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
