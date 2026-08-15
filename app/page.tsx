@@ -1,4 +1,5 @@
 import { prisma } from './db';
+import { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import LatestRelease from '@/components/LatestRelease';
 import CommunityQuote from '@/components/CommunityQuote';
@@ -8,6 +9,34 @@ import CompetitionBanner from '@/components/CompetitionBanner';
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+    title: 'NG Hip Hop — Built From Bars. Raised By Beats.',
+    description: 'The official platform for NG Hip Hop. Stream the latest releases, explore community quotes, graffiti art, and join the lyric game movement from Eswatini.',
+    openGraph: {
+        title: 'NG Hip Hop — Built From Bars. Raised By Beats.',
+        description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric game movement.',
+        url: 'https://ng-hiphop.com',
+        siteName: 'NG Hip Hop',
+        images: [
+            {
+                url: '/og-image.jpg',
+                width: 1200,
+                height: 630,
+                alt: 'NG Hip Hop Platform — Built From Bars. Raised By Beats.',
+            },
+        ],
+        locale: 'en_US',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'NG Hip Hop — Built From Bars. Raised By Beats.',
+        description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric game movement.',
+        creator: '@nghiphop',
+        images: ['/twitter-image.jpg'],
+    },
+};
 
 const DEFAULT_SLOGAN = 'Built From Bars. Raised By Beats.';
 

@@ -111,6 +111,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                         <button
                             key={tab.id}
                             onClick={() => handleTabChange(tab.id)}
+                            aria-current={activeTab === tab.id ? 'page' : undefined}
                             className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
                         >
                             <motion.span 
@@ -130,6 +131,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
 
                 {/* Main Content Area */}
                 <main className="admin-main">
+                    <h1 className="sr-only">Admin Dashboard</h1>
                     <ErrorBoundary>
                         <AnimatePresence mode="wait">
                             <motion.div

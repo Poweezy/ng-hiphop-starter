@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Modal from './Modal';
 
 interface LyricGameProps {
     lyrics: any[];
@@ -59,7 +60,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         const otherArtists = rawArtists.filter((artist, idx) => rawArtists.indexOf(artist) === idx);
         
         // If not enough distinct artists, pad with some defaults
-        const defaults = ["Dr. Dre", "Snoop Dogg", "Ice Cube", "Tupac", "Nas", "Jay-Z", "Kendrick Lamar", "J. Cole", "Eminem", "Kanye West", "50 Cent", "Notorious B.I.G."];
+        const defaults = ["Burna Boy", "Wizkid", "Davido", "Tems", "Sarkodie", "Nasty C", "Cassper Nyovest", "Sho Madjozi", "Black Sherif", "Falz", "M.I Abaga", "Amaarae"];
         while (otherArtists.length < 3) {
             const r = defaults[Math.floor(Math.random() * defaults.length)];
             if (!otherArtists.includes(r) && r !== correctArtist) otherArtists.push(r);
@@ -196,7 +197,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
                                 {/* Timer Bar */}
                                 {isPlaying && !selectedOption && (
-                                    <div className="timer-container">
+                                    <div className="timer-container" aria-live="polite" aria-atomic="true">
                                         <motion.div 
                                             className="timer-bar"
                                             animate={{ width: `${(timeLeft / 10) * 100}%`, backgroundColor: timeLeft <= 3 ? '#ef4444' : '#10b981' }}
@@ -254,7 +255,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                                                     exit={{ opacity: 0, height: 0 }}
                                                     className="game-footer"
                                                 >
-                                                    <div className="result-text">
+                                                    <div className="result-text" aria-live="polite" aria-atomic="true">
                                                         {selectedOption === "TIMEOUT" 
                                                             ? `Time's up! The artist was ${currentLyric.correct_artist}.`
                                                             : isCorrect 
@@ -292,59 +293,45 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
             </div>
 
             {/* Submission Modal */}
-            <AnimatePresence>
-                {showSubmitModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="modal-overlay"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="modal-content"
-                        >
-                            <div className="modal-header">
-                                <span className="modal-icon">🎤</span>
-                                <h3 className="modal-title">Challenge the Community</h3>
-                                <p className="modal-subtitle">Think you know the culture better than anyone else? Drop a bar and test the streets.</p>
-                            </div>
-                            <form onSubmit={handleFormSubmit} className="submit-form">
-                                <div className="input-group">
-                                    <label>The Bar (Lyric Snippet)</label>
-                                    <textarea
-                                        value={newLyric}
-                                        onChange={(e) => setNewLyric(e.target.value)}
-                                        placeholder="“Real Gs move in silence...”"
-                                        required
-                                        rows={3}
-                                        className="premium-input"
-                                    />
-                                </div>
-                                <div className="input-group">
-                                    <label>The Artist (Correct Answer)</label>
-                                    <input
-                                        type="text"
-                                        value={newSong}
-                                        onChange={(e) => setNewSong(e.target.value)}
-                                        placeholder="e.g. Lil Wayne"
-                                        required
-                                        className="premium-input"
-                                    />
-                                </div>
-                                <div className="form-actions">
-                                    <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
-                                    <button type="submit" disabled={submitting} className="btn-premium">
-                                        {submitting ? 'Dropping logic...' : 'Submit Challenge'}
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <Modal isOpen={showSubmitModal} onClose={() => setShowSubmitModal(false)} titleId="lyric-submit-title">
+                <div className="modal-header">
+                    <span className="modal-icon">🎤</span>
+                    <h3 className="modal-title" id="lyric-submit-title">Challenge the Community</h3>
+                    <p className="modal-subtitle">Think you know the culture better than anyone else? Drop a bar and test the streets.</p>
+                </div>
+                <form onSubmit={handleFormSubmit} className="submit-form">
+                    <div className="input-group">
+                        <label htmlFor="new-lyric">The Bar (Lyric Snippet)</label>
+                        <textarea
+                            id="new-lyric"
+                            value={newLyric}
+                            onChange={(e) => setNewLyric(e.target.value)}
+                            placeholder="“Real Gs move in silence...”"
+                            required
+                            rows={3}
+                            className="premium-input"
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label htmlFor="new-song-artist">The Artist (Correct Answer)</label>
+                        <input
+                            id="new-song-artist"
+                            type="text"
+                            value={newSong}
+                            onChange={(e) => setNewSong(e.target.value)}
+                            placeholder="e.g. Burna Boy"
+                            required
+                            className="premium-input"
+                        />
+                    </div>
+                    <div className="form-actions">
+                        <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
+                        <button type="submit" disabled={submitting} className="btn-premium">
+                            {submitting ? 'Dropping logic...' : 'Submit Challenge'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
 
             <style jsx>{`
                 .game-section {

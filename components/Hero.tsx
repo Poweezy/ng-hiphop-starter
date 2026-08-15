@@ -70,8 +70,17 @@ export default function Hero({ slogan }: HeroProps) {
 
       {/* Content */}
       <div className="hero-content">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="hero-brand"
+        >
+          NERD GAUGE
+        </motion.div>
         <motion.h1
           className="hero-slogan"
+          aria-label={slogan}
           initial="hidden"
           animate="visible"
           variants={{
@@ -198,6 +207,17 @@ export default function Hero({ slogan }: HeroProps) {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+        }
+
+        .hero-brand {
+          font-family: var(--font-condensed);
+          font-size: clamp(1rem, 2vw, 1.3rem);
+          font-weight: 900;
+          letter-spacing: 0.35em;
+          text-transform: uppercase;
+          color: var(--color-green-light);
+          margin-bottom: 16px;
+          text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
         }
 
         .accent-line {

@@ -16,7 +16,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
-  trustHost: true,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -81,15 +80,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             where: { id: token.sub },
             select: { tokenVersion: true, role: true },
           });
-          if (!dbUser) {
-            token.sub = undefined;
-          } else if (dbUser.tokenVersion !== token.tokenVersion) {
+          if (!dbUser || dbUser.tokenVersion !== token.tokenVersion) {
             token.sub = undefined;
           } else {
             token.role = dbUser.role;
           }
-        } catch (err) {
-          console.error("JWT callback DB error", err);
+        } catch {
+          // DB unreachable — invalidate token to prevent stale session usage
+          token.sub = undefined;
         }
       }
       return token;

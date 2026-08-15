@@ -18,30 +18,45 @@ export default function SplashScreen() {
     const reduceMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const delay = reduceMotion ? 300 : 2200;
+    const delay = reduceMotion ? 300 : 600;
 
     const timer = setTimeout(() => {
       setIsVisible(false);
       document.body.style.overflow = '';
     }, delay);
 
+    const handleLoad = () => {
+      setIsVisible(false);
+      document.body.style.overflow = '';
+    };
+    if (document.readyState === 'complete') {
+      handleLoad();
+    } else {
+      window.addEventListener('load', handleLoad);
+    }
+
     return () => {
       clearTimeout(timer);
+      window.removeEventListener('load', handleLoad);
       document.body.style.overflow = '';
     };
   }, []);
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          key="splash"
-          className="splash-container"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-          aria-hidden="true"
-        >
+    <>
+      <span className="sr-only" role="status" aria-live="polite">
+        Loading NG Hip Hop
+      </span>
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            key="splash"
+            className="splash-container"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            aria-hidden="true"
+          >
           {/* Logo */}
           <motion.div
             className="splash-logo-wrap"
@@ -65,10 +80,11 @@ export default function SplashScreen() {
             className="splash-progress-bar"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ duration: 2.0, ease: 'easeInOut' }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
           />
         </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/app/db';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { checkUserRateLimit } from '@/lib/ratelimit';
 
 export async function DELETE(req: NextRequest) {
   const requestId = getRequestId(req);
@@ -12,6 +13,13 @@ export async function DELETE(req: NextRequest) {
     if (!session?.user?.email) {
       recordRequest('DELETE', '/api/user/delete', 401, performance.now() - start, requestId);
       return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+
+    // Rate limit: max 3 deletion attempts per user per minute.
+    const rateLimit = await checkUserRateLimit(session.user.email, 'delete', 3, 60);
+    if (!rateLimit.allowed) {
+      recordRequest('DELETE', '/api/user/delete', 429, performance.now() - start, requestId);
+      return errorResponse('Too many deletion attempts. Please try again later.', 429, 'RATE_LIMITED');
     }
 
     const user = await prisma.user.findUnique({

@@ -60,7 +60,7 @@ export default function SloganPanel({ initialSlogan }: Props) {
                     </button>
 
                     {(status === 'success' || status === 'error') && (
-                        <div className={`status-message status-message--${status}`}>{msg}</div>
+                        <div role="status" aria-live="polite" className={`status-message status-message--${status}`}>{msg}</div>
                     )}
                 </form>
             </div>

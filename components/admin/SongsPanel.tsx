@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import ConfirmDialog from '../ConfirmDialog';
+import Modal from '../Modal';
 
 interface Song { id: string; title: string; description?: string | null; file_url: string; cover_url: string; is_active: boolean; distribution_links: any; publisher_link?: string | null; }
 interface Props { initialSongs: Song[]; }
@@ -218,41 +219,39 @@ export default function SongsPanel({ initialSongs }: Props) {
             />
 
             {editingId && (
-                <div className="modal-overlay" onClick={() => setEditingId(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h3 className="modal-title">Edit Song</h3>
-                        <form onSubmit={handleEdit} className="form-stack">
-                            <div className="form-group">
-                                <label className="form-label admin-label--green">Song Title</label>
-                                <input className="admin-input" value={editTitle} onChange={e => setEditTitle(e.target.value)} required maxLength={120} />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label admin-label--green">Description</label>
-                                <input className="admin-input" value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label admin-label--green">Spotify URL</label>
-                                <input className="admin-input" value={editSpotify} onChange={e => setEditSpotify(e.target.value)} placeholder="https://open.spotify.com/..." />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label admin-label--green">Apple Music URL</label>
-                                <input className="admin-input" value={editApple} onChange={e => setEditApple(e.target.value)} placeholder="https://music.apple.com/..." />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label admin-label--green">Distro/Distribution URL</label>
-                                <input className="admin-input" value={editDistro} onChange={e => setEditDistro(e.target.value)} placeholder="https://..." />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label admin-label--green">Publisher URL</label>
-                                <input className="admin-input" value={editPubLink} onChange={e => setEditPubLink(e.target.value)} placeholder="https://..." />
-                            </div>
-                            <div className="modal-actions">
-                                <button type="button" onClick={() => setEditingId(null)} className="btn-outline-cancel">Cancel</button>
-                                <button type="submit" className="btn-admin" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <Modal isOpen={!!editingId} onClose={() => setEditingId(null)} titleId="edit-song-title">
+                    <h3 className="modal-title" id="edit-song-title">Edit Song</h3>
+                    <form onSubmit={handleEdit} className="form-stack">
+                        <div className="form-group">
+                            <label className="form-label admin-label--green" htmlFor="edit-song-title-input">Song Title</label>
+                            <input id="edit-song-title-input" className="admin-input" value={editTitle} onChange={e => setEditTitle(e.target.value)} required maxLength={120} />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label admin-label--green" htmlFor="edit-song-desc">Description</label>
+                            <input id="edit-song-desc" className="admin-input" value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label admin-label--green" htmlFor="edit-song-spotify">Spotify URL</label>
+                            <input id="edit-song-spotify" className="admin-input" value={editSpotify} onChange={e => setEditSpotify(e.target.value)} placeholder="https://open.spotify.com/..." />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label admin-label--green" htmlFor="edit-song-apple">Apple Music URL</label>
+                            <input id="edit-song-apple" className="admin-input" value={editApple} onChange={e => setEditApple(e.target.value)} placeholder="https://music.apple.com/..." />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label admin-label--green" htmlFor="edit-song-distro">Distro/Distribution URL</label>
+                            <input id="edit-song-distro" className="admin-input" value={editDistro} onChange={e => setEditDistro(e.target.value)} placeholder="https://..." />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label admin-label--green" htmlFor="edit-song-pub">Publisher URL</label>
+                            <input id="edit-song-pub" className="admin-input" value={editPubLink} onChange={e => setEditPubLink(e.target.value)} placeholder="https://..." />
+                        </div>
+                        <div className="modal-actions">
+                            <button type="button" onClick={() => setEditingId(null)} className="btn-outline-cancel">Cancel</button>
+                            <button type="submit" className="btn-admin" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

@@ -1,0 +1,28 @@
+# AI Crawler Access Policy
+# Last updated: 2026-08-15
+
+# Allow all crawlers by default
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap reference
+Sitemap: https://ng-hiphop.com/sitemap.xml
+
+# AI search-augmented crawlers (allow — drives citations)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# AI training crawlers (allowed by default; business can disallow if needed)
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /

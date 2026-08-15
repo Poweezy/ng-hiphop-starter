@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import Modal from './Modal';
 
 interface Graffiti {
     id: string;
@@ -152,84 +153,55 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
             </div>
 
             {/* Lightbox / Modal */}
-            <AnimatePresence>
-                {selectedImage && (
-                    <motion.div
-                        key="lightbox"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="modal-overlay"
-                        onClick={() => setSelectedImage(null)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="graffiti-modal-content graffiti-lightbox"
-                        >
-                            <Image
-                                src={selectedImage}
-                                alt="Graffiti large view"
-                                width={1200}
-                                height={800}
-                                style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
-                            />
-                            <button className="close-btn" onClick={() => setSelectedImage(null)} aria-label="Close image preview">✕</button>
-                        </motion.div>
-                    </motion.div>
-                )}
+            <Modal isOpen={!!selectedImage} onClose={() => setSelectedImage(null)} titleId="graffiti-lightbox-title">
+                <Image
+                    src={selectedImage!}
+                    alt="Graffiti large view"
+                    width={1200}
+                    height={800}
+                    style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                />
+                <button className="close-btn" onClick={() => setSelectedImage(null)} aria-label="Close image preview">✕</button>
+            </Modal>
 
-                {showSubmit && (
-                    <motion.div
-                        key="submit-modal"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="modal-overlay"
-                    >
-                        <motion.div
-                            initial={{ y: 50, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 50, opacity: 0 }}
-                            id="graffiti-form-modal"
-                            className="graffiti-modal-content"
-                            style={{ width: '440px', maxWidth: '92vw', margin: 'auto' }}
-                        >
-                            <div className="form-header">
-                                <h3 className="modal-title">Tag the Wall</h3>
-                                <button onClick={() => setShowSubmit(false)} className="close-btn-text">Cancel</button>
-                            </div>
-                            
-                            <form onSubmit={handleSubmit} className="tag-form">
-                                <div className="input-group">
-                                    <label>Artist Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Your Tag..."
-                                        value={artistName}
-                                        onChange={(e) => setArtistName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="input-group">
-                                    <label>Artwork File</label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                        required
-                                    />
-                                </div>
-                                <button type="submit" disabled={submitting} className="btn btn-primary full-width">
-                                    {submitting ? 'Uploading...' : 'Submit Tag'}
-                                </button>
-                                {message && <p className={`form-message ${message.includes('error') ? 'error' : 'success'}`}>{message}</p>}
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {showSubmit && (
+                <Modal isOpen={showSubmit} onClose={() => setShowSubmit(false)} titleId="graffiti-form-title">
+                    <div className="form-header">
+                        <h3 className="modal-title" id="graffiti-form-title">Tag the Wall</h3>
+                        <button onClick={() => setShowSubmit(false)} className="close-btn-text">Cancel</button>
+                    </div>
+                    
+                    <form onSubmit={handleSubmit} className="tag-form">
+                        <div className="input-group">
+                            <label htmlFor="graffiti-artist-name">Artist Name</label>
+                            <input
+                                id="graffiti-artist-name"
+                                type="text"
+                                placeholder="Your Tag..."
+                                value={artistName}
+                                onChange={(e) => setArtistName(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="graffiti-artwork-file">Artwork File</label>
+                            <input
+                                id="graffiti-artwork-file"
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                required
+                            />
+                        </div>
+                        <button type="submit" disabled={submitting} className="btn btn-primary full-width">
+                            {submitting ? 'Uploading...' : 'Submit Tag'}
+                        </button>
+                        <div role="status" aria-live="polite">
+                            {message && <p className={`form-message ${message.includes('error') ? 'error' : 'success'}`}>{message}</p>}
+                        </div>
+                    </form>
+                </Modal>
+            )}
 
             <style jsx>{`
                 .graffiti-section {
@@ -329,7 +301,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .empty-wall {
                     text-align: center;
                     padding: 120px 40px;
-                    color: rgba(255, 255, 255, 0.4);
+                    color: rgba(255, 255, 255, 0.55);
                     border: 1px dashed rgba(255, 255, 255, 0.1);
                     border-radius: 40px;
                     background: rgba(255, 255, 255, 0.01);
@@ -463,7 +435,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.12em;
-                    color: rgba(255, 255, 255, 0.35);
+                    color: rgba(255, 255, 255, 0.55);
                 }
 
                 .tag-form input[type="text"],
@@ -488,7 +460,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .tag-form input[type="file"] {
                     padding: 8px 12px;
                     font-size: 0.8rem;
-                    color: rgba(255, 255, 255, 0.4);
+                    color: rgba(255, 255, 255, 0.55);
                     cursor: pointer;
                 }
 

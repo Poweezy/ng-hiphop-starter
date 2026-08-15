@@ -80,3 +80,35 @@ export const competitionSubscribeSchema = z.object({
 export const competitionAssignSchema = z.object({
   lyricIds: z.array(z.string().cuid()).min(1, 'Select at least one lyric'),
 });
+
+// Admin: patch user role
+export const adminUsersPatchSchema = z.object({
+  id: z.string().cuid(),
+  role: z.enum(['USER', 'ADMIN']),
+});
+
+// Admin: declare competition winner
+export const winnerSchema = z.object({
+  winnerId: z.string().cuid(),
+});
+
+// Admin: reset user password (master secret flow)
+export const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  resetSecret: z.string().min(1),
+  newPassword: z.string().min(12, 'Password must be at least 12 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+});
+
+// Admin: change own password
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(12, 'Password must be at least 12 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+});

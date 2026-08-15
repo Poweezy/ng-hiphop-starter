@@ -157,7 +157,7 @@ export class S3StorageProvider implements StorageProvider {
     this.bucket = bucket;
     this.region = region;
     this.publicBaseUrl = publicBaseUrl;
-    this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '604800');
+    this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '3600');
 
     if (!publicBaseUrl && process.env.NODE_ENV === 'production') {
       console.warn(

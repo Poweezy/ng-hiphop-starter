@@ -3,6 +3,7 @@ import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { adminUsersPatchSchema } from '@/lib/validations';
 
 export async function PATCH(req: NextRequest) {
     const requestId = getRequestId(req);
@@ -15,12 +16,14 @@ export async function PATCH(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { id, role } = body;
+        const parsed = adminUsersPatchSchema.safeParse(body);
 
-        if (!id || !role || !['USER', 'ADMIN'].includes(role)) {
+        if (!parsed.success) {
             recordRequest('PATCH', '/api/admin/users', 400, performance.now() - start, requestId);
-            return errorResponse('Invalid input: id and valid role (USER/ADMIN) required', 400, 'VALIDATION_ERROR');
+            return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', parsed.error.issues);
         }
+
+        const { id, role } = parsed.data;
 
         if (id === session.user?.id) {
             recordRequest('PATCH', '/api/admin/users', 400, performance.now() - start, requestId);

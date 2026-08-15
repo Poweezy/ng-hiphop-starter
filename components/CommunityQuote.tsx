@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView, useMotionValue, useTransform } from 'framer-motion';
 
 interface Quote {
@@ -18,6 +18,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     const [quote, setQuote] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+    const [reduceMotion, setReduceMotion] = useState(false);
     
     const containerRef = useRef(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.2 });
@@ -27,7 +28,16 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     const rotateX = useTransform(y, [-200, 200], [10, -10]);
     const rotateY = useTransform(x, [-200, 200], [-10, 10]);
 
+    useEffect(() => {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setReduceMotion(mq.matches);
+      const handler = (e: MediaQueryListEvent) => setReduceMotion(e.matches);
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    }, []);
+
     function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+        if (reduceMotion) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -36,6 +46,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     }
 
     function handleMouseLeave() {
+        if (reduceMotion) return;
         x.set(0);
         y.set(0);
     }
@@ -172,6 +183,8 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                                 <AnimatePresence>
                                     {message && (
                                         <motion.div 
+                                            role="status"
+                                            aria-live="polite"
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
                                             exit={{ opacity: 0, height: 0 }}
@@ -309,7 +322,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 .empty-quote {
                     text-align: center;
                     padding: 40px 0;
-                    color: rgba(255, 255, 255, 0.4);
+                    color: rgba(255, 255, 255, 0.55);
                 }
 
                 .mic-icon {
@@ -371,7 +384,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
                 .char-count {
                     font-size: 0.7rem;
-                    color: rgba(255, 255, 255, 0.3);
+                    color: rgba(255, 255, 255, 0.55);
                 }
 
                 input, textarea {

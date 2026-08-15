@@ -5,10 +5,33 @@ import { z } from 'zod';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
 
+const ALLOWED_CONTENT_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/ogg',
+  'audio/flac',
+  'audio/aac',
+  'audio/mp4',
+  'audio/x-m4a',
+];
+
 const presignSchema = z.object({
   folder: z.string().min(1).max(100),
   contentType: z.string().min(1).max(100),
   filename: z.string().max(200).optional(),
+}).superRefine((data, ctx) => {
+  if (!ALLOWED_CONTENT_TYPES.includes(data.contentType)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Content type "${data.contentType}" is not allowed. Allowed types: ${ALLOWED_CONTENT_TYPES.join(', ')}`,
+      path: ['contentType'],
+    });
+  }
 });
 
 export async function POST(req: NextRequest) {

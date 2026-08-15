@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { errorResponse, successResponse, getRequestId } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { changePasswordSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
     const requestId = getRequestId(req);
@@ -16,17 +17,15 @@ export async function POST(req: NextRequest) {
             return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
         }
 
-        const { currentPassword, newPassword } = await req.json();
+        const body = await req.json();
+        const parsed = changePasswordSchema.safeParse(body);
 
-        if (!currentPassword || !newPassword) {
+        if (!parsed.success) {
             recordRequest('POST', '/api/admin/change-password', 400, performance.now() - start, requestId);
-            return errorResponse('Current and new password are required', 400, 'MISSING_FIELDS');
+            return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', parsed.error.issues);
         }
 
-        if (newPassword.length < 8) {
-            recordRequest('POST', '/api/admin/change-password', 400, performance.now() - start, requestId);
-            return errorResponse('New password must be at least 8 characters long', 400, 'PASSWORD_TOO_SHORT');
-        }
+        const { currentPassword, newPassword } = parsed.data;
 
         const user = await prisma.user.findUnique({
             where: { email: session.user!.email! },
