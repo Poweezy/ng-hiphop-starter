@@ -6,6 +6,7 @@ import { checkRateLimit } from '@/lib/ratelimit';
 import crypto from 'node:crypto';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { resetPasswordSchema } from '@/lib/validations';
 
 // Constant-time comparison against the configured master secret. We compare
 // the raw value directly instead of caching a module-level bcrypt hash, which
@@ -33,21 +34,19 @@ export async function POST(req: NextRequest) {
       return errorResponse('Too many attempts. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
     }
 
-    const { email, resetSecret, newPassword } = await req.json();
+    const body = await req.json();
+    const parsed = resetPasswordSchema.safeParse(body);
 
-    if (!email || !resetSecret || !newPassword) {
+    if (!parsed.success) {
       recordRequest('POST', '/api/admin/reset-password', 400, performance.now() - start, requestId);
-      return errorResponse('All fields are required', 400, 'MISSING_FIELDS');
+      return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', parsed.error.issues);
     }
+
+    const { email, resetSecret, newPassword } = parsed.data;
 
     if (!isMasterSecretValid(resetSecret)) {
       recordRequest('POST', '/api/admin/reset-password', 403, performance.now() - start, requestId);
       return errorResponse('Invalid reset secret or admin email', 403, 'INVALID_RESET_SECRET');
-    }
-
-    if (newPassword.length < 8) {
-      recordRequest('POST', '/api/admin/reset-password', 400, performance.now() - start, requestId);
-      return errorResponse('New password must be at least 8 characters long', 400, 'PASSWORD_TOO_SHORT');
     }
 
     const user = await prisma.user.findUnique({

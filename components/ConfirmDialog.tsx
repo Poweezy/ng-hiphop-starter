@@ -14,6 +14,9 @@ interface ConfirmDialogProps {
   disabled?: boolean;
 }
 
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 export default function ConfirmDialog({
   isOpen,
   title,
@@ -26,20 +29,50 @@ export default function ConfirmDialog({
   disabled = false,
 }: ConfirmDialogProps) {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    // Focus the confirm button on open.
+    confirmButtonRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         onCancel();
+        return;
+      }
+
+      if (e.key !== 'Tab' || !dialog.contains(document.activeElement)) return;
+
+      const focusableEls = dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusableEls.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusableEls[0];
+      const last = focusableEls[focusableEls.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    confirmButtonRef.current?.focus();
-
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onCancel]);
 
@@ -61,6 +94,7 @@ export default function ConfirmDialog({
       role="presentation"
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
@@ -98,6 +132,7 @@ export default function ConfirmDialog({
         </p>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           <button
+            ref={cancelButtonRef}
             onClick={onCancel}
             style={{
               padding: '10px 24px',

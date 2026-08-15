@@ -143,6 +143,19 @@ select:focus-visible {
   top: 0;
 }
 
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* ===================================
    TYPOGRAPHY UTILITIES
    =================================== */
@@ -650,7 +663,7 @@ select:focus-visible {
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .form-textarea {
@@ -2032,7 +2045,7 @@ img[loading="lazy"] {
 }
 
 .legal-updated {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.55);
   margin: 0 0 32px;
   font-size: 0.85rem;
 }
@@ -2099,7 +2112,7 @@ img[loading="lazy"] {
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.55);
   margin: 0 0 12px;
 }
 
@@ -2402,7 +2415,7 @@ img[loading="lazy"] {
 }
 
 .pagination-ellipsis {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   padding: 0 4px;
   user-select: none;
 }

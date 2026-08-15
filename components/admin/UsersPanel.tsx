@@ -109,7 +109,7 @@ export default function UsersPanel({ initialUsers }: Props) {
                     </div>
                 </div>
                 {status !== 'idle' && (
-                    <div className={`status-message status-message--${status}`}>{msg}</div>
+                    <div role="status" aria-live="polite" className={`status-message status-message--${status}`}>{msg}</div>
                 )}
             </div>
 

@@ -47,23 +47,23 @@ async function main() {
         await prisma.lyricGame.createMany({
             data: [
                 {
-                    lyric_text: "Started from the bottom, now we're here",
-                    correct_artist: 'Drake',
+                    lyric_text: "I be the nearest, I be the furthest, I be the truest",
+                    correct_artist: 'Sarkodie',
                     is_active: true,
                 },
                 {
-                    lyric_text: "I got 99 problems but a pitch ain't one",
-                    correct_artist: 'Jay-Z',
+                    lyric_text: "Ye dbe3 s3 me nfa wo ho a, wo nso nfa wo ho",
+                    correct_artist: 'M.anifest',
                     is_active: true,
                 },
                 {
-                    lyric_text: "Sit down, be humble",
-                    correct_artist: 'Kendrick Lamar',
+                    lyric_text: "Sho Madjozi in the building, John Cena",
+                    correct_artist: 'Sho Madjozi',
                     is_active: true,
                 },
                 {
-                    lyric_text: "Real Gs move in silence like lasagna",
-                    correct_artist: 'Lil Wayne',
+                    lyric_text: "Gbese Gbese, I carry your load",
+                    correct_artist: 'Falz',
                     is_active: true,
                 },
             ],
@@ -79,8 +79,8 @@ async function main() {
         update: {},
         create: {
             id: 'seed-default-song',
-            title: 'Ascension (Placeholder track)',
-            description: 'This is a sample track injected during initialization. Upload your own tracks from the Admin portal.',
+            title: 'First Light',
+            description: 'The opening chapter of the NG vault — where bars meet beats and the culture speaks first.',
             file_url: 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg',
             cover_url: '/images/cover.png',
             is_active: true,

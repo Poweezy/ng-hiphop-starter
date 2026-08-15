@@ -13,6 +13,9 @@ export default function ConsentAwareAnalytics() {
   }, []);
 
   if (!mounted || !consent?.analytics) {
+    // TODO(AEO/Analytics): Consider a server-side page-view logging fallback for
+    // consent-rejected users so we retain aggregate traffic signals without
+    // client-side tracking cookies.
     return null;
   }
 

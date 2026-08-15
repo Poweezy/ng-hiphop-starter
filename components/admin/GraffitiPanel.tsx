@@ -303,7 +303,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                             {uploading ? '⏳ Uploading...' : '🎨 Submit Artwork'}
                         </button>
                         {status !== 'idle' && (
-                            <div className={`status-message status-message--${status}`}>{msg}</div>
+                            <div role="status" aria-live="polite" className={`status-message status-message--${status}`}>{msg}</div>
                         )}
                     </form>
                 </div>

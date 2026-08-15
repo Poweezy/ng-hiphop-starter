@@ -1,0 +1,24 @@
+# NG Hip Hop Platform
+
+> Built From Bars. Raised By Beats. The official platform for NG Hip Hop — authentic music, community quotes, graffiti art, and lyric challenges from Eswatini.
+
+## Key Pages
+
+- [Home](https://ng-hiphop.com): Hero, latest release, featured quote, graffiti showcase, lyric game, competition banner
+- [Music Library](https://ng-hiphop.com/library): Full discography of active releases
+- [Terms of Service](https://ng-hiphop.com/terms): Platform terms and conditions
+- [Privacy Policy](https://ng-hiphop.com/privacy): Data handling and consent policy
+
+## Content by Topic
+
+### Music
+- [Music Library](/library): Stream all active releases, from classics to latest drops — 100 songs max per page
+
+### Community
+- Featured quotes appear on the homepage via `/api/quotes` (server-side fetched)
+- Graffiti showcase on the homepage via `/api/graffiti`
+- Lyric game challenge on the homepage via `/api/lyrics`
+
+### Legal
+- [Terms of Service](/terms): Acceptance, IP, user content, disclaimer
+- [Privacy Policy](/privacy): Data collection, consent, retention

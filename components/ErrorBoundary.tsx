@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="error-boundary">
+        <div className="error-boundary" role="alert">
           <h2 className="error-boundary-title">Something went wrong</h2>
           <p className="error-boundary-message">{this.state.error.message}</p>
           <button onClick={this.reset} className="error-boundary-btn">

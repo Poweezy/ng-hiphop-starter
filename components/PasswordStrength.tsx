@@ -8,8 +8,8 @@ export default function PasswordStrength({ password }: PasswordStrengthProps) {
   const strength = calculateStrength(password);
 
   return (
-    <div style={{ marginTop: 8 }}>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+    <div style={{ marginTop: 8 }} aria-live="polite">
+      <div role="status" style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
         {[1, 2, 3, 4].map((level) => (
           <div
             key={level}

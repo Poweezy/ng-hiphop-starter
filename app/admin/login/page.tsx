@@ -1,5 +1,16 @@
 'use client';
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Admin Login',
+    description: 'Admin portal login for NG Hip Hop platform.',
+    robots: {
+        index: false,
+        follow: false,
+    },
+};
+
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import Modal from '@/components/Modal';
 import { useToast } from '@/components/ToastProvider';
 import Pagination from '@/components/Pagination';
 
@@ -378,104 +379,98 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
       />
 
       {winnerConfirm && (
-        <div className="modal-overlay" onClick={() => setWinnerConfirm(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-            <h3 className="modal-title">Declare Winner: {winnerConfirm.title}</h3>
+        <Modal isOpen={!!winnerConfirm} onClose={() => { setWinnerConfirm(null); setSelectedWinnerId(''); }} titleId="declare-winner-title">
+            <h3 className="modal-title" id="declare-winner-title">Declare Winner: {winnerConfirm.title}</h3>
             <p style={{ color: 'var(--color-grey-blue)', marginBottom: 16 }}>Select a lyric to declare as the winner.</p>
             <div className="form-stack">
-              <select
-                className="admin-input"
-                value={selectedWinnerId}
-                onChange={e => setSelectedWinnerId(e.target.value)}
-              >
-                <option value="">Select a lyric...</option>
-                {lyrics.filter(l => l.is_active && l.competitionId === winnerConfirm.id).map(lyric => (
-                  <option key={lyric.id} value={lyric.id}>
-                    "{lyric.lyric_text}" — {lyric.correct_artist}
-                  </option>
-                ))}
-              </select>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={handleDeclareWinner} className="btn-admin" disabled={!selectedWinnerId}>
-                  Declare Winner
-                </button>
-                <button onClick={() => { setWinnerConfirm(null); setSelectedWinnerId(''); }} className="btn-outline-cancel">Cancel</button>
-              </div>
+                <select
+                    className="admin-input"
+                    value={selectedWinnerId}
+                    onChange={e => setSelectedWinnerId(e.target.value)}
+                >
+                    <option value="">Select a lyric...</option>
+                    {lyrics.filter(l => l.is_active && l.competitionId === winnerConfirm.id).map(lyric => (
+                        <option key={lyric.id} value={lyric.id}>
+                            "{lyric.lyric_text}" — {lyric.correct_artist}
+                        </option>
+                    ))}
+                </select>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <button onClick={handleDeclareWinner} className="btn-admin" disabled={!selectedWinnerId}>
+                        Declare Winner
+                    </button>
+                    <button onClick={() => { setWinnerConfirm(null); setSelectedWinnerId(''); }} className="btn-outline-cancel">Cancel</button>
+                </div>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {showSubscribers && selectedCompetitionId && (
-        <div className="modal-overlay" onClick={() => setShowSubscribers(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
+        <Modal isOpen={showSubscribers} onClose={() => setShowSubscribers(false)} titleId="subscribers-title" className="modal-subscribers">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 className="modal-title">Subscribers</h3>
-              <button onClick={() => setShowSubscribers(false)} className="close-btn-text">Close</button>
+                <h3 className="modal-title" id="subscribers-title">Subscribers</h3>
+                <button onClick={() => setShowSubscribers(false)} className="close-btn-text">Close</button>
             </div>
             {loadingSubscribers ? (
-              <p className="admin-text-muted">Loading...</p>
+                <p className="admin-text-muted">Loading...</p>
             ) : subscribers.length === 0 ? (
-              <p className="admin-text-muted">No subscribers yet.</p>
+                <p className="admin-text-muted">No subscribers yet.</p>
             ) : (
-              <div className="admin-users-list">
-                {subscribers.map(sub => (
-                  <div key={sub.id} className="admin-card admin-card--compact">
-                    <div className="admin-card-body">
-                      <div className="admin-text-ellipsis">{sub.email}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)' }}>
-                        Subscribed {new Date(sub.subscribedAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                <div className="admin-users-list">
+                    {subscribers.map(sub => (
+                        <div key={sub.id} className="admin-card admin-card--compact">
+                            <div className="admin-card-body">
+                                <div className="admin-text-ellipsis">{sub.email}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--color-grey-blue)' }}>
+                                    Subscribed {new Date(sub.subscribedAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
             {totalSubscribers > 50 && (
-              <Pagination currentPage={subscriberPage} totalPages={Math.ceil(totalSubscribers / 50)} onPageChange={(page) => { setSubscriberPage(page); if (selectedCompetitionId) loadSubscribers(selectedCompetitionId, page); }} />
+                <Pagination currentPage={subscriberPage} totalPages={Math.ceil(totalSubscribers / 50)} onPageChange={(page) => { setSubscriberPage(page); if (selectedCompetitionId) loadSubscribers(selectedCompetitionId, page); }} />
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {showAssign && assignCompetitionId && (
-        <div className="modal-overlay" onClick={() => setShowAssign(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
+        <Modal isOpen={showAssign} onClose={() => setShowAssign(false)} titleId="assign-lyrics-title" className="modal-assign">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 className="modal-title">Assign Lyrics to Competition</h3>
-              <button onClick={() => setShowAssign(false)} className="close-btn-text">Close</button>
+                <h3 className="modal-title" id="assign-lyrics-title">Assign Lyrics to Competition</h3>
+                <button onClick={() => setShowAssign(false)} className="close-btn-text">Close</button>
             </div>
             <p style={{ color: 'var(--color-grey-blue)', marginBottom: 16 }}>
-              Select lyrics to assign to this competition. Only active lyrics are shown.
+                Select lyrics to assign to this competition. Only active lyrics are shown.
             </p>
             <div className="form-stack">
-              {lyrics.filter(l => l.is_active).length === 0 ? (
-                <p className="admin-text-muted">No active lyrics available. Add lyrics first.</p>
-              ) : (
-                lyrics.filter(l => l.is_active).map(lyric => (
-                  <label key={lyric.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedLyricIds.has(lyric.id)}
-                      onChange={() => toggleLyricSelection(lyric.id)}
-                      style={{ width: 18, height: 18, accentColor: 'var(--color-purple)' }}
-                    />
-                    <div>
-                      <div style={{ color: 'white', fontSize: '0.95rem' }}>"{lyric.lyric_text}"</div>
-                      <div style={{ color: 'var(--color-grey-blue)', fontSize: '0.8rem' }}>— {lyric.correct_artist}</div>
-                    </div>
-                  </label>
-                ))
-              )}
+                {lyrics.filter(l => l.is_active).length === 0 ? (
+                    <p className="admin-text-muted">No active lyrics available. Add lyrics first.</p>
+                ) : (
+                    lyrics.filter(l => l.is_active).map(lyric => (
+                        <label key={lyric.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <input
+                                type="checkbox"
+                                checked={selectedLyricIds.has(lyric.id)}
+                                onChange={() => toggleLyricSelection(lyric.id)}
+                                style={{ width: 18, height: 18, accentColor: 'var(--color-purple)' }}
+                            />
+                            <div>
+                                <div style={{ color: 'white', fontSize: '0.95rem' }}>"{lyric.lyric_text}"</div>
+                                <div style={{ color: 'var(--color-grey-blue)', fontSize: '0.8rem' }}>— {lyric.correct_artist}</div>
+                            </div>
+                        </label>
+                    ))
+                )}
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 20, justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowAssign(false)} className="btn-outline-cancel">Cancel</button>
-              <button onClick={handleAssignLyrics} className="btn-admin" disabled={selectedLyricIds.size === 0 || assignLoading}>
-                {assignLoading ? 'Assigning...' : `Assign ${selectedLyricIds.size} Lyric${selectedLyricIds.size !== 1 ? 's' : ''}`}
-              </button>
+                <button onClick={() => setShowAssign(false)} className="btn-outline-cancel">Cancel</button>
+                <button onClick={handleAssignLyrics} className="btn-admin" disabled={selectedLyricIds.size === 0 || assignLoading}>
+                    {assignLoading ? 'Assigning...' : `Assign ${selectedLyricIds.size} Lyric${selectedLyricIds.size !== 1 ? 's' : ''}`}
+                </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

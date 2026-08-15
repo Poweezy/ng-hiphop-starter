@@ -23,6 +23,9 @@ export const metadata: Metadata = {
         telephone: false,
     },
     metadataBase: new URL('https://ng-hiphop.com'),
+    alternates: {
+        canonical: '/',
+    },
     openGraph: {
         title: 'NG — Authentic Hip-Hop Platform',
         description: 'Built From Bars. Raised By Beats. Experience the sound of the streets.',

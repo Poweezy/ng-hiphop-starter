@@ -3,6 +3,7 @@ import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { winnerSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getRequestId(req);
@@ -16,12 +17,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const body = await req.json();
-    const { winnerId } = body as { winnerId?: string };
+    const parsed = winnerSchema.safeParse(body);
 
-    if (!winnerId) {
+    if (!parsed.success) {
       recordRequest('POST', `/api/competitions/${id}/winner`, 400, performance.now() - start, requestId);
-      return errorResponse('winnerId is required', 400, 'VALIDATION_ERROR');
+      return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', parsed.error.issues);
     }
+
+    const { winnerId } = parsed.data;
 
     const lyric = await prisma.lyricGame.findUnique({
       where: { id: winnerId },
