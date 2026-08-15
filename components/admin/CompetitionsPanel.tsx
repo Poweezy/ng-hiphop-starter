@@ -25,6 +25,7 @@ interface Lyric {
   lyric_text: string;
   correct_artist: string;
   is_active: boolean;
+  competitionId?: string | null;
 }
 
 interface Subscriber {
@@ -65,6 +66,11 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
   const [winnerConfirm, setWinnerConfirm] = useState<{ id: string; title: string } | null>(null);
   const [selectedWinnerId, setSelectedWinnerId] = useState<string>('');
 
+  const [showAssign, setShowAssign] = useState(false);
+  const [assignCompetitionId, setAssignCompetitionId] = useState<string | null>(null);
+  const [selectedLyricIds, setSelectedLyricIds] = useState<Set<string>>(new Set());
+  const [assignLoading, setAssignLoading] = useState(false);
+
   const resetForm = () => {
     setTitle('');
     setPeriod('monthly');
@@ -95,14 +101,14 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
         setStatus('success');
         setMsg(editingId ? 'Competition updated!' : 'Competition created!');
         if (editingId) {
-          setCompetitions(competitions.map(c => c.id === editingId ? { ...c, ...data } : c));
+          setCompetitions(competitions.map(c => c.id === editingId ? { ...c, ...data.data } : c));
         } else {
-          setCompetitions([data, ...competitions]);
+          setCompetitions([data.data, ...competitions]);
         }
         resetForm();
       } else {
         setStatus('error');
-        setMsg(data.error?.message || data.message || 'Operation failed');
+        setMsg(data.data?.error?.message || data.data?.message || 'Operation failed');
       }
     } catch {
       setStatus('error');
@@ -152,10 +158,10 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
     setSelectedWinnerId('');
   };
 
-  const loadSubscribers = async (competitionId: string) => {
+  const loadSubscribers = async (competitionId: string, page: number = 1) => {
     setLoadingSubscribers(true);
     try {
-      const res = await fetch(`/api/competitions/${competitionId}/subscribers?page=1&limit=50`);
+      const res = await fetch(`/api/competitions/${competitionId}/subscribers?page=${page}&limit=50`);
       if (res.ok) {
         const data = await res.json();
         setSubscribers(data.data.subscribers || []);
@@ -171,10 +177,48 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
     const res = await fetch(`/api/competitions/${competitionId}/notify`, { method: 'POST' });
     if (res.ok) {
       const data = await res.json();
-      toast.success(data.message || 'Notification queued');
+      toast.success(data.data?.message || 'Notification queued');
     } else {
       toast.error('Notification failed');
     }
+  };
+
+  const openAssign = (competitionId: string) => {
+    setAssignCompetitionId(competitionId);
+    setSelectedLyricIds(new Set());
+    setShowAssign(true);
+  };
+
+  const toggleLyricSelection = (lyricId: string) => {
+    setSelectedLyricIds(prev => {
+      const next = new Set(prev);
+      if (next.has(lyricId)) next.delete(lyricId);
+      else next.add(lyricId);
+      return next;
+    });
+  };
+
+  const handleAssignLyrics = async () => {
+    if (!assignCompetitionId || selectedLyricIds.size === 0) return;
+    setAssignLoading(true);
+    try {
+      const res = await fetch(`/api/competitions/${assignCompetitionId}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lyricIds: Array.from(selectedLyricIds) }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(data.data?.message || 'Lyrics assigned!');
+        setShowAssign(false);
+        setSelectedLyricIds(new Set());
+      } else {
+        toast.error('Assign failed');
+      }
+    } catch {
+      toast.error('Assign failed');
+    }
+    setAssignLoading(false);
   };
 
   const activeCompetitions = competitions.filter(c => c.is_active);
@@ -269,6 +313,9 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
                     <button onClick={() => { setSelectedCompetitionId(competition.id); loadSubscribers(competition.id); setShowSubscribers(true); }} className="btn-badge">
                       Subscribers ({competition._count?.subscribers || 0})
                     </button>
+                    <button onClick={() => openAssign(competition.id)} className="btn-badge">
+                      Assign Lyrics
+                    </button>
                     {!competition.winnerId && (
                       <button onClick={() => setWinnerConfirm({ id: competition.id, title: competition.title })} className="btn-admin btn-sm">
                         👑 Winner
@@ -342,7 +389,7 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
                 onChange={e => setSelectedWinnerId(e.target.value)}
               >
                 <option value="">Select a lyric...</option>
-                {lyrics.filter(l => l.is_active).map(lyric => (
+                {lyrics.filter(l => l.is_active && l.competitionId === winnerConfirm.id).map(lyric => (
                   <option key={lyric.id} value={lyric.id}>
                     "{lyric.lyric_text}" — {lyric.correct_artist}
                   </option>
@@ -385,8 +432,48 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
               </div>
             )}
             {totalSubscribers > 50 && (
-              <Pagination currentPage={subscriberPage} totalPages={Math.ceil(totalSubscribers / 50)} onPageChange={setSubscriberPage} />
+              <Pagination currentPage={subscriberPage} totalPages={Math.ceil(totalSubscribers / 50)} onPageChange={(page) => { setSubscriberPage(page); if (selectedCompetitionId) loadSubscribers(selectedCompetitionId, page); }} />
             )}
+          </div>
+        </div>
+      )}
+
+      {showAssign && assignCompetitionId && (
+        <div className="modal-overlay" onClick={() => setShowAssign(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 className="modal-title">Assign Lyrics to Competition</h3>
+              <button onClick={() => setShowAssign(false)} className="close-btn-text">Close</button>
+            </div>
+            <p style={{ color: 'var(--color-grey-blue)', marginBottom: 16 }}>
+              Select lyrics to assign to this competition. Only active lyrics are shown.
+            </p>
+            <div className="form-stack">
+              {lyrics.filter(l => l.is_active).length === 0 ? (
+                <p className="admin-text-muted">No active lyrics available. Add lyrics first.</p>
+              ) : (
+                lyrics.filter(l => l.is_active).map(lyric => (
+                  <label key={lyric.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedLyricIds.has(lyric.id)}
+                      onChange={() => toggleLyricSelection(lyric.id)}
+                      style={{ width: 18, height: 18, accentColor: 'var(--color-purple)' }}
+                    />
+                    <div>
+                      <div style={{ color: 'white', fontSize: '0.95rem' }}>"{lyric.lyric_text}"</div>
+                      <div style={{ color: 'var(--color-grey-blue)', fontSize: '0.8rem' }}>— {lyric.correct_artist}</div>
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 20, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowAssign(false)} className="btn-outline-cancel">Cancel</button>
+              <button onClick={handleAssignLyrics} className="btn-admin" disabled={selectedLyricIds.size === 0 || assignLoading}>
+                {assignLoading ? 'Assigning...' : `Assign ${selectedLyricIds.size} Lyric${selectedLyricIds.size !== 1 ? 's' : ''}`}
+              </button>
+            </div>
           </div>
         </div>
       )}

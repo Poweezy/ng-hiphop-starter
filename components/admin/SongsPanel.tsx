@@ -63,7 +63,7 @@ export default function SongsPanel({ initialSongs }: Props) {
             const data = await res.json();
             if (res.ok) {
                 setStatus('success'); setMsg('Song uploaded and set as active!');
-                setSongs([data, ...songs.map(s => ({ ...s, is_active: false }))]);
+                setSongs([data.data, ...songs.map(s => ({ ...s, is_active: false }))]);
                 setTitle(''); setDesc(''); setSpotify(''); setApple(''); setDistro(''); setPubLink('');
                 form.reset();
             } else { setStatus('error'); setMsg(data.message); }
@@ -117,7 +117,7 @@ export default function SongsPanel({ initialSongs }: Props) {
             });
             const data = await res.json();
             if (res.ok) {
-                setSongs(songs.map(s => s.id === editingId ? { ...s, ...data, distribution_links: typeof data.distribution_links === 'string' ? data.distribution_links : JSON.stringify(data.distribution_links) } : s));
+                setSongs(songs.map(s => s.id === editingId ? { ...s, ...data.data, distribution_links: typeof data.data.distribution_links === 'string' ? data.data.distribution_links : JSON.stringify(data.data.distribution_links) } : s));
                 setEditingId(null);
                 setStatus('success'); setMsg('Song updated!');
             } else {

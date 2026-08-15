@@ -86,7 +86,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
             const res = await fetch('/api/graffiti', { method: 'POST', body: formData });
             const data = await res.json();
-            setMessage(res.ok ? 'Thanks! Your tag is pending approval.' : (data.message || 'Upload failed'));
+            setMessage(res.ok ? 'Thanks! Your tag is pending approval.' : (data.error?.message || 'Upload failed'));
             if (res.ok) {
                 setArtistName('');
                 setFile(null);
@@ -233,7 +233,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
             <style jsx>{`
                 .graffiti-section {
-                    background: #08080c;
+                    background: var(--color-black);
                     position: relative;
                 }
 

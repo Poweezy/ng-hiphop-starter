@@ -138,7 +138,7 @@ export default function Hero({ slogan }: HeroProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--gradient-hero);
+          /* background handled by class */
           position: relative;
           overflow: hidden;
           text-align: center;

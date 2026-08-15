@@ -34,7 +34,8 @@ export default function QuotesPanel({ initialQuotes }: Props) {
             body: JSON.stringify({ id, ...patch }),
         });
         if (res.ok) {
-            const updated = await res.json();
+            const json = await res.json();
+            const updated = json.data;
             setQuotes(quotes.map(q => {
                 if (patch.is_featured) return q.id === id ? { ...q, ...updated } : { ...q, is_featured: false };
                 return q.id === id ? { ...q, ...updated } : q;

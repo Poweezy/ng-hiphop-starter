@@ -99,9 +99,9 @@ export async function POST(req: NextRequest) {
             const newQuote = await prisma.quoteSubmission.create({
                 data: { quote_text: quote, submitted_by: name },
             });
-            const response = { message: 'Quote submitted for approval' };
+            const response = newQuote;
             return { response, status: 201 as const };
-        };
+        }
 
         const { response, status } = idempotencyKey
             ? await withIdempotency(idempotencyKey, create)

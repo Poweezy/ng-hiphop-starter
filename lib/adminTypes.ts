@@ -33,6 +33,7 @@ export interface LyricSummary {
   lyric_text: string;
   correct_artist: string;
   is_active: boolean;
+  competitionId?: string | null;
 }
 
 export interface CompetitionSummary {

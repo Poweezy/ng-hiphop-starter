@@ -76,3 +76,7 @@ export const competitionSubscribeSchema = z.object({
   competitionId: z.string().cuid(),
   email: z.string().email(),
 });
+
+export const competitionAssignSchema = z.object({
+  lyricIds: z.array(z.string().cuid()).min(1, 'Select at least one lyric'),
+});

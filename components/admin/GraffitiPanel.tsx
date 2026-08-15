@@ -54,7 +54,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
             });
 
             if (res.ok) {
-                const created = await res.json();
+                const json = await res.json();
+                const created = json.data;
                 setItems([created, ...items]);
                 setArtistName('');
                 setFile(null);
@@ -77,7 +78,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
             body: JSON.stringify({ id, ...patch }),
         });
         if (res.ok) {
-            const updated = await res.json();
+            const json = await res.json();
+            const updated = json.data;
             setItems(items.map(g => g.id === id ? { ...g, ...updated } : g));
         } else {
             setStatus('error'); setMsg('Update failed');

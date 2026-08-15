@@ -34,10 +34,10 @@ export default function LyricsPanel({ initialLyrics }: Props) {
             });
             const data = await res.json();
             if (res.ok) {
-                setLyrics([data, ...lyrics]);
+                setLyrics([data.data, ...lyrics]);
                 setLyricText(''); setArtist('');
                 setStatus('success'); setMsg('Lyric added!');
-            } else { setStatus('error'); setMsg(data.message); }
+            } else { setStatus('error'); setMsg(data.data?.message || data.data?.error?.message || 'Failed to save'); }
         } catch { setStatus('error'); setMsg('Failed to save'); }
         setSaving(false);
         setTimeout(() => setStatus('idle'), 3000);
