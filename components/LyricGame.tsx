@@ -574,8 +574,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 36px 40px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
                 @media (max-width: 640px) { .game-card { padding: 24px 18px 28px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.25rem !important; } .lyric-box { padding: 18px 16px 18px 20px; } }
                 .game-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-                .hud-stat { display: flex; align-items: center; gap: 8px; }
-                .hud-stat--right { justify-content: flex-end; }
+                .hud-stat { display: flex; flex-direction: column; gap: 2px; }
+                .hud-stat--right { align-items: flex-end; }
                 .hud-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
                 .hud-label { font-family: var(--font-condensed); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-grey-blue); }
                 .hud-value { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.9); font-variant-numeric: tabular-nums; line-height: 1; }
