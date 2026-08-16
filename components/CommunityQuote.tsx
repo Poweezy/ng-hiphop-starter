@@ -216,8 +216,8 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     background-image: url('/images/community voice section.png');
                     background-size: cover;
                     background-position: center;
-                    filter: blur(25px) saturate(1.2);
-                    opacity: 0.55;
+                    filter: blur(15px) saturate(1.4);
+                    opacity: 0.7;
                     pointer-events: none;
                     z-index: 1;
                 }
@@ -365,8 +365,8 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 }
                 
                 .glass-form-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(139, 92, 246, 0.1);
+                    transform: translateY(-6px);
+                    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4), 0 0 50px rgba(139, 92, 246, 0.15);
                 }
 
                 .form-title {

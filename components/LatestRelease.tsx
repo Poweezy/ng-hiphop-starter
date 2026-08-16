@@ -189,8 +189,8 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                     background-image: url('/images/latestdrop section.png');
                     background-size: cover;
                     background-position: center;
-                    filter: blur(25px) saturate(1.2);
-                    opacity: 0.55;
+                    filter: blur(15px) saturate(1.4);
+                    opacity: 0.7;
                     pointer-events: none;
                     z-index: 0;
                 }

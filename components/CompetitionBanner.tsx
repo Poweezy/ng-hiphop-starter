@@ -144,12 +144,12 @@ export default function CompetitionBanner({ competition, winner }: Props) {
           margin: 0 auto;
           text-align: center;
           box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(139, 92, 246, 0.1);
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .competition-banner:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 50px 120px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.15);
+          transform: translateY(-6px);
+          box-shadow: 0 60px 120px rgba(0, 0, 0, 0.6), 0 0 50px rgba(139, 92, 246, 0.2);
         }
 
         .competition-badge {

@@ -503,12 +503,12 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
             </Modal>
             <style jsx>{`
                 .game-section { background: var(--color-black); position: relative; overflow: hidden; }
-                .interactive-bg-blur { position: absolute; inset: -50px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(25px) saturate(1.2); opacity: 0.55; pointer-events: none; z-index: 1; }
+                .interactive-bg-blur { position: absolute; inset: -50px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(15px) saturate(1.4); opacity: 0.7; pointer-events: none; z-index: 1; }
                 .interactive-bg-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,3,5,0.85) 0%, rgba(3,3,5,0.95) 100%); z-index: 2; pointer-events: none; }
                 .game-layout { max-width: 800px; margin: 0 auto; }
                 .game-card-wrapper { position: relative; }
-                .game-intro { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 80px 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); text-align: center; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                .game-intro:hover { transform: translateY(-4px); box-shadow: 0 50px 120px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.15); }
+                .game-intro { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 80px 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); text-align: center; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+                .game-intro:hover { transform: translateY(-6px); box-shadow: 0 60px 120px rgba(0,0,0,0.6), 0 0 60px rgba(139,92,246,0.25); }
                 .intro-title { font-family: var(--font-display); font-size: 3rem; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, #fff 0%, #a855f7 50%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-wrap: balance; }
                 .intro-subtitle { font-size: 1.1rem; color: var(--color-grey-blue); font-style: italic; margin-bottom: 32px; }
                 .intro-instructions { background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.15); border-radius: 16px; padding: 24px; margin-bottom: 32px; text-align: left; }
@@ -520,8 +520,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.6); }
                 .btn-start:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
                 .intro-hint { margin-top: 24px; font-size: 0.8rem; color: var(--color-grey-blue); }
-                .game-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                .game-card:hover { transform: translateY(-4px); box-shadow: 0 50px 120px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.15); }
+                .game-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+                .game-card:hover { transform: translateY(-6px); box-shadow: 0 60px 120px rgba(0,0,0,0.6), 0 0 60px rgba(139,92,246,0.25); }
                 @media (max-width: 640px) { .game-card { padding: 40px 24px; } .game-intro { padding: 60px 24px; } .intro-title { font-size: 2rem; } .lyric-text { font-size: 1.4rem; } }
                 .game-hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
                 .hud-stat { display: flex; flex-direction: column; gap: 4px; }
