@@ -83,7 +83,9 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
     return (
         <section id="community-quotes" className="section quotes-section" ref={containerRef}>
-            <div className="container">
+            <div className="quotes-bg-blur" aria-hidden="true" />
+            <div className="quotes-bg-overlay" aria-hidden="true" />
+            <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="quotes-layout">
                     {/* Featured Quote Section */}
                     <motion.div 
@@ -206,6 +208,26 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     position: relative;
                     padding: 120px 0;
                     overflow: hidden;
+                }
+
+                .quotes-bg-blur {
+                    position: absolute;
+                    inset: -50px;
+                    background-image: url('/images/community voice section.png');
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(25px) saturate(1.2);
+                    opacity: 0.55;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+
+                .quotes-bg-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(180deg, rgba(3,3,5,0.85) 0%, rgba(3,3,5,0.95) 100%);
+                    z-index: 2;
+                    pointer-events: none;
                 }
 
                 .quotes-layout {
@@ -344,6 +366,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 
                 .glass-form-card:hover {
                     transform: translateY(-4px);
+                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(139, 92, 246, 0.1);
                 }
 
                 .form-title {
@@ -405,12 +428,26 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
                 }
 
+                input:focus-visible,
+                textarea:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+                }
+
                 .submit-btn {
                     width: 100%;
                     padding: 16px;
                     justify-content: center;
                     font-size: 1rem;
                     margin-top: 8px;
+                    transition: all 0.3s ease;
+                }
+
+                .submit-btn:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
                 }
 
                 .status-message {

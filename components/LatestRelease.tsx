@@ -56,6 +56,8 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
     return (
         <section id="latest-release" className="section release-section">
+            {/* Section background image */}
+            <div className="release-bg-section" aria-hidden="true" />
             {/* Massive blurred background of the cover art */}
             <div 
                 className="release-bg-blur" 
@@ -179,6 +181,18 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                     position: relative;
                     overflow: hidden;
                     padding-top: calc(var(--section-padding) + 40px);
+                }
+
+                .release-bg-section {
+                    position: absolute;
+                    inset: -50px;
+                    background-image: url('/images/latestdrop section.png');
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(25px) saturate(1.2);
+                    opacity: 0.55;
+                    pointer-events: none;
+                    z-index: 0;
                 }
 
                 .release-bg-blur {
@@ -312,12 +326,24 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                     padding: 12px;
                     backdrop-filter: blur(24px);
                     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+                    transition: all 0.3s ease;
+                }
+
+                .audio-wrapper:hover {
+                    border-color: rgba(139, 92, 246, 0.4);
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 20px rgba(139, 92, 246, 0.15);
                 }
 
                 .custom-audio {
                     width: 100%;
                     height: 40px;
                     filter: invert(1) hue-rotate(180deg) brightness(1.5);
+                }
+
+                .custom-audio:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                    border-radius: 8px;
                 }
 
                 .links-container {
@@ -344,6 +370,19 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                     font-size: 0.9rem;
                     background: rgba(255, 255, 255, 0.05);
                     border-color: rgba(255, 255, 255, 0.1);
+                    transition: all 0.3s ease;
+                }
+
+                .link-btn:hover {
+                    background: var(--color-purple);
+                    border-color: var(--color-purple);
+                    transform: translateY(-4px) scale(1.05);
+                }
+
+                .link-btn:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
                 }
 
                 .link-btn:hover {

@@ -152,6 +152,16 @@ export default function Hero({ slogan }: HeroProps) {
           overflow: hidden;
           text-align: center;
           padding: 80px clamp(16px, 4vw, 48px) 120px;
+          scroll-behavior: smooth;
+        }
+
+        .hero-section::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(3,3,5,0.3) 0%, rgba(3,3,5,0.7) 100%);
+          pointer-events: none;
+          z-index: 1;
         }
 
         .particles-container {
@@ -207,6 +217,7 @@ export default function Hero({ slogan }: HeroProps) {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          text-wrap: balance;
         }
 
         .hero-brand {
@@ -234,6 +245,53 @@ export default function Hero({ slogan }: HeroProps) {
           justify-content: center;
           flex-wrap: wrap;
           align-items: center;
+        }
+
+        .hero-btn-primary,
+        .hero-btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 14px 28px;
+          border-radius: 12px;
+          font-family: var(--font-condensed);
+          font-size: 0.95rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          touch-action: manipulation;
+        }
+
+        .hero-btn-primary {
+          background: linear-gradient(135deg, var(--color-purple), #6366f1);
+          color: white;
+          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .hero-btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6);
+        }
+
+        .hero-btn-ghost {
+          background: rgba(255, 255, 255, 0.05);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-btn-ghost:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+        }
+
+        .hero-btn-primary:focus-visible,
+        .hero-btn-ghost:focus-visible {
+          outline: 2px solid var(--color-purple);
+          outline-offset: 3px;
+          box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         }
 
 
