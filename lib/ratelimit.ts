@@ -51,6 +51,16 @@ function getLimiter(): Ratelimit | null {
 }
 
 const customLimiters = new Map<string, Ratelimit>();
+const MAX_CUSTOM_LIMITERS = 50;
+
+function enforceCustomLimiterCap() {
+  while (customLimiters.size > MAX_CUSTOM_LIMITERS) {
+    const oldestKey = customLimiters.keys().next().value;
+    if (oldestKey !== undefined) {
+      customLimiters.delete(oldestKey);
+    }
+  }
+}
 
 // Accepts a key + max/period override so callers can share logic.
 // Returns allowed:false in production when Upstash is not configured
@@ -78,6 +88,7 @@ export async function checkRateLimit({
         limiter: Ratelimit.slidingWindow(max, `${periodSeconds} s`),
       });
       customLimiters.set(cacheKey, custom);
+      enforceCustomLimiterCap();
     }
 
     const { success, remaining } = await custom.limit(key);
