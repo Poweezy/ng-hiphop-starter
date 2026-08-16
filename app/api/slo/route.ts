@@ -19,10 +19,6 @@ export async function GET(req: NextRequest) {
   try {
     const { session } = await requireAdmin();
     if (!session) {
-      if (!isInternalPath(req.nextUrl.pathname)) {
-        // Only record non-internal requests to avoid self-referential inflation.
-        // (401 from requireAdmin on internal paths is also skipped.)
-      }
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
