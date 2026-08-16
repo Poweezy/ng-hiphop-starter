@@ -108,7 +108,6 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 const key = e.key.toLowerCase();
                 let idx = -1;
                 if (key >= '1' && key <= '4') idx = parseInt(key) - 1;
-                else if (key >= 'a' && key <= 'd') idx = key.charCodeAt(0) - 'a'.charCodeAt(0);
 
                 if (idx >= 0 && idx < options.length) {
                     e.preventDefault();
@@ -312,25 +311,28 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     } else if (gamePhase === 'intro') {
         gameContent = (
             <motion.div key="intro" className="game-intro" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.4 }}>
-                <h3 className="intro-title">THE VAULT IS LOCKED</h3>
+                <div className="intro-eyebrow">🎤 Lyric Challenge</div>
+                <h3 className="intro-title">THE VAULT<br />IS LOCKED</h3>
                 <p className="intro-subtitle">Only those who know the bars can enter.</p>
                 <div className="intro-instructions">
                     <h4>How to Play</h4>
                     <div className="intro-instruction">
                         <span className="step-num">01</span>
-                        <span>You will be shown a lyric snippet — guess the correct artist.</span>
+                        <span>A lyric snippet appears — pick the correct artist from 4 options.</span>
                     </div>
                     <div className="intro-instruction">
                         <span className="step-num">02</span>
-                        <span>Answer quickly for bonus points. Rounds get progressively harder.</span>
+                        <span>Answer fast for bonus points. Rounds get harder as you go.</span>
                     </div>
                     <div className="intro-instruction">
                         <span className="step-num">03</span>
-                        <span>Use keys 1-4 or A-D to select your answer during play.</span>
+                        <span>Use <kbd>1–4</kbd> on your keyboard to answer.</span>
                     </div>
                 </div>
-                <button onClick={startGame} className="btn-start">START CHALLENGE</button>
-                <p className="intro-hint">{gameLyrics.length} challenges ready</p>
+                <button onClick={startGame} className="btn-start">
+                    <span className="btn-start-icon">▶</span> Start Challenge
+                </button>
+                <p className="intro-hint"><span className="intro-hint-dot" />{gameLyrics.length} challenges loaded</p>
             </motion.div>
         );
     } else if (gamePhase === 'playing' && currentLyric) {
@@ -341,25 +343,32 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                         <span className="hud-label">Score</span>
                         <span className="hud-value">{score}</span>
                     </div>
-                    <div className="hud-stat" style={{ alignItems: 'center' }}>
-                        <span className={`hud-label difficulty-pill ${difficultyClass}`}>{getDifficultyLabel(currentIndex)}</span>
+                    <div className="hud-center">
+                        <span className={`difficulty-pill ${difficultyClass}`}>{getDifficultyLabel(currentIndex)}</span>
+                        <span className="round-indicator">Round {currentIndex + 1} / {gameLyrics.length}</span>
                     </div>
-                    <div className="hud-stat" style={{ alignItems: 'center' }}>
-                        <span className="round-indicator">Round {currentIndex + 1}</span>
-                    </div>
-                    <div className="hud-stat" style={{ alignItems: 'flex-end' }}>
+                    <div className="hud-stat hud-stat--right">
                         <span className="hud-label">Streak</span>
                         <span className="hud-value streak-value">🔥 {streak}</span>
                     </div>
                 </div>
-                <div className="timer-container" aria-live="polite" aria-atomic="true">
-                    <motion.div className="timer-bar" animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timerColor }} transition={{ duration: 1, ease: 'linear' }} />
+                <div className="timer-row" aria-live="polite" aria-atomic="true">
+                    <div className="timer-track">
+                        <motion.div className="timer-bar" animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timerColor }} transition={{ duration: 1, ease: 'linear' }} />
+                    </div>
+                    <div className="timer-badge">
+                        <span className="timer-label" style={{ color: timerColor }}>{timeLeft}s</span>
+                        <span className="timer-urgency" style={{ color: timerColor }}>{timeLeft <= 3 ? 'QUICK' : timeLeft <= maxTime / 2 ? 'FAST' : ''}</span>
+                    </div>
                 </div>
                 <div className="lyric-box">
-                    <span className="box-label">Round {currentIndex + 1}</span>
-                    <p className="lyric-text">"{currentLyric.lyric_text}"</p>
+                    <div className="lyric-box-header">
+                        <span className="lyric-box-label">Guess the Artist</span>
+                        <div className="lyric-box-divider" />
+                    </div>
+                    <p className="lyric-text"><span className="lyric-quote-mark" aria-hidden="true">&ldquo;</span>{currentLyric.lyric_text}<span className="lyric-quote-mark" aria-hidden="true">&rdquo;</span></p>
                 </div>
-                <div className="options-grid" role="group" aria-label="Answer options">
+                <div className="options-list" role="group" aria-label="Answer options">
                     {options.map((option, idx) => {
                         const isThisSelected = selectedOption === option;
                         const isThisCorrect = option === currentLyric.correct_artist;
@@ -370,47 +379,50 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                             else if (isThisCorrect) btnClass += ' reveal-correct';
                         }
                         return (
-                            <motion.button key={option} whileHover={!selectedOption ? { scale: 1.02, backgroundColor: 'rgba(255,255,255,0.05)' } : {}} whileTap={!selectedOption ? { scale: 0.98 } : {}} onClick={() => handleOptionSelect(option)} className={btnClass} disabled={!!selectedOption} aria-label={`Option ${String.fromCharCode(65 + idx)}: ${option}${isThisSelected ? ' (selected)' : ''}${isThisCorrect && selectedOption ? ' (correct answer)' : ''}`}>
-                                <span className="option-letter">{String.fromCharCode(65 + idx)}</span>
+                            <motion.button key={option} whileHover={!selectedOption ? { scale: 1.01 } : {}} whileTap={!selectedOption ? { scale: 0.98 } : {}} onClick={() => handleOptionSelect(option)} className={btnClass} disabled={!!selectedOption} aria-label={`Option ${idx + 1}: ${option}${isThisSelected ? ' (selected)' : ''}${isThisCorrect && selectedOption ? ' (correct answer)' : ''}`}>
+                                <span className="option-number">{idx + 1}</span>
                                 <span className="option-label">{option}</span>
                                 {selectedOption && (isThisSelected || isThisCorrect) && <span className="feedback-icon" aria-hidden="true">{isThisCorrect ? '✓' : '✕'}</span>}
                             </motion.button>
                         );
                     })}
                 </div>
-                <div className="keyboard-hint" aria-hidden="true">Press 1-4 or A-D to select</div>
+                <div className="keyboard-hint" aria-hidden="true"><kbd>1–4</kbd> to select</div>
             </motion.div>
         );
     } else if (gamePhase === 'interstitial' && currentLyric) {
         gameContent = (
             <motion.div key={`interstitial-${currentIndex}`} className="game-card" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div className="interstitial-overlay">
-                    <div className={`interstitial-text ${isCorrect ? 'interstitial-correct' : 'interstitial-wrong'}`}>{getResultText(selectedOption, isCorrect, currentLyric.correct_artist)}</div>
-                    {isCorrect && timeLeft > 0 && <div className="interstitial-points">+{10 + timeLeft} pts</div>}
-                    <div className="interstitial-countdown">Next round in {secondsLeft}s</div>
-                    <button onClick={advanceRound} className="btn-skip">Skip →</button>
-                </div>
                 <div className="game-hud">
                     <div className="hud-stat">
                         <span className="hud-label">Score</span>
                         <span className="hud-value">{score}</span>
                     </div>
-                    <div className="hud-stat" style={{ alignItems: 'center' }}>
-                        <span className={`hud-label difficulty-pill ${difficultyClass}`}>{getDifficultyLabel(currentIndex)}</span>
+                    <div className="hud-center">
+                        <span className={`difficulty-pill ${difficultyClass}`}>{getDifficultyLabel(currentIndex)}</span>
+                        <span className="round-indicator">Round {currentIndex + 1} / {gameLyrics.length}</span>
                     </div>
-                    <div className="hud-stat" style={{ alignItems: 'center' }}>
-                        <span className="round-indicator">Round {currentIndex + 1}</span>
-                    </div>
-                    <div className="hud-stat" style={{ alignItems: 'flex-end' }}>
+                    <div className="hud-stat hud-stat--right">
                         <span className="hud-label">Streak</span>
                         <span className="hud-value streak-value">🔥 {streak}</span>
                     </div>
                 </div>
                 <div className="lyric-box">
-                    <span className="box-label">Round {currentIndex + 1}</span>
-                    <p className="lyric-text">"{currentLyric.lyric_text}"</p>
+                    <div className="lyric-box-header">
+                        <span className="lyric-box-label">Guess the Artist</span>
+                        <div className="lyric-box-divider" />
+                    </div>
+                    <p className="lyric-text"><span className="lyric-quote-mark" aria-hidden="true">&ldquo;</span>{currentLyric.lyric_text}<span className="lyric-quote-mark" aria-hidden="true">&rdquo;</span></p>
                 </div>
-                <div className="options-grid" role="group" aria-label="Answer options">
+                <div className="result-banner" role="status" aria-live="polite">
+                    <div className={`result-banner-text ${isCorrect ? 'result-correct' : 'result-wrong'}`}>{getResultText(selectedOption, isCorrect, currentLyric.correct_artist)}</div>
+                    <div className="result-banner-meta">
+                        {isCorrect && timeLeft > 0 && <span className="interstitial-points">+{10 + timeLeft} pts</span>}
+                        <span className="interstitial-countdown">Next in {secondsLeft}s</span>
+                        <button onClick={advanceRound} className="btn-skip">Skip →</button>
+                    </div>
+                </div>
+                <div className="options-list" role="group" aria-label="Answer options">
                     {options.map((option, idx) => {
                         const isThisSelected = selectedOption === option;
                         const isThisCorrect = option === currentLyric.correct_artist;
@@ -419,8 +431,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                         else if (isThisSelected && !isCorrect) btnClass += ' wrong';
                         else if (isThisCorrect) btnClass += ' reveal-correct';
                         return (
-                            <motion.button key={option} className={btnClass} disabled aria-label={`Option ${String.fromCharCode(65 + idx)}: ${option}${isThisCorrect ? ' (correct answer)' : ''}`}>
-                                <span className="option-letter">{String.fromCharCode(65 + idx)}</span>
+                            <motion.button key={option} className={btnClass} disabled aria-label={`Option ${idx + 1}: ${option}${isThisCorrect ? ' (correct answer)' : ''}`}>
+                                <span className="option-number">{idx + 1}</span>
                                 <span className="option-label">{option}</span>
                                 {selectedOption && (isThisSelected || isThisCorrect) && <span className="feedback-icon" aria-hidden="true">{isThisCorrect ? '✓' : '✕'}</span>}
                             </motion.button>
@@ -539,56 +551,76 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .intro-stat-value { font-family: var(--font-display); font-size: 1.8rem; color: white; line-height: 1; }
                 .intro-stat-label { font-family: var(--font-condensed); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-grey-blue); }
                 .game-card-wrapper { position: relative; }
-                .game-intro { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 60px 50px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); text-align: center; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                .game-intro:hover { transform: translateY(-8px); box-shadow: 0 40px 120px rgba(0,0,0,0.6), inset 0 0 0 2px rgba(139,92,246,0.5); }
-                .intro-title { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; color: white; letter-spacing: 0.05em; }
-                .intro-subtitle { font-size: 1rem; color: var(--color-grey-blue); font-style: italic; margin-bottom: 32px; }
-                .intro-instructions { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 24px; margin-bottom: 32px; text-align: left; }
-                .intro-instructions h4 { color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; font-family: var(--font-condensed); }
-                .intro-instruction { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; color: rgba(255,255,255,0.7); font-size: 0.95rem; }
-                .intro-instruction:last-child { margin-bottom: 0; }
-                .intro-instruction .step-num { color: var(--color-green-light); font-family: var(--font-condensed); font-weight: 700; flex-shrink: 0; }
-                .btn-start { background: var(--gradient-green); color: white; border: none; padding: 16px 48px; border-radius: 4px; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 20px rgba(16,185,129,0.4); touch-action: manipulation; }
+                .game-intro { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 52px 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.08); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+                .game-intro:hover { transform: translateY(-6px); box-shadow: 0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(139,92,246,0.3); }
+                .intro-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-condensed); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-green-light); border: 1px solid rgba(16,185,129,0.35); padding: 5px 14px; border-radius: 2px; margin-bottom: 20px; }
+                .intro-title { font-family: var(--font-display); font-size: clamp(2.8rem, 5vw, 3.8rem); line-height: 0.95; letter-spacing: 0.01em; margin-bottom: 14px; background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 55%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+                .intro-subtitle { font-size: 0.95rem; color: var(--color-grey-blue); margin-bottom: 32px; line-height: 1.5; }
+                .intro-instructions { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px 22px; margin-bottom: 32px; }
+                .intro-instructions h4 { font-family: var(--font-condensed); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
+                .intro-instruction { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.75); font-size: 0.9rem; line-height: 1.5; }
+                .intro-instruction:last-child { border-bottom: none; padding-bottom: 0; }
+                .intro-instruction:first-of-type { padding-top: 0; }
+                .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); border-radius: 6px; font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700; color: var(--color-green-light); letter-spacing: 0.02em; margin-top: 1px; }
+                .intro-instruction kbd { display: inline-block; padding: 1px 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; font-family: var(--font-condensed); font-size: 0.75rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+                .btn-start { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: var(--gradient-green); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 24px rgba(16,185,129,0.35); touch-action: manipulation; }
                 .btn-start:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow-green); }
-                .btn-start:focus-visible { outline: 2px solid var(--color-green); outline-offset: 2px; }
-                .intro-hint { margin-top: 16px; font-size: 0.8rem; color: var(--color-grey-blue); }
-                .game-card { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 50px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                .game-card:hover { transform: translateY(-8px); box-shadow: 0 40px 120px rgba(0,0,0,0.6), inset 0 0 0 2px rgba(139,92,246,0.5); }
+                .btn-start:active { transform: translateY(0); }
+                .btn-start:focus-visible { outline: 2px solid var(--color-green); outline-offset: 3px; }
+                .btn-start-icon { font-size: 0.75rem; opacity: 0.85; }
+                .intro-hint { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; font-size: 0.78rem; color: rgba(255,255,255,0.35); font-family: var(--font-condensed); letter-spacing: 0.06em; }
+                .intro-hint-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-green); box-shadow: 0 0 6px var(--color-green); animation: pulse-dot 2s ease-in-out infinite; flex-shrink: 0; }
+                @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 48px 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
                 @media (max-width: 640px) { .game-card { padding: 32px 20px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.3rem; } }
-                .game-hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-                .hud-stat { display: flex; flex-direction: column; gap: 4px; }
-                .hud-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-grey-blue); font-family: var(--font-condensed); }
-                .hud-value { font-size: 1.5rem; font-weight: 700; color: white; font-variant-numeric: tabular-nums; }
+                .game-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+                .hud-stat { display: flex; flex-direction: column; gap: 3px; }
+                .hud-stat--right { align-items: flex-end; }
+                .hud-center { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+                .hud-label { font-family: var(--font-condensed); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-grey-blue); }
+                .hud-value { font-size: 1.5rem; font-weight: 700; color: white; font-variant-numeric: tabular-nums; line-height: 1; }
                 .streak-value { color: #F59E0B; display: inline-flex; align-items: center; gap: 4px; animation: pulse-glow 2s infinite; }
                 @keyframes pulse-glow { 0%, 100% { text-shadow: 0 0 8px rgba(245,158,11,0.3); } 50% { text-shadow: 0 0 16px rgba(245,158,11,0.6); } }
-                .difficulty-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-                .difficulty-beginner { background: rgba(16,185,129,0.15); color: #10b981; }
-                .difficulty-intermediate { background: rgba(245,158,11,0.15); color: #f59e0b; }
-                .difficulty-expert { background: rgba(239,68,68,0.15); color: #ef4444; }
-                .round-indicator { font-size: 0.85rem; color: var(--color-grey-blue); font-family: var(--font-condensed); }
-                .timer-container { height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 32px; overflow: hidden; }
-                .timer-bar { height: 100%; border-radius: 4px; }
-                .lyric-box { background: rgba(139,92,246,0.05); border-left: 4px solid var(--color-purple); padding: 32px; border-radius: 0 24px 24px 0; margin-bottom: 48px; position: relative; }
-                .box-label { position: absolute; top: -12px; left: 32px; background: var(--color-purple); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 12px; border-radius: 6px; letter-spacing: 0.1em; }
-                .lyric-text { font-size: 1.8rem; font-weight: 500; color: white; line-height: 1.4; font-style: italic; overflow-wrap: break-word; text-wrap: balance; }
-                .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-                @media (max-width: 640px) { .options-grid { grid-template-columns: 1fr; } }
-                .option-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; color: white; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease; text-align: left; position: relative; touch-action: manipulation; }
+                .difficulty-pill { padding: 4px 14px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+                .difficulty-beginner { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+                .difficulty-intermediate { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+                .difficulty-expert { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+                .round-indicator { font-size: 0.72rem; color: var(--color-grey-blue); font-family: var(--font-condensed); letter-spacing: 0.08em; }
+                .timer-row { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+                .timer-badge { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 4px 10px; flex-shrink: 0; }
+                .timer-track { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; }
+                .timer-bar { height: 100%; border-radius: 6px; box-shadow: 0 0 8px currentColor; }
+                .timer-label { font-family: var(--font-condensed); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em; transition: color 0.5s ease; }
+                .timer-urgency { font-family: var(--font-condensed); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; transition: color 0.5s ease; opacity: 0.8; }
+                .lyric-box { position: relative; background: rgba(139,92,246,0.06); border-left: 3px solid var(--color-purple); padding: 24px 24px 24px 28px; border-radius: 0 20px 20px 0; margin-bottom: 20px; box-shadow: inset 0 0 40px rgba(139,92,246,0.04); }
+                .lyric-box-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+                .lyric-box-label { font-family: var(--font-condensed); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--color-purple-light); opacity: 0.7; }
+                .lyric-box-divider { flex: 1; height: 1px; background: rgba(139,92,246,0.15); }
+                .lyric-quote-mark { display: inline; font-family: Georgia, serif; font-size: 2.2rem; line-height: 1; color: rgba(139,92,246,0.4); user-select: none; vertical-align: -0.15em; }
+                .lyric-text { font-size: 1.45rem; font-weight: 500; color: white; line-height: 1.5; font-style: italic; overflow-wrap: break-word; text-wrap: balance; }
+                .options-list { display: flex; flex-direction: column; gap: 10px; }
+                .option-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; color: white; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; position: relative; touch-action: manipulation; min-height: 56px; }
                 .option-btn:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
-                .option-btn:hover:not(:disabled) { background-color: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.4); box-shadow: 0 0 0 1px rgba(139,92,246,0.2), 0 4px 20px rgba(139,92,246,0.12); }
                 .option-btn:disabled { cursor: default; }
-                .option-letter { width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-condensed); color: var(--color-grey-blue); }
-                .option-label { font-size: 1.1rem; }
-                .option-btn.correct { background: rgba(16,185,129,0.15); border-color: #10b981; }
-                .option-btn.wrong { background: rgba(239,68,68,0.15); border-color: #ef4444; }
+                .option-number { width: 32px; height: 32px; flex-shrink: 0; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); transition: background 0.18s ease, border-color 0.18s ease; }
+                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.22); border-color: rgba(139,92,246,0.5); }
+                .option-label { flex: 1; font-size: 1rem; font-weight: 500; line-height: 1.3; text-align: center; }
+                .option-btn.correct { background: rgba(16,185,129,0.12); border-color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 20px rgba(16,185,129,0.1); }
+                .option-btn.correct .option-number { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; }
+                .option-btn.wrong { background: rgba(239,68,68,0.12); border-color: #ef4444; box-shadow: 0 0 0 1px rgba(239,68,68,0.3); }
+                .option-btn.wrong .option-number { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; }
                 .option-btn.reveal-correct { border-color: #10b981; border-width: 2px; }
-                .feedback-icon { margin-left: auto; font-weight: 700; }
-                .keyboard-hint { text-align: center; margin-top: 16px; font-size: 0.75rem; color: var(--color-grey-blue); opacity: 0.6; }
-                .interstitial-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10; transition: opacity 0.4s ease; }
-                .interstitial-text { font-size: 1.4rem; color: white; text-align: center; font-weight: 500; }
-                .interstitial-correct { color: #10b981; }
-                .interstitial-wrong { color: #ef4444; }
-                .interstitial-countdown { font-size: 0.9rem; color: var(--color-grey-blue); font-family: var(--font-condensed); }
+                .option-btn.reveal-correct .option-number { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; }
+                .feedback-icon { margin-left: auto; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+                .keyboard-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; font-size: 0.75rem; color: rgba(255,255,255,0.35); font-family: var(--font-condensed); letter-spacing: 0.06em; }
+                kbd { display: inline-block; padding: 2px 7px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; font-family: var(--font-condensed); font-size: 0.72rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
+                .result-banner { display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; }
+                .result-banner-text { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
+                .result-correct { color: #10b981; }
+                .result-wrong { color: #ef4444; }
+                .result-banner-meta { display: flex; align-items: center; gap: 16px; }
+                .interstitial-countdown { font-size: 0.8rem; color: var(--color-grey-blue); font-family: var(--font-condensed); }
                 .btn-skip { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--color-grey-blue); padding: 8px 20px; border-radius: 10px; font-family: var(--font-condensed); font-size: 0.85rem; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease; touch-action: manipulation; }
                 .btn-skip:hover { color: white; border-color: rgba(255,255,255,0.4); }
                 .btn-skip:focus-visible { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
