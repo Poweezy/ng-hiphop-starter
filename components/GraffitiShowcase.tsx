@@ -218,7 +218,6 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
             <style jsx>{`
                 .graffiti-section {
-                    background: var(--color-black);
                     position: relative;
                     overflow: hidden;
                 }
@@ -226,11 +225,11 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .graffiti-bg-blur {
                     position: absolute;
                     inset: -60px;
-                    background-image: url('/images/gallery section.png');
+                    background-image: url('/images/gallery%20section.png');
                     background-size: cover;
                     background-position: center;
-                    filter: blur(20px) saturate(1.6) brightness(0.85);
-                    opacity: 0.9;
+                    filter: blur(4px) saturate(1.2) brightness(0.9);
+                    opacity: 1;
                     pointer-events: none;
                     z-index: 1;
                 }
@@ -240,10 +239,10 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     inset: 0;
                     background:
                         linear-gradient(180deg,
-                            rgba(3,3,5,0.92) 0%,
-                            rgba(3,3,5,0.68) 30%,
-                            rgba(3,3,5,0.68) 70%,
-                            rgba(3,3,5,0.96) 100%
+                            rgba(3,3,5,0.35) 0%,
+                            rgba(3,3,5,0.15) 30%,
+                            rgba(3,3,5,0.15) 70%,
+                            rgba(3,3,5,0.45) 100%
                         );
                     z-index: 2;
                     pointer-events: none;

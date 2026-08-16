@@ -177,7 +177,6 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
             <style jsx>{`
                 .release-section {
-                    background: var(--color-black);
                     position: relative;
                     overflow: hidden;
                     padding-top: calc(var(--section-padding) + 40px);
@@ -186,11 +185,11 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 .release-bg-section {
                     position: absolute;
                     inset: -60px;
-                    background-image: url('/images/latestdrop section.png');
+                    background-image: url('/images/latestdrop%20section.png');
                     background-size: cover;
                     background-position: center;
-                    filter: blur(20px) saturate(1.6) brightness(0.9);
-                    opacity: 0.85;
+                    filter: blur(4px) saturate(1.2) brightness(0.9);
+                    opacity: 1;
                     pointer-events: none;
                     z-index: 0;
                 }
@@ -211,10 +210,10 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                     inset: 0;
                     background:
                         linear-gradient(180deg,
-                            rgba(3,3,5,0.92) 0%,
-                            rgba(3,3,5,0.72) 30%,
-                            rgba(3,3,5,0.72) 70%,
-                            rgba(3,3,5,0.96) 100%
+                            rgba(3,3,5,0.35) 0%,
+                            rgba(3,3,5,0.15) 30%,
+                            rgba(3,3,5,0.15) 70%,
+                            rgba(3,3,5,0.45) 100%
                         );
                     z-index: 2;
                     pointer-events: none;
