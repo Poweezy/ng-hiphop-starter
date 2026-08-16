@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -9,64 +8,20 @@ interface HeroProps {
 }
 
 export default function Hero({ slogan }: HeroProps) {
-  const [particles, setParticles] = useState<{ id: number; style: any }[]>([]);
-
-  useEffect(() => {
-    // Generate particles only once on the client
-    const newParticles = [...Array(20)].map((_, i) => ({
-      id: i,
-      style: {
-        width: `${Math.random() * 3 + 1}px`,
-        height: `${Math.random() * 3 + 1}px`,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        background: i % 3 === 0 ? 'var(--color-yellow)' : i % 3 === 1 ? 'var(--color-purple-light)' : 'var(--color-green-light)',
-        opacity: 0.3 + Math.random() * 0.4,
-      }
-    }));
-    setParticles(newParticles);
-  }, []);
-
   return (
     <section id="hero" className="hero-section">
-      {/* Living particles */}
-      <div className="particles-container" aria-hidden="true">
-        {particles.map((p) => (
-          <motion.span
-            key={p.id}
-            style={p.style}
-            animate={{
-              opacity: [0.3, 0.7, 0.3],
-              scale: [1, 1.5, 1],
-              y: [0, -20, 0],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="particle"
-          />
-        ))}
-      </div>
-
-      {/* NG LOGO - Background */}
-      <motion.div
-        initial={{ opacity: 0, scale: 1.2 }}
-        animate={{ opacity: 0.45, scale: 1 }}
-        transition={{ duration: 2, ease: "easeOut" }}
-        className="bg-logo-container"
-      >
+      {/* Full-bleed hero art background */}
+      <div className="hero-bg" aria-hidden="true">
         <Image
-          src="/images/graffiti.png"
-          alt="NG Graffiti Logo"
+          src="/images/hero-art.jpg"
+          alt=""
           fill
           sizes="100vw"
-          className="bg-logo-image"
+          className="hero-bg-img"
           priority
         />
-        <div className="bg-logo-overlay"></div>
-      </motion.div>
+        <div className="hero-bg-overlay" />
+      </div>
 
       {/* Content */}
       <div className="hero-content">
@@ -78,6 +33,7 @@ export default function Hero({ slogan }: HeroProps) {
         >
           NERD GAUGE
         </motion.div>
+
         <motion.h1
           className="hero-slogan"
           aria-label={slogan}
@@ -87,7 +43,7 @@ export default function Hero({ slogan }: HeroProps) {
             hidden: { opacity: 0 },
             visible: {
               opacity: 1,
-              transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+              transition: { staggerChildren: 0.08, delayChildren: 0.2 },
             },
           }}
         >
@@ -95,10 +51,10 @@ export default function Hero({ slogan }: HeroProps) {
             <motion.span
               key={index}
               variants={{
-                hidden: { opacity: 0, y: 40 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
+                hidden: { opacity: 0, y: 50 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } },
               }}
-              style={{ display: 'inline-block', marginRight: '0.2em' }}
+              style={{ display: 'inline-block', marginRight: '0.18em' }}
             >
               {word}
             </motion.span>
@@ -108,7 +64,7 @@ export default function Hero({ slogan }: HeroProps) {
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: '80px' }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
           className="accent-line"
           aria-hidden="true"
         />
@@ -116,7 +72,7 @@ export default function Hero({ slogan }: HeroProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
           className="cta-container"
         >
           <a href="#latest-release" className="hero-btn-primary">
@@ -147,96 +103,78 @@ export default function Hero({ slogan }: HeroProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          /* background handled by class */
           position: relative;
           overflow: hidden;
           text-align: center;
           padding: 80px clamp(16px, 4vw, 48px) 120px;
-          scroll-behavior: smooth;
         }
 
-        .hero-section::after {
-          content: '';
+        /* ── Background ── */
+        .hero-bg {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, rgba(3,3,5,0.3) 0%, rgba(3,3,5,0.7) 100%);
-          pointer-events: none;
-          z-index: 1;
-        }
-
-        .particles-container {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 2;
-        }
-
-        .particle {
-          position: absolute;
-          border-radius: 50%;
-        }
-
-        .bg-logo-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 1;
+          z-index: 0;
           pointer-events: none;
         }
 
-        .bg-logo-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(180deg, transparent 0%, rgba(3, 3, 5, 0.4) 100%);
-        }
-
-        .bg-logo-image {
+        .hero-bg-img {
           object-fit: cover;
-          filter: drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)) brightness(0.8) contrast(1.2);
-          mix-blend-mode: screen;
+          object-position: center top;
         }
 
+        .hero-bg-overlay {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 80% 60% at 50% 40%, rgba(10,5,30,0.45) 0%, transparent 70%),
+            linear-gradient(180deg,
+              rgba(3,3,5,0.55) 0%,
+              rgba(3,3,5,0.25) 40%,
+              rgba(3,3,5,0.55) 75%,
+              rgba(3,3,5,0.95) 100%
+            );
+        }
+
+        /* ── Content ── */
         .hero-content {
           position: relative;
           z-index: 10;
           max-width: 1000px;
         }
 
+        .hero-brand {
+          font-family: var(--font-condensed);
+          font-size: clamp(0.9rem, 2vw, 1.2rem);
+          font-weight: 900;
+          letter-spacing: 0.4em;
+          text-transform: uppercase;
+          color: var(--color-green-light);
+          margin-bottom: 20px;
+          text-shadow: 0 0 24px rgba(16, 185, 129, 0.5);
+        }
+
         .hero-slogan {
           font-family: var(--font-display);
-          font-size: clamp(3rem, 8vw, 6.5rem);
+          font-size: clamp(3.2rem, 9vw, 7rem);
           font-weight: 900;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.02em;
           text-transform: uppercase;
-          line-height: 1.05;
-          margin-bottom: 24px;
-          text-shadow: 0 10px 40px rgba(0,0,0,0.8);
-          background: var(--gradient-glow);
+          line-height: 1.0;
+          margin-bottom: 28px;
+          background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 45%, #f0abfc 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           text-wrap: balance;
-        }
-
-        .hero-brand {
-          font-family: var(--font-condensed);
-          font-size: clamp(1rem, 2vw, 1.3rem);
-          font-weight: 900;
-          letter-spacing: 0.35em;
-          text-transform: uppercase;
-          color: var(--color-green-light);
-          margin-bottom: 16px;
-          text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+          filter: drop-shadow(0 4px 24px rgba(139,92,246,0.35));
         }
 
         .accent-line {
           height: 3px;
-          background: var(--gradient-green);
-          margin: 0 auto 32px;
-          box-shadow: 0 0 15px var(--color-green);
+          background: linear-gradient(90deg, var(--color-purple), var(--color-green));
+          margin: 0 auto 36px;
           border-radius: 2px;
+          box-shadow: 0 0 16px rgba(139,92,246,0.5);
         }
 
         .cta-container {
@@ -247,55 +185,75 @@ export default function Hero({ slogan }: HeroProps) {
           align-items: center;
         }
 
-        .hero-btn-primary,
+        .hero-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 15px 36px;
+          border-radius: 50px;
+          font-family: var(--font-condensed);
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          text-decoration: none;
+          color: white;
+          background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #6366f1 100%);
+          box-shadow: 0 4px 24px rgba(139,92,246,0.5), 0 0 0 1px rgba(168,85,247,0.3);
+          transition: all 0.3s ease;
+          touch-action: manipulation;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .hero-btn-primary::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, transparent, rgba(255,255,255,0.15), transparent);
+          transform: translateX(-100%) skewX(-20deg);
+          transition: transform 0.5s ease;
+        }
+
+        .hero-btn-primary:hover::before { transform: translateX(150%) skewX(-20deg); }
+        .hero-btn-primary:hover {
+          transform: translateY(-3px) scale(1.04);
+          box-shadow: 0 8px 32px rgba(139,92,246,0.7), 0 0 0 1px rgba(168,85,247,0.5);
+        }
+
         .hero-btn-ghost {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 14px 28px;
-          border-radius: 12px;
+          padding: 14px 34px;
+          border-radius: 50px;
           font-family: var(--font-condensed);
-          font-size: 0.95rem;
+          font-size: 1rem;
           font-weight: 700;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
           text-decoration: none;
+          color: white;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.2);
+          backdrop-filter: blur(12px);
           transition: all 0.3s ease;
           touch-action: manipulation;
         }
 
-        .hero-btn-primary {
-          background: linear-gradient(135deg, var(--color-purple), #6366f1);
-          color: white;
-          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
-        }
-
-        .hero-btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6);
-        }
-
-        .hero-btn-ghost {
-          background: rgba(255, 255, 255, 0.05);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .hero-btn-ghost:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.2);
-          transform: translateY(-2px);
+          background: rgba(255,255,255,0.12);
+          border-color: rgba(255,255,255,0.4);
+          transform: translateY(-3px) scale(1.04);
         }
 
         .hero-btn-primary:focus-visible,
         .hero-btn-ghost:focus-visible {
           outline: 2px solid var(--color-purple);
           outline-offset: 3px;
-          box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         }
 
-
-
+        /* ── Scroll indicator ── */
         .scroll-indicator {
           position: absolute;
           bottom: 40px;
@@ -304,29 +262,36 @@ export default function Hero({ slogan }: HeroProps) {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
+          z-index: 10;
         }
 
         .scroll-text {
           font-family: var(--font-condensed);
-          font-size: 0.75rem;
-          letter-spacing: 0.3em;
+          font-size: 0.7rem;
+          letter-spacing: 0.35em;
           text-transform: uppercase;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(255,255,255,0.45);
         }
 
         .scroll-line {
           width: 1px;
-          height: 40px;
-          background: linear-gradient(to bottom, var(--color-purple), transparent);
+          height: 44px;
+          background: linear-gradient(to bottom, rgba(139,92,246,0.8), transparent);
           animation: dvrScroll 2s ease-in-out infinite;
         }
 
         @keyframes dvrScroll {
-          0% { transform: scaleY(0); transform-origin: top; }
-          50% { transform: scaleY(1); transform-origin: top; }
-          51% { transform: scaleY(1); transform-origin: bottom; }
+          0%   { transform: scaleY(0); transform-origin: top; }
+          50%  { transform: scaleY(1); transform-origin: top; }
+          51%  { transform: scaleY(1); transform-origin: bottom; }
           100% { transform: scaleY(0); transform-origin: bottom; }
+        }
+
+        @media (max-width: 640px) {
+          .hero-slogan { font-size: clamp(2.8rem, 12vw, 4rem); }
+          .cta-container { flex-direction: column; align-items: stretch; }
+          .hero-btn-primary, .hero-btn-ghost { justify-content: center; }
         }
       `}</style>
     </section>

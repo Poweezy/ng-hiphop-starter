@@ -503,8 +503,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
             </Modal>
             <style jsx>{`
                 .game-section { background: var(--color-black); position: relative; overflow: hidden; }
-                .interactive-bg-blur { position: absolute; inset: -50px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(15px) saturate(1.4); opacity: 0.7; pointer-events: none; z-index: 1; }
-                .interactive-bg-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,3,5,0.85) 0%, rgba(3,3,5,0.95) 100%); z-index: 2; pointer-events: none; }
+                .interactive-bg-blur { position: absolute; inset: -60px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(20px) saturate(1.6) brightness(0.85); opacity: 0.9; pointer-events: none; z-index: 1; }
+                .interactive-bg-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,3,5,0.92) 0%, rgba(3,3,5,0.68) 30%, rgba(3,3,5,0.68) 70%, rgba(3,3,5,0.96) 100%); z-index: 2; pointer-events: none; }
                 .game-layout { max-width: 800px; margin: 0 auto; }
                 .game-card-wrapper { position: relative; }
                 .game-intro { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 80px 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); text-align: center; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }

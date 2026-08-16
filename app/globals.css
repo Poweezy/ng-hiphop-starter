@@ -765,6 +765,13 @@ select:focus-visible {
 }
 
 /* ===================================
+   SECTION TRANSITIONS — seamless bleed between sections
+   =================================== */
+.section + .section {
+  margin-top: 0;
+}
+
+/* ===================================
    GRAFFITI TEXTURE OVERLAY
    =================================== */
 .graffiti-overlay {
