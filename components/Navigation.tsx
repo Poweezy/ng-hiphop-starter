@@ -24,7 +24,7 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const logoSize = scrolled ? 56 : 80;
+  const logoSize = scrolled ? 48 : 68;
 
   return (
     <nav className={`nav-main${scrolled ? ' nav-scrolled' : ''}`} role="navigation" aria-label="Main navigation">

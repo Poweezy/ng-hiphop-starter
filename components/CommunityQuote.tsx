@@ -212,12 +212,12 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
                 .quotes-bg-blur {
                     position: absolute;
-                    inset: -50px;
+                    inset: -60px;
                     background-image: url('/images/community voice section.png');
                     background-size: cover;
                     background-position: center;
-                    filter: blur(15px) saturate(1.4);
-                    opacity: 0.7;
+                    filter: blur(20px) saturate(1.6) brightness(0.85);
+                    opacity: 0.9;
                     pointer-events: none;
                     z-index: 1;
                 }
@@ -225,7 +225,13 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 .quotes-bg-overlay {
                     position: absolute;
                     inset: 0;
-                    background: linear-gradient(180deg, rgba(3,3,5,0.85) 0%, rgba(3,3,5,0.95) 100%);
+                    background:
+                        linear-gradient(180deg,
+                            rgba(3,3,5,0.92) 0%,
+                            rgba(3,3,5,0.70) 30%,
+                            rgba(3,3,5,0.70) 70%,
+                            rgba(3,3,5,0.96) 100%
+                        );
                     z-index: 2;
                     pointer-events: none;
                 }

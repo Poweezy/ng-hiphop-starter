@@ -185,23 +185,23 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
                 .release-bg-section {
                     position: absolute;
-                    inset: -50px;
+                    inset: -60px;
                     background-image: url('/images/latestdrop section.png');
                     background-size: cover;
                     background-position: center;
-                    filter: blur(15px) saturate(1.4);
-                    opacity: 0.7;
+                    filter: blur(20px) saturate(1.6) brightness(0.9);
+                    opacity: 0.85;
                     pointer-events: none;
                     z-index: 0;
                 }
 
                 .release-bg-blur {
                     position: absolute;
-                    inset: -50px; /* Slight overflow to handle blur edges */
+                    inset: -60px;
                     background-size: cover;
                     background-position: center;
-                    filter: blur(80px) saturate(2);
-                    opacity: 0.3;
+                    filter: blur(100px) saturate(2.5);
+                    opacity: 0.4;
                     pointer-events: none;
                     z-index: 1;
                 }
@@ -209,7 +209,13 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 .release-bg-overlay {
                     position: absolute;
                     inset: 0;
-                    background: linear-gradient(180deg, rgba(3,3,5,0.8) 0%, rgba(3,3,5,0.95) 100%);
+                    background:
+                        linear-gradient(180deg,
+                            rgba(3,3,5,0.92) 0%,
+                            rgba(3,3,5,0.72) 30%,
+                            rgba(3,3,5,0.72) 70%,
+                            rgba(3,3,5,0.96) 100%
+                        );
                     z-index: 2;
                     pointer-events: none;
                 }
