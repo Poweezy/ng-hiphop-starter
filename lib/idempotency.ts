@@ -14,6 +14,11 @@ const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;
 // When the cap is reached the least-recently-used entry is evicted.
 const MAX_ENTRIES = 5000;
 
+// NOTE: This store is process-local and NOT shared across serverless instances.
+// On platforms like Vercel, a client retry on a different instance will not
+// find the cached response and may create a duplicate record. For production
+// durability, replace this with a Redis- or database-backed idempotency store.
+
 // Idempotency-Key HTTP header must be a non-empty string of at most 128 chars
 // (RFC 7230 allows arbitrarily long header values, but we cap to prevent abuse).
 const MAX_KEY_LENGTH = 128;

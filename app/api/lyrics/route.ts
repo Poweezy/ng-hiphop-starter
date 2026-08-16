@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { lyricCreateSchema, lyricUpdateSchema, lyricDeleteSchema } from '@/lib/validations';
-import { requireAdmin } from '@/app/api/_lib/admin';
-import { getRequestId, errorResponse, successResponse } from '@/lib/api';
+import { errorResponse, successResponse, getRequestId } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
 import { extractIdempotencyKey, getCachedIdempotentResponse, withIdempotency } from '@/lib/idempotency';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { getClientIp } from '@/lib/ip';
+import { requireAdmin } from '@/app/api/_lib/admin';
+import { notifyAdminModeration } from '@/lib/moderation';
 
 export async function GET(req: NextRequest) {
     const requestId = getRequestId(req);
@@ -28,10 +31,11 @@ export async function POST(req: NextRequest) {
     const requestId = getRequestId(req);
     const start = performance.now();
     try {
-        const { session } = await requireAdmin();
-        if (!session) {
-            recordRequest('POST', '/api/lyrics', 401, performance.now() - start, requestId);
-            return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        const ip = getClientIp(req);
+        const { allowed } = await checkRateLimit({ key: `lyrics:${ip}`, max: 3, periodSeconds: 60 });
+        if (!allowed) {
+            recordRequest('POST', '/api/lyrics', 429, performance.now() - start, requestId);
+            return errorResponse('Too many lyric submissions. Please wait a minute and try again.', 429, 'RATE_LIMIT_EXCEEDED');
         }
 
         const idempotencyKey = extractIdempotencyKey(req);
@@ -63,6 +67,16 @@ export async function POST(req: NextRequest) {
         const { response, status } = idempotencyKey
             ? await withIdempotency(idempotencyKey, create)
             : await create();
+
+        if (typeof response === 'object' && response !== null && 'id' in response) {
+            notifyAdminModeration({
+                submissionType: 'lyric',
+                submissionId: (response as { id: string }).id,
+                submittedBy: '',
+            }).catch((err) => {
+                console.error('Moderation notification failed:', err);
+            });
+        }
 
         recordRequest('POST', '/api/lyrics', status, performance.now() - start, requestId);
         return successResponse(response, status);

@@ -34,6 +34,7 @@ const clamavAdapter: ScannerAdapter = {
 
     const scanPromise = new Promise<ScanResult>((resolve, reject) => {
       const socket = net.createConnection({ host, port });
+      socketRef.current = socket;
       let settled = false;
 
       const finish = (fn: () => void) => {
@@ -47,7 +48,10 @@ const clamavAdapter: ScannerAdapter = {
         socket.destroy();
         finish(() => reject(new Error('ClamAV scan timed out')));
       });
-      socket.on('error', (err) => finish(() => reject(err)));
+      socket.on('error', (err) => {
+        socket.destroy();
+        finish(() => reject(err));
+      });
 
       socket.on('connect', () => {
         const streamId = Buffer.alloc(4);
@@ -82,8 +86,15 @@ const clamavAdapter: ScannerAdapter = {
       });
     });
 
+    let socketRef: { current: ReturnType<typeof net.createConnection> | null } = { current: null };
+
     const timeoutPromise = new Promise<ScanResult>((_, reject) => {
-      setTimeout(() => reject(new Error('ClamAV scan overall timeout')), SCAN_OVERALL_TIMEOUT_MS);
+      setTimeout(() => {
+        if (socketRef.current) {
+          socketRef.current.destroy();
+        }
+        reject(new Error('ClamAV scan overall timeout'));
+      }, SCAN_OVERALL_TIMEOUT_MS);
     });
 
     return Promise.race([scanPromise, timeoutPromise]);

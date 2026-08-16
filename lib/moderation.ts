@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/nextjs';
 import { registerTask, enqueue, type Task, calculateBackoffMs } from '@/lib/queue';
 
 export type ModerationTaskPayload = {
-  submissionType: 'quote' | 'graffiti' | 'competition_winner';
+  submissionType: 'quote' | 'graffiti' | 'competition_winner' | 'lyric';
   submissionId: string;
   submittedBy: string;
 };
