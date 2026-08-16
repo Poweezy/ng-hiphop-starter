@@ -463,7 +463,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
     return (
         <section id="lyric-game" className="section game-section">
-            <div className="container">
+            <div className="interactive-bg-blur" aria-hidden="true" />
+            <div className="interactive-bg-overlay" aria-hidden="true" />
+            <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="game-layout">
                     <div className="section-header">
                         <div className="section-badge">Interactive</div>
@@ -500,11 +502,13 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 </form>
             </Modal>
             <style jsx>{`
-                .game-section { background: var(--color-black); position: relative; }
+                .game-section { background: var(--color-black); position: relative; overflow: hidden; }
+                .interactive-bg-blur { position: absolute; inset: -50px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(25px) saturate(1.2); opacity: 0.55; pointer-events: none; z-index: 1; }
+                .interactive-bg-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,3,5,0.85) 0%, rgba(3,3,5,0.95) 100%); z-index: 2; pointer-events: none; }
                 .game-layout { max-width: 800px; margin: 0 auto; }
                 .game-card-wrapper { position: relative; }
                 .game-intro { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 80px 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); text-align: center; }
-                .intro-title { font-family: var(--font-display); font-size: 3rem; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, #fff 0%, #a855f7 50%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .intro-title { font-family: var(--font-display); font-size: 3rem; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, #fff 0%, #a855f7 50%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-wrap: balance; }
                 .intro-subtitle { font-size: 1.1rem; color: var(--color-grey-blue); font-style: italic; margin-bottom: 32px; }
                 .intro-instructions { background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.15); border-radius: 16px; padding: 24px; margin-bottom: 32px; text-align: left; }
                 .intro-instructions h4 { color: white; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
@@ -513,6 +517,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .intro-instruction .step-num { color: var(--color-purple); font-family: var(--font-condensed); font-weight: 700; flex-shrink: 0; }
                 .btn-start { background: linear-gradient(135deg, var(--color-purple), #6366f1); color: white; border: none; padding: 16px 48px; border-radius: 12px; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 20px rgba(139,92,246,0.4); touch-action: manipulation; }
                 .btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.6); }
+                .btn-start:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
                 .intro-hint { margin-top: 24px; font-size: 0.8rem; color: var(--color-grey-blue); }
                 .game-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); }
                 @media (max-width: 640px) { .game-card { padding: 40px 24px; } .game-intro { padding: 60px 24px; } .intro-title { font-size: 2rem; } .lyric-text { font-size: 1.4rem; } }
@@ -531,11 +536,12 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .timer-bar { height: 100%; border-radius: 4px; }
                 .lyric-box { background: rgba(139,92,246,0.05); border-left: 4px solid var(--color-purple); padding: 32px; border-radius: 0 24px 24px 0; margin-bottom: 48px; position: relative; }
                 .box-label { position: absolute; top: -12px; left: 32px; background: var(--color-purple); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 12px; border-radius: 6px; letter-spacing: 0.1em; }
-                .lyric-text { font-size: 1.8rem; font-weight: 500; color: white; line-height: 1.4; font-style: italic; overflow-wrap: break-word; }
+                .lyric-text { font-size: 1.8rem; font-weight: 500; color: white; line-height: 1.4; font-style: italic; overflow-wrap: break-word; text-wrap: balance; }
                 .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
                 @media (max-width: 640px) { .options-grid { grid-template-columns: 1fr; } }
                 .option-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; color: white; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease; text-align: left; position: relative; touch-action: manipulation; }
                 .option-btn:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
+                .option-btn:hover:not(:disabled) { background-color: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
                 .option-btn:disabled { cursor: default; }
                 .option-letter { width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-condensed); color: var(--color-grey-blue); }
                 .option-label { font-size: 1.1rem; }
@@ -551,6 +557,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .interstitial-countdown { font-size: 0.9rem; color: var(--color-grey-blue); font-family: var(--font-condensed); }
                 .btn-skip { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--color-grey-blue); padding: 8px 20px; border-radius: 10px; font-family: var(--font-condensed); font-size: 0.85rem; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease; touch-action: manipulation; }
                 .btn-skip:hover { color: white; border-color: rgba(255,255,255,0.4); }
+                .btn-skip:focus-visible { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
                 .interstitial-points { font-size: 1.1rem; color: #a855f7; font-family: var(--font-condensed); font-weight: 700; }
                 .game-footer { margin-top: 40px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
                 .result-text { font-size: 1.2rem; color: rgba(255,255,255,0.8); margin-bottom: 24px; }
@@ -571,12 +578,13 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .game-over-stats p { margin: 0; }
                 .btn-share { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--color-grey-blue); padding: 12px 28px; border-radius: 12px; font-family: var(--font-condensed); font-weight: 600; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; touch-action: manipulation; }
                 .btn-share:hover { background: rgba(255,255,255,0.1); color: white; }
+                .btn-share:focus-visible { outline: 2px solid rgba(255,255,255,0.3); outline-offset: 2px; }
                 .game-loading { text-align: center; padding: 60px 0; color: var(--color-grey-blue); }
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; overscroll-behavior: contain; }
                 .modal-content { background: radial-gradient(circle at top, rgba(139,92,246,0.15), transparent 70%), #050508; border: 1px solid rgba(255,255,255,0.08); border-radius: 32px; padding: 48px 40px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02); }
                 .modal-header { text-align: center; margin-bottom: 32px; }
                 .modal-icon { font-size: 2.5rem; display: inline-block; margin-bottom: 16px; background: rgba(255,255,255,0.03); padding: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); }
-                .modal-title { font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 8px; color: white; background: linear-gradient(135deg, #fff 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .modal-title { font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 8px; color: white; background: linear-gradient(135deg, #fff 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
                 .modal-subtitle { font-size: 0.95rem; color: var(--color-grey-blue); line-height: 1.5; }
                 .submit-form { display: flex; flex-direction: column; gap: 24px; }
                 .input-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-purple-light); margin-bottom: 10px; }
@@ -587,9 +595,11 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 24px; }
                 .btn-premium { background: linear-gradient(135deg, var(--color-purple), #6366f1); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-family: var(--font-condensed); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 14px rgba(139,92,246,0.3); touch-action: manipulation; }
                 .btn-premium:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.5); }
+                .btn-premium:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
                 .btn-premium:disabled { opacity: 0.5; cursor: not-allowed; }
                 .btn-text { background: none; border: none; color: var(--color-grey-blue); font-family: var(--font-condensed); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; padding: 10px 16px; transition: color 0.2s ease; }
                 .btn-text:hover { color: white; }
+                .btn-text:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
                 @media (prefers-reduced-motion: reduce) {
                     *, *::before, *::after {
                         animation-duration: 0.01ms !important;
