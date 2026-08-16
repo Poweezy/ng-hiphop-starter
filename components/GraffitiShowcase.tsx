@@ -35,6 +35,13 @@ function GraffitiCardComponent({ piece, onClick }: { piece: Graffiti, onClick: (
         y.set(0);
     }
 
+    function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+        }
+    }
+
     return (
         <motion.div
             variants={{
@@ -46,6 +53,10 @@ function GraffitiCardComponent({ piece, onClick }: { piece: Graffiti, onClick: (
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onClick={onClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            role="button"
+            aria-label={`View graffiti by ${piece.artist_name}`}
         >
             <div className="card-image-wrapper">
                 <Image
@@ -111,7 +122,9 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
     return (
         <section id="graffiti" className="section graffiti-section">
-            <div className="container">
+            <div className="graffiti-bg-blur" aria-hidden="true" />
+            <div className="graffiti-bg-overlay" aria-hidden="true" />
+            <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="section-header">
                     <div>
                         <div className="section-badge">Gallery</div>
@@ -207,6 +220,27 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .graffiti-section {
                     background: var(--color-black);
                     position: relative;
+                    overflow: hidden;
+                }
+
+                .graffiti-bg-blur {
+                    position: absolute;
+                    inset: -50px;
+                    background-image: url('/images/gallery section.png');
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(25px) saturate(1.2);
+                    opacity: 0.55;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+
+                .graffiti-bg-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(180deg, rgba(3,3,5,0.85) 0%, rgba(3,3,5,0.95) 100%);
+                    z-index: 2;
+                    pointer-events: none;
                 }
 
                 .section-header {
@@ -226,6 +260,17 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
                 .submit-btn {
                     padding: 12px 32px;
+                    transition: all 0.3s ease;
+                }
+
+                .submit-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+                }
+
+                .submit-btn:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
                 }
 
                 .graffiti-grid {
@@ -249,6 +294,13 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     border-color: rgba(139, 92, 246, 0.3);
                     box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(139, 92, 246, 0.15);
                     transform: translateY(-8px);
+                }
+
+                .graffiti-card:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                    border-color: rgba(139, 92, 246, 0.5);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(139, 92, 246, 0.25);
                 }
 
                 .card-image-wrapper {
@@ -451,10 +503,17 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     transition: all 0.2s;
                 }
 
-                .tag-form input[type="text"]:focus {
+                .tag-form input[type="text"]:focus,
+                .tag-form input[type="file"]:focus {
                     border-color: var(--color-purple);
                     background: rgba(139, 92, 246, 0.05);
                     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+                }
+
+                .tag-form input[type="text"]:focus-visible,
+                .tag-form input[type="file"]:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
                 }
 
                 .tag-form input[type="file"] {

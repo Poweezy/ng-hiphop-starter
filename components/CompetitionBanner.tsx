@@ -144,6 +144,12 @@ export default function CompetitionBanner({ competition, winner }: Props) {
           margin: 0 auto;
           text-align: center;
           box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(139, 92, 246, 0.1);
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .competition-banner:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 50px 120px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.15);
         }
 
         .competition-badge {
@@ -262,6 +268,11 @@ export default function CompetitionBanner({ competition, winner }: Props) {
           box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
         }
 
+        .subscribe-input:focus-visible {
+          outline: 2px solid var(--color-purple);
+          outline-offset: 2px;
+        }
+
         .btn-subscribe {
           background: var(--gradient-green);
           color: white;
@@ -281,6 +292,12 @@ export default function CompetitionBanner({ competition, winner }: Props) {
         .btn-subscribe:hover:not(:disabled) {
           box-shadow: var(--shadow-glow-green);
           transform: translateY(-2px);
+        }
+
+        .btn-subscribe:focus-visible {
+          outline: 2px solid var(--color-purple);
+          outline-offset: 2px;
+          box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
         }
 
         .btn-subscribe:disabled {
