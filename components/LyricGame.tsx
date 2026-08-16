@@ -467,11 +467,17 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
             <div className="interactive-bg-overlay" aria-hidden="true" />
             <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="game-layout">
-                    <div className="section-header">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="section-intro"
+                    >
                         <div className="section-badge">Interactive</div>
                         <h2 className="section-title">Lyric Master</h2>
                         <p className="section-subtitle">Test your NG knowledge. Beat the clock.</p>
-                    </div>
+                    </motion.div>
                     <div className="game-card-wrapper">
                         <AnimatePresence mode="wait">
                             {gameContent}
