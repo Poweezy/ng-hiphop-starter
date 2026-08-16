@@ -598,22 +598,22 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .lyric-box-divider { flex: 1; height: 1px; background: rgba(139,92,246,0.15); }
                 .lyric-quote-mark { display: inline; font-family: Georgia, serif; font-size: 2rem; line-height: 1; color: rgba(139,92,246,0.45); user-select: none; vertical-align: -0.12em; }
                 .lyric-text { font-size: clamp(1.3rem, 2.5vw, 1.7rem); font-weight: 600; color: white; line-height: 1.5; font-style: italic; overflow-wrap: break-word; text-wrap: balance; letter-spacing: -0.01em; }
-                .options-list { display: flex; flex-direction: column; gap: 10px; }
-                .option-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; color: white; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; position: relative; touch-action: manipulation; min-height: 54px; }
+                .options-list { display: flex; flex-direction: column; gap: 8px; }
+                .option-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0; display: flex; align-items: stretch; color: white; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; position: relative; touch-action: manipulation; min-height: 52px; overflow: hidden; }
                 .option-btn:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
-                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.5); box-shadow: 0 0 0 1px rgba(139,92,246,0.25), 0 6px 24px rgba(139,92,246,0.15); transform: translateY(-1px); }
+                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.45); box-shadow: 0 0 0 1px rgba(139,92,246,0.2), 0 4px 20px rgba(139,92,246,0.12); transform: translateY(-1px); }
                 .option-btn:active:not(:disabled) { transform: translateY(0); }
                 .option-btn:disabled { cursor: default; }
-                .option-number { width: 30px; height: 30px; flex-shrink: 0; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); transition: background 0.15s ease, border-color 0.15s ease; }
-                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.28); border-color: rgba(139,92,246,0.6); }
-                .option-label { flex: 1; font-size: 0.98rem; font-weight: 600; line-height: 1.3; text-align: left; padding-left: 4px; }
-                .option-btn.correct { background: rgba(16,185,129,0.12); border-color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 20px rgba(16,185,129,0.1); }
-                .option-btn.correct .option-number { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; }
-                .option-btn.wrong { background: rgba(239,68,68,0.12); border-color: #ef4444; box-shadow: 0 0 0 1px rgba(239,68,68,0.3); }
-                .option-btn.wrong .option-number { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; }
-                .option-btn.reveal-correct { border-color: #10b981; border-width: 2px; }
-                .option-btn.reveal-correct .option-number { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; }
-                .feedback-icon { margin-left: auto; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+                .option-number { width: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); background: rgba(139,92,246,0.12); border-right: 1px solid rgba(139,92,246,0.2); letter-spacing: 0.04em; transition: background 0.15s ease, color 0.15s ease; }
+                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.22); color: #c4b5fd; }
+                .option-label { flex: 1; font-size: 0.95rem; font-weight: 600; line-height: 1.3; text-align: left; padding: 0 18px; display: flex; align-items: center; font-family: var(--font-body); letter-spacing: 0.01em; }
+                .option-btn.correct { background: rgba(16,185,129,0.1); border-color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.25), 0 4px 16px rgba(16,185,129,0.1); }
+                .option-btn.correct .option-number { background: rgba(16,185,129,0.2); border-right-color: rgba(16,185,129,0.4); color: #10b981; }
+                .option-btn.wrong { background: rgba(239,68,68,0.1); border-color: #ef4444; box-shadow: 0 0 0 1px rgba(239,68,68,0.25); }
+                .option-btn.wrong .option-number { background: rgba(239,68,68,0.2); border-right-color: rgba(239,68,68,0.4); color: #ef4444; }
+                .option-btn.reveal-correct { border-color: #10b981; border-width: 1px; }
+                .option-btn.reveal-correct .option-number { background: rgba(16,185,129,0.2); border-right-color: rgba(16,185,129,0.4); color: #10b981; }
+                .feedback-icon { padding-right: 16px; font-size: 1rem; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; }
                 .keyboard-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 0.72rem; color: rgba(255,255,255,0.3); font-family: var(--font-condensed); letter-spacing: 0.06em; }
                 @media (hover: none) { .keyboard-hint { display: none; } }
                 kbd { display: inline-block; padding: 2px 7px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; font-family: var(--font-condensed); font-size: 0.72rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
