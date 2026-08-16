@@ -356,9 +356,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     <div className="timer-track">
                         <motion.div className="timer-bar" animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timerColor }} transition={{ duration: 1, ease: 'linear' }} />
                     </div>
-                    <div className="timer-badge">
+                    <div className="timer-badge" style={{ borderColor: `${timerColor}40`, background: `${timerColor}12` }}>
                         <span className="timer-label" style={{ color: timerColor }}>{timeLeft}s</span>
-                        <span className="timer-urgency" style={{ color: timerColor }}>{timeLeft <= 3 ? 'QUICK' : timeLeft <= maxTime / 2 ? 'FAST' : ''}</span>
+                        {(timeLeft <= maxTime / 2) && <span className="timer-urgency" style={{ color: timerColor }}>{timeLeft <= 3 ? '⚡QUICK' : 'FAST'}</span>}
                     </div>
                 </div>
                 <div className="lyric-box">
@@ -414,7 +414,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     </div>
                     <p className="lyric-text"><span className="lyric-quote-mark" aria-hidden="true">&ldquo;</span>{currentLyric.lyric_text}<span className="lyric-quote-mark" aria-hidden="true">&rdquo;</span></p>
                 </div>
-                <div className="result-banner" role="status" aria-live="polite">
+                <div className={`result-banner ${isCorrect ? 'result-correct-bg' : 'result-wrong-bg'}`} role="status" aria-live="polite">
                     <div className={`result-banner-text ${isCorrect ? 'result-correct' : 'result-wrong'}`}>{getResultText(selectedOption, isCorrect, currentLyric.correct_artist)}</div>
                     <div className="result-banner-meta">
                         {isCorrect && timeLeft > 0 && <span className="interstitial-points">+{10 + timeLeft} pts</span>}
@@ -571,41 +571,42 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .intro-hint { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; font-size: 0.78rem; color: rgba(255,255,255,0.35); font-family: var(--font-condensed); letter-spacing: 0.06em; }
                 .intro-hint-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-green); box-shadow: 0 0 6px var(--color-green); animation: pulse-dot 2s ease-in-out infinite; flex-shrink: 0; }
                 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 48px 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                @media (max-width: 640px) { .game-card { padding: 32px 20px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.3rem; } }
-                .game-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-                .hud-stat { display: flex; flex-direction: column; gap: 3px; }
-                .hud-stat--right { align-items: flex-end; }
-                .hud-center { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-                .hud-label { font-family: var(--font-condensed); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-grey-blue); }
-                .hud-value { font-size: 1.5rem; font-weight: 700; color: white; font-variant-numeric: tabular-nums; line-height: 1; }
-                .streak-value { color: #F59E0B; display: inline-flex; align-items: center; gap: 4px; animation: pulse-glow 2s infinite; }
+                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 36px 40px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+                @media (max-width: 640px) { .game-card { padding: 24px 18px 28px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.25rem !important; } .lyric-box { padding: 18px 16px 18px 20px; } }
+                .game-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+                .hud-stat { display: flex; align-items: center; gap: 8px; }
+                .hud-stat--right { justify-content: flex-end; }
+                .hud-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+                .hud-label { font-family: var(--font-condensed); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-grey-blue); }
+                .hud-value { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.9); font-variant-numeric: tabular-nums; line-height: 1; }
+                .streak-value { color: #F59E0B; display: inline-flex; align-items: center; gap: 3px; animation: pulse-glow 2s infinite; }
                 @keyframes pulse-glow { 0%, 100% { text-shadow: 0 0 8px rgba(245,158,11,0.3); } 50% { text-shadow: 0 0 16px rgba(245,158,11,0.6); } }
                 .difficulty-pill { padding: 4px 14px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
                 .difficulty-beginner { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
                 .difficulty-intermediate { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
                 .difficulty-expert { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
                 .round-indicator { font-size: 0.72rem; color: var(--color-grey-blue); font-family: var(--font-condensed); letter-spacing: 0.08em; }
-                .timer-row { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
-                .timer-badge { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 4px 10px; flex-shrink: 0; }
-                .timer-track { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; }
-                .timer-bar { height: 100%; border-radius: 6px; box-shadow: 0 0 8px currentColor; }
-                .timer-label { font-family: var(--font-condensed); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em; transition: color 0.5s ease; }
-                .timer-urgency { font-family: var(--font-condensed); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; transition: color 0.5s ease; opacity: 0.8; }
-                .lyric-box { position: relative; background: rgba(139,92,246,0.06); border-left: 3px solid var(--color-purple); padding: 24px 24px 24px 28px; border-radius: 0 20px 20px 0; margin-bottom: 20px; box-shadow: inset 0 0 40px rgba(139,92,246,0.04); }
-                .lyric-box-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-                .lyric-box-label { font-family: var(--font-condensed); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--color-purple-light); opacity: 0.7; }
+                .timer-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+                .timer-badge { display: flex; align-items: center; gap: 5px; border-radius: 8px; padding: 5px 12px; flex-shrink: 0; border: 1px solid; transition: border-color 0.5s ease, background 0.5s ease; }
+                .timer-track { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; }
+                .timer-bar { height: 100%; border-radius: 6px; box-shadow: 0 0 10px currentColor; }
+                .timer-label { font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; letter-spacing: 0.04em; transition: color 0.5s ease; }
+                .timer-urgency { font-family: var(--font-condensed); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; transition: color 0.5s ease; }
+                .lyric-box { position: relative; background: rgba(139,92,246,0.07); border-left: 3px solid var(--color-purple); padding: 22px 22px 22px 26px; border-radius: 0 20px 20px 0; margin-bottom: 20px; box-shadow: inset 0 0 40px rgba(139,92,246,0.05); }
+                .lyric-box-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+                .lyric-box-label { font-family: var(--font-condensed); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--color-purple-light); opacity: 0.6; }
                 .lyric-box-divider { flex: 1; height: 1px; background: rgba(139,92,246,0.15); }
-                .lyric-quote-mark { display: inline; font-family: Georgia, serif; font-size: 2.2rem; line-height: 1; color: rgba(139,92,246,0.4); user-select: none; vertical-align: -0.15em; }
-                .lyric-text { font-size: 1.45rem; font-weight: 500; color: white; line-height: 1.5; font-style: italic; overflow-wrap: break-word; text-wrap: balance; }
+                .lyric-quote-mark { display: inline; font-family: Georgia, serif; font-size: 2rem; line-height: 1; color: rgba(139,92,246,0.45); user-select: none; vertical-align: -0.12em; }
+                .lyric-text { font-size: clamp(1.3rem, 2.5vw, 1.7rem); font-weight: 600; color: white; line-height: 1.5; font-style: italic; overflow-wrap: break-word; text-wrap: balance; letter-spacing: -0.01em; }
                 .options-list { display: flex; flex-direction: column; gap: 10px; }
-                .option-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; color: white; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; position: relative; touch-action: manipulation; min-height: 56px; }
+                .option-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; color: white; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; position: relative; touch-action: manipulation; min-height: 54px; }
                 .option-btn:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
-                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.4); box-shadow: 0 0 0 1px rgba(139,92,246,0.2), 0 4px 20px rgba(139,92,246,0.12); }
+                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.5); box-shadow: 0 0 0 1px rgba(139,92,246,0.25), 0 6px 24px rgba(139,92,246,0.15); transform: translateY(-1px); }
+                .option-btn:active:not(:disabled) { transform: translateY(0); }
                 .option-btn:disabled { cursor: default; }
-                .option-number { width: 32px; height: 32px; flex-shrink: 0; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); transition: background 0.18s ease, border-color 0.18s ease; }
-                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.22); border-color: rgba(139,92,246,0.5); }
-                .option-label { flex: 1; font-size: 1rem; font-weight: 500; line-height: 1.3; text-align: center; }
+                .option-number { width: 30px; height: 30px; flex-shrink: 0; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); transition: background 0.15s ease, border-color 0.15s ease; }
+                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.28); border-color: rgba(139,92,246,0.6); }
+                .option-label { flex: 1; font-size: 0.98rem; font-weight: 600; line-height: 1.3; text-align: left; padding-left: 4px; }
                 .option-btn.correct { background: rgba(16,185,129,0.12); border-color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 20px rgba(16,185,129,0.1); }
                 .option-btn.correct .option-number { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; }
                 .option-btn.wrong { background: rgba(239,68,68,0.12); border-color: #ef4444; box-shadow: 0 0 0 1px rgba(239,68,68,0.3); }
@@ -613,14 +614,17 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .option-btn.reveal-correct { border-color: #10b981; border-width: 2px; }
                 .option-btn.reveal-correct .option-number { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; }
                 .feedback-icon { margin-left: auto; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
-                .keyboard-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; font-size: 0.75rem; color: rgba(255,255,255,0.35); font-family: var(--font-condensed); letter-spacing: 0.06em; }
+                .keyboard-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 0.72rem; color: rgba(255,255,255,0.3); font-family: var(--font-condensed); letter-spacing: 0.06em; }
+                @media (hover: none) { .keyboard-hint { display: none; } }
                 kbd { display: inline-block; padding: 2px 7px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; font-family: var(--font-condensed); font-size: 0.72rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
-                .result-banner { display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; }
-                .result-banner-text { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
-                .result-correct { color: #10b981; }
-                .result-wrong { color: #ef4444; }
-                .result-banner-meta { display: flex; align-items: center; gap: 16px; }
-                .interstitial-countdown { font-size: 0.8rem; color: var(--color-grey-blue); font-family: var(--font-condensed); }
+                .result-banner { display: flex; flex-direction: column; gap: 10px; border-radius: 16px; padding: 18px 22px; margin-bottom: 16px; }
+                .result-banner.result-correct-bg { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); }
+                .result-banner.result-wrong-bg { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); }
+                .result-banner-text { font-size: 1.25rem; font-weight: 700; line-height: 1.35; }
+                .result-correct { color: #34d399; }
+                .result-wrong { color: #f87171; }
+                .result-banner-meta { display: flex; align-items: center; gap: 14px; }
+                .interstitial-countdown { font-size: 0.78rem; color: var(--color-grey-blue); font-family: var(--font-condensed); }
                 .btn-skip { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--color-grey-blue); padding: 8px 20px; border-radius: 10px; font-family: var(--font-condensed); font-size: 0.85rem; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease; touch-action: manipulation; }
                 .btn-skip:hover { color: white; border-color: rgba(255,255,255,0.4); }
                 .btn-skip:focus-visible { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
