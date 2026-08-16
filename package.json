@@ -21,7 +21,8 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "generate:og": "node scripts/generate-og-images.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1071.0",

@@ -157,12 +157,12 @@ export class S3StorageProvider implements StorageProvider {
     this.bucket = bucket;
     this.region = region;
     this.publicBaseUrl = publicBaseUrl;
-    this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '3600');
+    this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '86400');
 
     if (!publicBaseUrl && process.env.NODE_ENV === 'production') {
       console.warn(
-        'S3 storage is configured without S3_PUBLIC_BASE_URL. Media will be served via ' +
-        `short-lived signed URLs (TTL ${this.signedUrlTtlSeconds}s) that expire and break playback. ` +
+                'S3 storage is configured without S3_PUBLIC_BASE_URL. Media will be served via ' +
+        `short-lived signed URLs (TTL ${this.signedUrlTtlSeconds}s). ` +
         'Set S3_PUBLIC_BASE_URL to a public bucket/CDN base URL for durable media.'
       );
     }
