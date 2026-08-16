@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface HeroProps {
@@ -12,14 +11,8 @@ export default function Hero({ slogan }: HeroProps) {
     <section id="hero" className="hero-section">
       {/* Full-bleed hero art background */}
       <div className="hero-bg" aria-hidden="true">
-        <Image
-          src="/images/hero-art.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="hero-bg-img"
-          priority
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/hero-art.png" alt="" className="hero-bg-img" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
         <div className="hero-bg-overlay" />
       </div>
 
@@ -117,21 +110,17 @@ export default function Hero({ slogan }: HeroProps) {
           pointer-events: none;
         }
 
-        .hero-bg-img {
-          object-fit: cover;
-          object-position: center top;
-        }
 
         .hero-bg-overlay {
           position: absolute;
           inset: 0;
           background:
-            radial-gradient(ellipse 80% 60% at 50% 40%, rgba(10,5,30,0.45) 0%, transparent 70%),
+            radial-gradient(ellipse 80% 60% at 50% 40%, rgba(10,5,30,0.2) 0%, transparent 70%),
             linear-gradient(180deg,
-              rgba(3,3,5,0.55) 0%,
-              rgba(3,3,5,0.25) 40%,
-              rgba(3,3,5,0.55) 75%,
-              rgba(3,3,5,0.95) 100%
+              rgba(3,3,5,0.25) 0%,
+              rgba(3,3,5,0.10) 40%,
+              rgba(3,3,5,0.30) 75%,
+              rgba(3,3,5,0.80) 100%
             );
         }
 
