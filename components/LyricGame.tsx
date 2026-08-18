@@ -310,7 +310,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         );
     } else if (gamePhase === 'intro') {
         gameContent = (
-            <motion.div key="intro" className="game-intro" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.4 }}>
+            <motion.div key="intro" className="game-intro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                 <div className="intro-eyebrow">🎤 Lyric Challenge</div>
                 <h3 className="intro-title">THE VAULT<br />IS LOCKED</h3>
                 <p className="intro-subtitle">Only those who know the bars can enter.</p>
@@ -337,7 +337,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         );
     } else if (gamePhase === 'playing' && currentLyric) {
         gameContent = (
-            <motion.div key={`round-${currentIndex}`} className="game-card" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.3 }}>
+            <motion.div key={`round-${currentIndex}`} className="game-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                 <div className="game-hud">
                     <div className="hud-stat">
                         <span className="hud-label">Score</span>
@@ -392,7 +392,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         );
     } else if (gamePhase === 'interstitial' && currentLyric) {
         gameContent = (
-            <motion.div key={`interstitial-${currentIndex}`} className="game-card" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key={`interstitial-${currentIndex}`} className="game-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                 <div className="game-hud">
                     <div className="hud-stat">
                         <span className="hud-label">Score</span>
@@ -443,7 +443,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         );
     } else if (gamePhase === 'gameover') {
         gameContent = (
-            <motion.div key="gameover" className="game-over" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
+            <motion.div key="gameover" className="game-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                 <h3>Game Over</h3>
                 <div className={`accuracy-badge ${accuracy >= 70 ? 'accuracy-high' : accuracy >= 40 ? 'accuracy-medium' : 'accuracy-low'}`}>{accuracy}% Accuracy</div>
                 <div className="accuracy-grid">
@@ -482,9 +482,10 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
+                        viewport={{ once: true, margin: '-60px' }}
                         transition={{ duration: 0.8, ease: 'easeOut' }}
                         className="section-intro"
+                        style={{ opacity: 1 }}
                     >
                         <div className="section-badge">Interactive</div>
                         <h2 className="section-title">Lyric<br />Master</h2>
@@ -507,11 +508,12 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
+                        viewport={{ once: true, margin: '-60px' }}
                         transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
                         className="game-card-wrapper"
+                        style={{ opacity: 1 }}
                     >
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence>
                             {gameContent}
                         </AnimatePresence>
                     </motion.div>
@@ -540,8 +542,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 </form>
             </Modal>
             <style jsx>{`
-                .game-section { position: relative; overflow: hidden; }
-                .interactive-bg-blur { position: absolute; inset: -60px; background-image: url('/images/interactive%20section.png'); background-size: cover; background-position: center; filter: blur(4px) saturate(1.2) brightness(0.9); opacity: 1; pointer-events: none; z-index: 1; }
+                .game-section { position: relative; }
+                .interactive-bg-blur { position: absolute; inset: -60px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(4px) saturate(1.2) brightness(0.9); opacity: 1; pointer-events: none; z-index: 1; }
                 .interactive-bg-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,3,5,0.35) 0%, rgba(3,3,5,0.15) 30%, rgba(3,3,5,0.15) 70%, rgba(3,3,5,0.45) 100%); z-index: 2; pointer-events: none; }
                 .game-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: center; }
                 @media (max-width: 1024px) { .game-layout { grid-template-columns: 1fr; gap: 60px; } }
@@ -550,28 +552,28 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .intro-stat { display: flex; flex-direction: column; gap: 4px; }
                 .intro-stat-value { font-family: var(--font-display); font-size: 1.8rem; color: white; line-height: 1; }
                 .intro-stat-label { font-family: var(--font-condensed); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-grey-blue); }
-                .game-card-wrapper { position: relative; }
-                .game-intro { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 52px 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.08); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                .game-intro:hover { transform: translateY(-6px); box-shadow: 0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(139,92,246,0.3); }
+                .game-card-wrapper { position: relative; z-index: 20; }
+                .game-intro { background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.18); border-radius: 32px; padding: 52px 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.15); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+                .game-intro:hover { transform: translateY(-6px); box-shadow: 0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(139,92,246,0.4); }
                 .intro-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-condensed); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-green-light); border: 1px solid rgba(16,185,129,0.35); padding: 5px 14px; border-radius: 2px; margin-bottom: 20px; }
                 .intro-title { font-family: var(--font-display); font-size: clamp(2.8rem, 5vw, 3.8rem); line-height: 0.95; letter-spacing: 0.01em; margin-bottom: 14px; background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 55%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
                 .intro-subtitle { font-size: 0.95rem; color: var(--color-grey-blue); margin-bottom: 32px; line-height: 1.5; }
-                .intro-instructions { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px 22px; margin-bottom: 32px; }
-                .intro-instructions h4 { font-family: var(--font-condensed); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
-                .intro-instruction { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.75); font-size: 0.9rem; line-height: 1.5; }
+                .intro-instructions { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px 22px; margin-bottom: 32px; }
+                .intro-instructions h4 { font-family: var(--font-condensed); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+                .intro-instruction { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); font-size: 0.9rem; line-height: 1.5; }
                 .intro-instruction:last-child { border-bottom: none; padding-bottom: 0; }
                 .intro-instruction:first-of-type { padding-top: 0; }
-                .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); border-radius: 6px; font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700; color: var(--color-green-light); letter-spacing: 0.02em; margin-top: 1px; }
-                .intro-instruction kbd { display: inline-block; padding: 1px 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; font-family: var(--font-condensed); font-size: 0.75rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+                .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); border-radius: 6px; font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700; color: var(--color-green-light); letter-spacing: 0.02em; margin-top: 1px; }
+                .intro-instruction kbd { display: inline-block; padding: 1px 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 4px; font-family: var(--font-condensed); font-size: 0.75rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
                 .btn-start { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: var(--gradient-green); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 24px rgba(16,185,129,0.35); touch-action: manipulation; }
                 .btn-start:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow-green); }
                 .btn-start:active { transform: translateY(0); }
                 .btn-start:focus-visible { outline: 2px solid var(--color-green); outline-offset: 3px; }
                 .btn-start-icon { font-size: 0.75rem; opacity: 0.85; }
-                .intro-hint { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; font-size: 0.78rem; color: rgba(255,255,255,0.35); font-family: var(--font-condensed); letter-spacing: 0.06em; }
+                .intro-hint { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; font-size: 0.78rem; color: rgba(255,255,255,0.4); font-family: var(--font-condensed); letter-spacing: 0.06em; }
                 .intro-hint-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-green); box-shadow: 0 0 6px var(--color-green); animation: pulse-dot 2s ease-in-out infinite; flex-shrink: 0; }
                 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 36px 40px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.1); transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.18); border-radius: 40px; padding: 36px 40px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.15); overflow: hidden; transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
                 @media (max-width: 640px) { .game-card { padding: 24px 18px 28px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.25rem !important; } .lyric-box { padding: 18px 16px 18px 20px; } }
                 .game-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
                 .hud-stat { display: flex; flex-direction: column; gap: 2px; }
