@@ -242,13 +242,17 @@ export class S3StorageProvider implements StorageProvider {
       key = u.pathname.replace(/^\/+/, '');
     }
 
+    key = key.split('?')[0];
     if (!key) return;
     await this.deleteByKey(key);
   }
 
   async deleteByKey(key: string): Promise<void> {
     if (!key) return;
-    await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+    await this.s3.send(new DeleteObjectCommand({
+      Bucket: this.bucket,
+      Key: key.split('?')[0],
+    }));
   }
 }
 
