@@ -197,6 +197,7 @@ export class S3StorageProvider implements StorageProvider {
         Key: key,
         Body: body,
         ContentType: contentType || (file instanceof File ? file.type : undefined),
+        ServerSideEncryption: 'AES256',
       },
     });
 

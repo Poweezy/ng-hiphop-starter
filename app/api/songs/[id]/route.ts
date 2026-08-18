@@ -17,7 +17,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         }
 
         const song = await prisma.song.findUnique({ where: { id } });
-        if (song) {
+        if (!song) {
+            recordRequest('DELETE', `/api/songs/${id}`, 404, performance.now() - start, requestId);
+            return errorResponse('Song not found', 404, 'NOT_FOUND');
+        }
+
+        await prisma.$transaction(async (tx) => {
             if (song.file_key) {
                 await storage.deleteByKey(song.file_key);
             } else if (song.file_url) {
@@ -28,12 +33,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             } else if (song.cover_url) {
                 await storage.deleteFile(song.cover_url);
             }
-        }
+            await tx.song.delete({ where: { id } });
+        });
 
-        await prisma.song.delete({ where: { id } });
         recordRequest('DELETE', `/api/songs/${id}`, 204, performance.now() - start, requestId);
         return NextResponse.json(null, { status: 204 });
     } catch (error) {
+        if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
+            recordRequest('DELETE', `/api/songs/${id}`, 404, performance.now() - start, requestId);
+            return errorResponse('Song not found', 404, 'NOT_FOUND');
+        }
         console.error('Song delete error:', error);
         recordRequest('DELETE', `/api/songs/${id}`, 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'SONG_DELETE_ERROR');

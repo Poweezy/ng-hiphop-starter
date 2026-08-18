@@ -32,6 +32,8 @@ const clamavAdapter: ScannerAdapter = {
     const host = process.env.CLAMAV_HOST || '127.0.0.1';
     const port = parseInt(process.env.CLAMAV_PORT || '3310', 10);
 
+    const socketRef: { current: ReturnType<typeof net.createConnection> | null } = { current: null };
+
     const scanPromise = new Promise<ScanResult>((resolve, reject) => {
       const socket = net.createConnection({ host, port });
       socketRef.current = socket;
@@ -85,8 +87,6 @@ const clamavAdapter: ScannerAdapter = {
         });
       });
     });
-
-    let socketRef: { current: ReturnType<typeof net.createConnection> | null } = { current: null };
 
     const timeoutPromise = new Promise<ScanResult>((_, reject) => {
       setTimeout(() => {
