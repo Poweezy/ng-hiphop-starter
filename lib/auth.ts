@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/app/db";
 import { checkRateLimit } from "@/lib/ratelimit";
+import { getClientIp } from "@/lib/ip";
 
 if (process.env.NODE_ENV === "production") {
   const missing: string[] = [];
@@ -38,10 +39,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const email = String(credentials.email).toLowerCase().trim();
         const password = String(credentials.password);
 
-        const xff = req.headers.get("x-forwarded-for");
-        const xffFirst = xff?.split(",")[0]?.trim();
-        const ip =
-          req.headers.get("x-real-ip")?.trim() || xffFirst || "unknown";
+        const ip = getClientIp(req);
 
         const { allowed } = await checkRateLimit({
           key: `login:${ip}:${email}`,
