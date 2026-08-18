@@ -29,6 +29,8 @@ export function middleware(req: NextRequest) {
       if (originHost !== host) {
         return new NextResponse('Cross-origin request rejected', { status: 403 });
       }
+    } else if (process.env.NODE_ENV === 'production') {
+      return new NextResponse('CSRF validation failed: Origin header missing', { status: 403 });
     }
   }
 
