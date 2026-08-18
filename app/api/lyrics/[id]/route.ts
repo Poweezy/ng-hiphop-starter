@@ -15,7 +15,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             return errorResponse(error!.message, error!.status, 'UNAUTHORIZED');
         }
 
-        await prisma.lyricGame.delete({ where: { id } });
+        try {
+            await prisma.lyricGame.delete({ where: { id } });
+        } catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
+                recordRequest('DELETE', `/api/lyrics/${id}`, 404, performance.now() - start, requestId);
+                return errorResponse('Lyric not found', 404, 'NOT_FOUND');
+            }
+            throw error;
+        }
+
         recordRequest('DELETE', `/api/lyrics/${id}`, 204, performance.now() - start, requestId);
         return NextResponse.json(null, { status: 204 });
     } catch (error) {

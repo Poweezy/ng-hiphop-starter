@@ -17,18 +17,27 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         }
 
         const graffiti = await prisma.graffitiSubmission.findUnique({ where: { id } });
-        if (graffiti) {
+        if (!graffiti) {
+            recordRequest('DELETE', `/api/graffiti/${id}`, 404, performance.now() - start, requestId);
+            return errorResponse('Graffiti not found', 404, 'NOT_FOUND');
+        }
+
+        await prisma.$transaction(async (tx) => {
             if (graffiti.image_key) {
                 await storage.deleteByKey(graffiti.image_key);
             } else if (graffiti.image_url) {
                 await storage.deleteFile(graffiti.image_url);
             }
-        }
+            await tx.graffitiSubmission.delete({ where: { id } });
+        });
 
-        await prisma.graffitiSubmission.delete({ where: { id } });
         recordRequest('DELETE', `/api/graffiti/${id}`, 204, performance.now() - start, requestId);
         return NextResponse.json(null, { status: 204 });
     } catch (error) {
+        if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
+            recordRequest('DELETE', `/api/graffiti/${id}`, 404, performance.now() - start, requestId);
+            return errorResponse('Graffiti not found', 404, 'NOT_FOUND');
+        }
         console.error('Graffiti delete error:', error);
         recordRequest('DELETE', `/api/graffiti/${id}`, 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'GRAFFITI_DELETE_ERROR');
