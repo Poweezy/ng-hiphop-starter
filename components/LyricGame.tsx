@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Modal from './Modal';
 
 interface LyricEntry {
@@ -48,6 +48,7 @@ function getResultText(selectedOption: string | null, isCorrect: boolean | null,
 }
 
 export default function LyricGame({ lyrics }: LyricGameProps) {
+    const reduced = useReducedMotion();
     const [gameLyrics, setGameLyrics] = useState<LyricEntry[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -379,7 +380,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                             else if (isThisCorrect) btnClass += ' reveal-correct';
                         }
                         return (
-                            <motion.button key={option} whileHover={!selectedOption ? { scale: 1.01 } : {}} whileTap={!selectedOption ? { scale: 0.98 } : {}} onClick={() => handleOptionSelect(option)} className={btnClass} disabled={!!selectedOption} aria-label={`Option ${idx + 1}: ${option}${isThisSelected ? ' (selected)' : ''}${isThisCorrect && selectedOption ? ' (correct answer)' : ''}`}>
+                            <motion.button key={option} whileHover={!reduced && !selectedOption ? { scale: 1.01 } : undefined} whileTap={!reduced && !selectedOption ? { scale: 0.98 } : undefined} onClick={() => handleOptionSelect(option)} className={btnClass} disabled={!!selectedOption} aria-label={`Option ${idx + 1}: ${option}${isThisSelected ? ' (selected)' : ''}${isThisCorrect && selectedOption ? ' (correct answer)' : ''}`}>
                                 <span className="option-number">{idx + 1}</span>
                                 <span className="option-label">{option}</span>
                                 {selectedOption && (isThisSelected || isThisCorrect) && <span className="feedback-icon" aria-hidden="true">{isThisCorrect ? '✓' : '✕'}</span>}

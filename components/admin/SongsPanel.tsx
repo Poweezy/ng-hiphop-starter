@@ -195,10 +195,12 @@ export default function SongsPanel({ initialSongs }: Props) {
                                         >
                                             Edit
                                         </button>
-                                        <button
-                                            onClick={() => toggleActive(song.id, song.is_active)}
-                                            className={song.is_active ? 'btn-danger' : 'btn-badge'}
-                                        >
+                                            <button
+                                                onClick={() => toggleActive(song.id, song.is_active)}
+                                                className={song.is_active ? 'btn-danger' : 'btn-badge'}
+                                                aria-pressed={!song.is_active}
+                                                aria-label={song.is_active ? 'Deactivate song' : 'Set song as active'}
+                                            >
                                             {song.is_active ? 'Deactivate' : 'Set Active'}
                                         </button>
                                         <button onClick={() => setDeleteId(song.id)} className="btn-danger btn-xs">Delete</button>
