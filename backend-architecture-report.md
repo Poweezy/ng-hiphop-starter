@@ -186,4 +186,20 @@
 
 ---
 
+## Findings Status (Post-Audit Remediation — 2026-08-19)
+
+| # | Finding | Status | Resolution |
+|---|---|---|---|
+| 1 | ClamAV detections ignored (fail-open) | **Fixed** | `lib/uploadScanner.ts` `scanBuffer` already returns `{ clean: false }` on scanner errors (lines 168-170) |
+| 2 | ClamAV no timeout | **Fixed** | `CLAMAV_TIMEOUT_MS` socket timeout (line 48) + `SCAN_OVERALL_TIMEOUT_MS` overall timeout (lines 27, 91-98) |
+| 3 | Webhook scanner no timeout | **Fixed** | `AbortSignal.timeout(WEBHOOK_TIMEOUT_MS)` on fetch (line 118) |
+| 4 | Rate limiting disabled without env vars | **Verified OK** | `failClosed()` returns `false` in production (line 129-135) |
+| 5 | Admin reset secret cached in module scope | Open | Move to env-var comparison only |
+| 6 | S3 delete parses signed URLs unreliably | **Fixed** | Query params stripped before key extraction (`lib/storage.ts`) |
+| 11 | No request size limits | **Verified OK** | All upload routes enforce `MAX_*_BYTES` + Next.js `bodySizeLimit: '50mb'` |
+| 12 | Full-file buffering in memory | Open | Consider streaming S3 uploads |
+| 13 | DELETE with JSON body | **Fixed** | All DELETE routes use path parameters (`/api/[resource]/[id]`) |
+| 17 | SLOs not instrumented | Open | Requires Prometheus/OpenTelemetry integration |
+| 21 | Duplicate auth config | **Fixed** | `app/api/auth/[...nextauth]/route.ts` re-exports from `lib/auth.ts` |
+
 *End of report.*
