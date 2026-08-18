@@ -128,7 +128,7 @@ class SloCollector {
         p99Ms: 0,
         availability: 1,
         pathLatencyP99: {},
-        errorBudgetAvailability: errorBudget(0, SLO.availability.target),
+        errorBudgetAvailability: errorBudget(1, SLO.availability.target),
         errorBudgetLatency: errorBudget(0, SLO.latency.p99Ms),
         errorBudgetErrorRate: errorBudget(0, SLO.errorRate.maxRate),
       };
@@ -168,7 +168,7 @@ class SloCollector {
       p99Ms,
       availability,
       pathLatencyP99,
-      errorBudgetAvailability: errorBudget(errorRate, SLO.errorRate.maxRate),
+      errorBudgetAvailability: errorBudget(availability, SLO.availability.target),
       errorBudgetLatency: errorBudget(p99Ms, SLO.latency.p99Ms),
       errorBudgetErrorRate: errorBudget(errorRate, SLO.errorRate.maxRate),
     };
@@ -195,7 +195,7 @@ class SloCollector {
       p95Ms: percentile(sortedDurations, 95),
       p99Ms: percentile(sortedDurations, 99),
       availability: 1 - errorRate,
-      errorBudgetAvailability: errorBudget(errorRate, SLO.errorRate.maxRate),
+      errorBudgetAvailability: errorBudget(1 - errorRate, SLO.availability.target),
       errorBudgetLatency: errorBudget(percentile(sortedDurations, 99), SLO.latency.p99Ms),
       errorBudgetErrorRate: errorBudget(errorRate, SLO.errorRate.maxRate),
     };
