@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     });
 
     await prisma.competitionParticipant.upsert({
-      where: { competitionId },
+      where: { competitionId_userId: { competitionId, userId: userId ?? '__none__' } },
       update: {
         submissionCount: { increment: 1 },
       },

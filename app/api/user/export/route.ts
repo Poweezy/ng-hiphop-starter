@@ -41,21 +41,9 @@ export async function GET(req: NextRequest) {
       return errorResponse('User not found', 404, 'USER_NOT_FOUND');
     }
 
-    // Scope lyrics to competitions the requesting user subscribed to,
-    // since LyricGame has no submitted_by field.
-    const subscribedCompetitions = await prisma.subscriber.findMany({
-      where: { email: session.user.email },
-      select: { competitionId: true },
-    });
-    const subscribedIds = subscribedCompetitions.map(s => s.competitionId);
-
     const [quotes, lyrics, graffiti] = await Promise.all([
       prisma.quoteSubmission.findMany({ where: { submitted_by: session.user.email } }),
-      prisma.lyricGame.findMany({
-        where: subscribedIds.length > 0
-          ? { competitionId: { in: subscribedIds } }
-          : { id: { in: [] } },
-      }),
+      prisma.lyricGame.findMany({ where: { userId: user.id } }),
       prisma.graffitiSubmission.findMany({ where: { artist_name: session.user.email } }),
     ]);
 

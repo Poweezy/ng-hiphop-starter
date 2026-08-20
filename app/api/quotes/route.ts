@@ -108,7 +108,9 @@ export async function POST(req: NextRequest) {
             : await create();
 
         if (typeof response === 'object' && response !== null && 'id' in response) {
-            notifyAdminModeration({ submissionType: 'quote', submissionId: (response as { id: string }).id, submittedBy: name }).catch(() => {});
+            notifyAdminModeration({ submissionType: 'quote', submissionId: (response as { id: string }).id, submittedBy: name }).catch((err) => {
+                console.error('Moderation notification failed:', err);
+            });
         }
 
         recordRequest('POST', '/api/quotes', status, performance.now() - start, requestId);

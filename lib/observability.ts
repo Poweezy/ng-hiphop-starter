@@ -35,12 +35,9 @@ export function withSentryScope<T>(
   enrich: (scope: Sentry.Scope) => void,
   fn: () => Promise<T>,
 ): Promise<T> {
-  return Sentry.withScope(async (scope) => {
+  return Sentry.withScope((scope) => {
     enrich(scope);
-    // withScope callback may return void or a thenable depending on SDK version;
-    // execute the work inside the callback so the scope is active.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    return (await fn()) as T;
+    return fn();
   });
 }
 

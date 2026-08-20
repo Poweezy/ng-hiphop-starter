@@ -99,8 +99,11 @@ export default async function Home() {
         };
       }
     }
-  } catch {
-    // Database unavailable during build or runtime — render with empty data
+  } catch (error) {
+    const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+    if (!isBuildPhase) {
+      console.error('Home page data fetch failed:', error);
+    }
   }
 
   const slogan = sloganEntry?.text ?? DEFAULT_SLOGAN;

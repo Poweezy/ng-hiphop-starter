@@ -360,6 +360,13 @@ function makeStorage(): StorageProvider {
     const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL;
     return new S3StorageProvider({ bucket, region, publicBaseUrl });
   }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'LocalStorageProvider is not allowed in production. Configure S3 or Supabase storage.'
+    );
+  }
+
   return new LocalStorageProvider();
 }
 

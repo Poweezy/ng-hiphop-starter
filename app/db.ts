@@ -1,5 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { registerModerationHandlers } from "@/lib/moderation";
+import { validateEnv } from "@/lib/env";
+
+validateEnv();
 
 declare global {
   // eslint-disable-next-line no-var
