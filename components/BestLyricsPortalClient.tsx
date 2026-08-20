@@ -256,7 +256,7 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
   const deadlinePassed = new Date(competition.submissionDeadline) < new Date();
 
   return (
-    <>
+    <div className="best-lyrics-page-wrapper">
       {/* HERO */}
       <section className="section best-lyrics-hero">
         <div className="container">
@@ -699,19 +699,31 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
       </section>
 
       <style jsx>{`
-        .best-lyrics-hero {
+        .best-lyrics-page-wrapper {
           position: relative;
-          background: url('/images/best-lyrics-bg.jpg') center/cover no-repeat;
-          text-align: center;
-          padding: clamp(80px, 12vw, 140px) 0 clamp(60px, 8vw, 100px);
+          min-height: 100vh;
         }
 
-        .best-lyrics-hero::before {
+        .best-lyrics-page-wrapper::before {
           content: '';
-          position: absolute;
+          position: fixed;
           inset: 0;
-          background: radial-gradient(circle at center, transparent 0%, rgba(10,10,12,0.95) 100%), linear-gradient(180deg, rgba(10,10,12,0.6) 0%, rgba(10,10,12,0.95) 100%);
-          z-index: 0;
+          background: url('/images/best-lyrics-bg.jpg') center/cover no-repeat;
+          z-index: -2;
+        }
+
+        .best-lyrics-page-wrapper::after {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(10,10,12,0.7) 0%, rgba(10,10,12,0.95) 100%);
+          z-index: -1;
+        }
+
+        .best-lyrics-hero {
+          position: relative;
+          text-align: center;
+          padding: clamp(80px, 12vw, 140px) 0 clamp(60px, 8vw, 100px);
         }
 
         .best-lyrics-hero-inner {
@@ -1119,6 +1131,6 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
           }
         }
       `}</style>
-    </>
+    </div>
   );
 }
