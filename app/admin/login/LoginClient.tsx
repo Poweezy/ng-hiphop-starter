@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import PasswordStrength from '@/components/PasswordStrength';
 
 function PasswordField({ id, label, value, onChange, placeholder, autoComplete, disabled, ariaInvalid, ariaDescribedby, required = true }: any) {
@@ -178,6 +179,9 @@ export default function LoginClient() {
                     >
                         ADMIN PORTAL
                     </div>
+                    <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textDecoration: 'none', marginTop: '8px', display: 'inline-block' }}>
+                        ← Back to Home
+                    </Link>
                 </div>
 
                 {/* Login/Reset Form */}
