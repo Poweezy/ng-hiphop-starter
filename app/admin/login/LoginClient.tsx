@@ -221,7 +221,7 @@ export default function LoginClient() {
                                 id="admin-password"
                                 label="Password"
                                 value={password}
-                                onChange={setPassword}
+                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 autoComplete="current-password"
                                 disabled={loading}
@@ -265,7 +265,7 @@ export default function LoginClient() {
                                 id="reset-secret"
                                 label="Master Secret Key"
                                 value={resetSecret}
-                                onChange={setResetSecret}
+                                onChange={(e) => setResetSecret(e.target.value)}
                                 placeholder="Enter reset secret from .env"
                                 autoComplete="off"
                                 disabled={loading}
@@ -277,7 +277,7 @@ export default function LoginClient() {
                                 id="reset-password"
                                 label="New Password"
                                 value={password}
-                                onChange={setPassword}
+                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Min 8 characters"
                                 autoComplete="new-password"
                                 disabled={loading}
@@ -288,7 +288,7 @@ export default function LoginClient() {
                                 id="reset-confirm-password"
                                 label="Confirm New Password"
                                 value={confirmPassword}
-                                onChange={setConfirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="Re-enter new password"
                                 autoComplete="new-password"
                                 disabled={loading}
