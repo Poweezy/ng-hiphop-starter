@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
+import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
 
 // Panels
 import OverviewPanel from './OverviewPanel';
@@ -13,14 +13,17 @@ import SongsPanel from './SongsPanel';
 import QuotesPanel from './QuotesPanel';
 import GraffitiPanel from './GraffitiPanel';
 import LyricsPanel from './LyricsPanel';
-import CompetitionsPanel from './CompetitionsPanel';
+import BestLyricsPortalPanel from './BestLyricsPortalPanel';
+import SubmissionsPanel from './SubmissionsPanel';
+import WinnersPanel from './WinnersPanel';
+import EmailSubscribersPanel from './EmailSubscribersPanel';
 import SecurityPanel from './SecurityPanel';
 import UsersPanel from './UsersPanel';
 
 import Image from 'next/image';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'competitions' | 'security';
+export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'best-lyrics' | 'submissions' | 'winners' | 'subscribers' | 'security';
 
 interface Props {
     initialSlogan: string;
@@ -28,7 +31,10 @@ interface Props {
     initialQuotes: QuoteSummary[];
     initialGraffiti: GraffitiSummary[];
     initialLyrics: LyricSummary[];
-    initialCompetitions: { id: string; title: string; period: string; startDate: string; endDate: string; is_active: boolean; winnerId: string | null; createdAt: string; updatedAt: string; _count?: { lyrics: number; subscribers: number } }[];
+    initialCompetitions: CompetitionSummary[];
+    initialSubmissions: LyricSubmissionSummary[];
+    initialWinners: WinnerSummary[];
+    initialSubscribers: SubscriberSummary[];
     initialUsers: { id: string; email: string; role: string; createdAt: string; updatedAt: string; submissionCount: number }[];
 }
 
@@ -40,18 +46,21 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'quotes', label: 'Quotes', icon: '💬' },
     { id: 'graffiti', label: 'Graffiti', icon: '🎨' },
     { id: 'lyrics', label: 'Lyrics', icon: '🎤' },
-    { id: 'competitions', label: 'Competitions', icon: '🏆' },
+    { id: 'best-lyrics', label: 'Best Lyrics Portal', icon: '🏆' },
+    { id: 'submissions', label: 'Submissions', icon: '📝' },
+    { id: 'winners', label: 'Winners', icon: '👑' },
+    { id: 'subscribers', label: 'Email Subscribers', icon: '📧' },
     { id: 'security', label: 'Security', icon: '🔐' },
 ];
 
-export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialCompetitions, initialUsers }: Props) {
+export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialCompetitions, initialSubmissions, initialWinners, initialSubscribers, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const router = useRouter();
     const searchParams = useSearchParams();
 
     useEffect(() => {
         const tab = searchParams.get('tab') as Tab | null;
-        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'competitions', 'security'].includes(tab)) {
+        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'best-lyrics', 'submissions', 'winners', 'subscribers', 'security'].includes(tab)) {
             setActiveTab(tab);
         }
     }, [searchParams]);
@@ -160,11 +169,22 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                                 {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
                                 {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
                                 {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
-                                {activeTab === 'competitions' && (
-                                    <CompetitionsPanel
+                                {activeTab === 'best-lyrics' && (
+                                    <BestLyricsPortalPanel
                                         initialCompetitions={initialCompetitions}
-                                        initialLyrics={initialLyrics}
+                                        initialSubmissions={initialSubmissions}
+                                        initialWinners={initialWinners}
+                                        initialSubscribers={initialSubscribers}
                                     />
+                                )}
+                                {activeTab === 'submissions' && (
+                                    <SubmissionsPanel initialSubmissions={initialSubmissions} />
+                                )}
+                                {activeTab === 'winners' && (
+                                    <WinnersPanel initialWinners={initialWinners} />
+                                )}
+                                {activeTab === 'subscribers' && (
+                                    <EmailSubscribersPanel initialSubscribers={initialSubscribers} />
                                 )}
                                 {activeTab === 'security' && <SecurityPanel />}
                             </motion.div>

@@ -3,7 +3,6 @@ import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
-import { notifyAdminModeration } from '@/lib/moderation';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getRequestId(req);
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const competition = await prisma.lyricCompetition.findUnique({
       where: { id },
-      select: { id: true, title: true, winnerId: true },
+      select: { id: true, title: true },
     });
 
     if (!competition) {
@@ -26,8 +25,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return errorResponse('Competition not found', 404, 'NOT_FOUND');
     }
 
-    const subscribers = await prisma.competitionSubscriber.findMany({
-      where: { competitionId: id },
+    const subscribers = await prisma.subscriber.findMany({
+      where: { competitionId: id, subscriptionStatus: 'active' },
       select: { email: true },
     });
 
@@ -36,16 +35,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return successResponse({ message: 'No subscribers to notify', notified: 0 });
     }
 
-    const winner = competition.winnerId
-      ? await prisma.lyricGame.findUnique({ where: { id: competition.winnerId }, select: { lyric_text: true, correct_artist: true } })
-      : null;
+    const winner = await prisma.winner.findFirst({
+      where: { competitionId: id },
+      include: { submission: { select: { artistAlias: true, lyrics: true } } },
+    });
 
-    const message = `Competition "${competition.title}" winner announced!${winner ? ` Winning lyric by ${winner.correct_artist}: "${winner.lyric_text}"` : ''}`;
+    const message = `Competition "${competition.title}" winner announced!${winner ? ` Winning lyric by ${winner.submission?.artistAlias}: "${winner.submission?.lyrics?.substring(0, 100)}"` : ''}`;
 
-    await notifyAdminModeration({
-      submissionType: 'competition_winner',
-      submissionId: competition.id,
-      submittedBy: subscribers.map(s => s.email).join(', '),
+    await prisma.subscriber.updateMany({
+      where: { competitionId: id },
+      data: { lastEmailSentAt: new Date() },
     });
 
     recordRequest('POST', `/api/competitions/${id}/notify`, 200, performance.now() - start, requestId);

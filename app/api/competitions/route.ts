@@ -19,22 +19,33 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
     const skip = (page - 1) * limit;
+    const status = searchParams.get('status');
+    const type = searchParams.get('type');
+
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (type) where.type = type;
 
     const [competitions, total] = await Promise.all([
       prisma.lyricCompetition.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
         include: {
+          rules: true,
+          prizes: true,
+          analytics: true,
           _count: {
             select: {
-              lyrics: true,
+              submissions: true,
               subscribers: true,
+              winners: true,
             },
           },
         },
       }),
-      prisma.lyricCompetition.count(),
+      prisma.lyricCompetition.count({ where }),
     ]);
 
     recordRequest('GET', '/api/competitions', 200, performance.now() - start, requestId);
@@ -66,15 +77,37 @@ export async function POST(req: NextRequest) {
       return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
     }
 
-    const { title, period, startDate, endDate, is_active } = validation.data;
+    const data = validation.data;
 
     const competition = await prisma.lyricCompetition.create({
       data: {
-        title,
-        period,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        is_active: is_active ?? false,
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        status: data.status,
+        slug: data.slug,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        submissionDeadline: new Date(data.submissionDeadline),
+        bannerUrl: data.bannerUrl,
+        shortDescription: data.shortDescription,
+        socialSharingText: data.socialSharingText,
+        is_active: data.is_active ?? false,
+      },
+    });
+
+    await prisma.competitionRule.create({
+      data: {
+        competitionId: competition.id,
+        originalityRequired: true,
+        maxSubmissionsPerUser: 1,
+        moderationRequired: true,
+      },
+    });
+
+    await prisma.competitionAnalytics.create({
+      data: {
+        competitionId: competition.id,
       },
     });
 

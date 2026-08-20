@@ -71,7 +71,7 @@ model GraffitiSubmission {
   scan_clean    Boolean   @default(true)
   scan_result   String?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime @updatedAt
 
   @@index([approved, display_until])
   @@index([display_until])
@@ -94,34 +94,200 @@ model LyricGame {
 }
 
 model LyricCompetition {
-  id          String   @id @default(cuid())
-  title       String
-  period      String   // "monthly" | "yearly"
-  startDate   DateTime
-  endDate     DateTime
-  is_active   Boolean  @default(false)
-  winnerId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  title              String
+  description        String?
+  type               String   @default("monthly") // monthly | yearly | custom
+  status             String   @default("draft") // draft | published | archived
+  slug               String?  @unique
+  startDate          DateTime
+  endDate            DateTime
+  submissionDeadline DateTime
+  bannerUrl          String?
+  shortDescription   String?
+  socialSharingText  String?
+  viewCount          Int      @default(0)
+  is_active          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  lyrics      LyricGame[]
-  subscribers CompetitionSubscriber[]
+  rules              CompetitionRule?
+  prizes             CompetitionPrize[]
+  submissions        LyricSubmission[]
+  participants       CompetitionParticipant[]
+  subscribers        Subscriber[]
+  analytics          CompetitionAnalytics?
+  winners            Winner[]
+  lyrics             LyricGame[]
 
-  @@index([is_active])
+  @@index([status, is_active])
+  @@index([slug])
   @@index([startDate, endDate])
   @@index([createdAt])
 }
 
-model CompetitionSubscriber {
+model CompetitionRule {
+  id                     String   @id @default(cuid())
+  competitionId          String   @unique
+  minLength              Int?
+  maxLength              Int?
+  originalityRequired    Boolean  @default(true)
+  copyrightRequirements  String?
+  maxSubmissionsPerUser  Int      @default(1)
+  eligibilityRequirements String?
+  ageRestriction         String?
+  moderationRequired     Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  competition            LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+}
+
+model CompetitionPrize {
+  id           String   @id @default(cuid())
+  competitionId String
+  position     Int      // 1, 2, 3...
+  name         String
+  cashAmount   Decimal? @db.Decimal(10, 2)
+  description  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  competition  LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  winners      Winner[]
+
+  @@unique([competitionId, position])
+  @@index([competitionId])
+}
+
+model LyricSubmission {
+  id                String   @id @default(cuid())
+  competitionId     String
+  artistAlias       String
+  userId            String?
+  lyrics            String
+  songTitle         String?
+  audioUrl          String?
+  socialLinks       String?  // JSON stringified
+  status            String   @default("pending") // pending | approved | rejected | disqualified | winner
+  moderationStatus  String   @default("pending") // pending | approved | rejected | changes_requested
+  moderationNotes   String?
+  moderationReason  String?  // copyright | offensive | spam | duplicate | rules | other
+  score             Int?
+  ipAddress         String?
+  userAgent         String?
+  copyrightAccepted Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  competition       LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  moderationHistory SubmissionModeration[]
+  winners           Winner[]
+
+  @@index([competitionId, status])
+  @@index([competitionId, createdAt])
+  @@index([userId])
+}
+
+model SubmissionModeration {
+  id           String   @id @default(cuid())
+  submissionId String
+  action       String   // approve | reject | request_changes | disqualify
+  reason       String?
+  notes        String?
+  moderatedBy  String?  // admin user id
+  createdAt    DateTime @default(now())
+
+  submission   LyricSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+model CompetitionParticipant {
   id             String   @id @default(cuid())
-  competitionId  String
+  competitionId  String   @unique
+  userId         String   @unique
+  submissionCount Int    @default(0)
+  joinedAt       DateTime @default(now())
+
   competition    LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  email          String
-  subscribedAt   DateTime @default(now())
+}
+
+model Subscriber {
+  id                 String   @id @default(cuid())
+  email              String
+  name               String?
+  competitionId      String
+  source             String
+  consentStatus      String   @default("granted") // granted | withdrawn
+  consentTimestamp   DateTime @default(now())
+  subscriptionStatus String   @default("active") // active | unsubscribed | bounced
+  unsubscribedAt     DateTime?
+  lastEmailSentAt    DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  competition        LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
 
   @@unique([competitionId, email])
+  @@index([email])
+  @@index([subscriptionStatus])
+  @@index([source])
+}
+
+model Winner {
+  id           String   @id @default(cuid())
+  competitionId String
+  prizeId      String?
+  submissionId String   @unique
+  position     Int      // 1, 2, 3...
+  prizeName    String?
+  cashAmount   Decimal? @db.Decimal(10, 2)
+  winningDate  DateTime @default(now())
+  selectedBy   String?  // admin user id
+  announcementStatus String @default("pending") // pending | announced | published
+  createdAt    DateTime @default(now())
+
+  competition  LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  prize        CompetitionPrize? @relation(fields: [prizeId], references: [id])
+  submission    LyricSubmission @relation(fields: [submissionId], references: [id])
+
+  @@unique([competitionId, position])
   @@index([competitionId])
-  @@index([subscribedAt])
+  @@index([submissionId])
+}
+
+model CompetitionAnalytics {
+  id                 String   @id @default(cuid())
+  competitionId      String   @unique
+  views              Int      @default(0)
+  totalSubmissions   Int      @default(0)
+  uniqueParticipants Int      @default(0)
+  approvedSubmissions Int     @default(0)
+  rejectedSubmissions Int     @default(0)
+  subscribersGenerated Int    @default(0)
+  conversionRate     Decimal? @db.Decimal(5, 2)
+  winners            Int      @default(0)
+  prizeValue         Decimal? @db.Decimal(10, 2)
+  updatedAt          DateTime @updatedAt
+
+  competition        LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+}
+
+model EmailCampaign {
+  id               String   @id @default(cuid())
+  name             String
+  subject          String
+  body             String
+  recipientFilter  String?  // JSON stringified filter criteria
+  recipientIds     String?  // JSON stringified subscriber IDs
+  sentAt           DateTime?
+  scheduledAt      DateTime?
+  status           String   @default("draft") // draft | scheduled | sending | sent | failed
+  createdBy        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Job {

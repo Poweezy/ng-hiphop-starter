@@ -21,18 +21,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const skip = (page - 1) * limit;
 
     const [subscribers, total] = await Promise.all([
-      prisma.competitionSubscriber.findMany({
+      prisma.subscriber.findMany({
         where: { competitionId: id },
-        orderBy: { subscribedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
         select: {
           id: true,
           email: true,
-          subscribedAt: true,
+          name: true,
+          createdAt: true,
+          subscriptionStatus: true,
         },
       }),
-      prisma.competitionSubscriber.count({ where: { competitionId: id } }),
+      prisma.subscriber.count({ where: { competitionId: id } }),
     ]);
 
     recordRequest('GET', `/api/competitions/${id}/subscribers`, 200, performance.now() - start, requestId);
