@@ -544,8 +544,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
             </Modal>
             <style jsx>{`
                 .game-section { position: relative; }
-                .interactive-bg-blur { position: absolute; inset: -60px; background-image: url('/images/interactive section.png'); background-size: cover; background-position: center; filter: blur(4px) saturate(1.2) brightness(0.9); opacity: 1; pointer-events: none; z-index: 1; }
-                .interactive-bg-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,3,5,0.35) 0%, rgba(3,3,5,0.15) 30%, rgba(3,3,5,0.15) 70%, rgba(3,3,5,0.45) 100%); z-index: 2; pointer-events: none; }
+                .interactive-bg-blur { position: absolute; inset: -60px; background-image: url('/images/lyric-master-bg.jpg'); background-size: cover; background-position: center; filter: blur(3px) saturate(1.2) brightness(0.6); opacity: 1; pointer-events: none; z-index: 1; transition: filter 0.5s ease; }
+                .interactive-bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 10%, rgba(3,3,5,0.85) 100%), linear-gradient(180deg, rgba(3,3,5,0.4) 0%, rgba(3,3,5,0.8) 100%); z-index: 2; pointer-events: none; }
                 .game-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: center; }
                 @media (max-width: 1024px) { .game-layout { grid-template-columns: 1fr; gap: 60px; } }
                 .section-intro { padding: 20px 0; }

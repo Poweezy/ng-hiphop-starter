@@ -700,12 +700,23 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
 
       <style jsx>{`
         .best-lyrics-hero {
-          background: linear-gradient(180deg, rgba(139, 92, 246, 0.08) 0%, transparent 100%);
+          position: relative;
+          background: url('/images/best-lyrics-bg.jpg') center/cover no-repeat;
           text-align: center;
           padding: clamp(80px, 12vw, 140px) 0 clamp(60px, 8vw, 100px);
         }
 
+        .best-lyrics-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at center, transparent 0%, rgba(10,10,12,0.95) 100%), linear-gradient(180deg, rgba(10,10,12,0.6) 0%, rgba(10,10,12,0.95) 100%);
+          z-index: 0;
+        }
+
         .best-lyrics-hero-inner {
+          position: relative;
+          z-index: 1;
           max-width: 800px;
           margin: 0 auto;
         }
