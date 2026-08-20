@@ -488,9 +488,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                         className="section-intro"
                         style={{ opacity: 1 }}
                     >
-                        <div className="section-badge">Interactive</div>
-                        <h2 className="section-title">Lyric<br />Master</h2>
-                        <p className="section-subtitle">Test your NG knowledge. Beat the clock. Prove you know the culture.</p>
+                        <div className="section-badge interactive-badge">Interactive</div>
+                        <h2 className="section-title lyric-title">Lyric<br />Master</h2>
+                        <p className="section-subtitle lyric-subtitle">Test your NG knowledge. Beat the clock. Prove you know the culture.</p>
                         <div className="intro-stats">
                             <div className="intro-stat">
                                 <span className="intro-stat-value">{gameLyrics.length || '—'}</span>
@@ -548,11 +548,14 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .interactive-bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 10%, rgba(3,3,5,0.85) 100%), linear-gradient(180deg, rgba(3,3,5,0.4) 0%, rgba(3,3,5,0.8) 100%); z-index: 2; pointer-events: none; }
                 .game-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: center; }
                 @media (max-width: 1024px) { .game-layout { grid-template-columns: 1fr; gap: 60px; } }
-                .section-intro { padding: 20px 0; }
-                .intro-stats { display: flex; gap: 32px; margin-top: 40px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.06); }
-                .intro-stat { display: flex; flex-direction: column; gap: 4px; }
-                .intro-stat-value { font-family: var(--font-display); font-size: 1.8rem; color: white; line-height: 1; }
-                .intro-stat-label { font-family: var(--font-condensed); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-grey-blue); }
+                .section-intro { padding: 40px 0; }
+                .interactive-badge { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); border-radius: 50px; padding: 6px 18px; margin-bottom: 24px; display: inline-block; }
+                .lyric-title { font-size: clamp(4rem, 10vw, 7.5rem); line-height: 0.85; margin-bottom: 24px; text-transform: uppercase; background: linear-gradient(135deg, #ffffff 0%, #34D399 50%, #3B82F6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 30px rgba(16, 185, 129, 0.3)); }
+                .lyric-subtitle { font-size: 1.15rem; color: rgba(255,255,255,0.7); max-width: 400px; line-height: 1.6; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+                .intro-stats { display: flex; gap: 40px; margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.1); }
+                .intro-stat { display: flex; flex-direction: column; gap: 8px; }
+                .intro-stat-value { font-family: var(--font-display); font-size: 2.5rem; color: white; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+                .intro-stat-label { font-family: var(--font-condensed); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.5); }
                 .game-card-wrapper { position: relative; z-index: 20; }
                 .game-intro { background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.18); border-radius: 32px; padding: 52px 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.15); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
                 .game-intro:hover { transform: translateY(-6px); box-shadow: 0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(139,92,246,0.4); }

@@ -73,8 +73,8 @@ export default function Navigation() {
           <motion.div
             key="mobile-menu"
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto', transition: { staggerChildren: 0.05, delayChildren: 0.1 } }}
+            exit={{ opacity: 0, height: 0, transition: { staggerChildren: 0.03, staggerDirection: -1 } }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="nav-mobile-menu"
           >
@@ -88,14 +88,21 @@ export default function Navigation() {
                   { href: '/game/best-lyrics',  label: 'Best Lyrics' },
                   { href: '/admin/login',       label: 'Admin' },
                 ].map(({ href, label }) => (
-                 <Link
+                 <motion.div
                    key={href}
-                   href={href}
-                   className="nav-mobile-link"
-                   onClick={() => setMobileMenuOpen(false)}
+                   initial={{ opacity: 0, x: -20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   exit={{ opacity: 0, x: -10 }}
+                   transition={{ duration: 0.2, ease: "easeOut" }}
                  >
-                   {label}
-                 </Link>
+                   <Link
+                     href={href}
+                     className="nav-mobile-link"
+                     onClick={() => setMobileMenuOpen(false)}
+                   >
+                     {label}
+                   </Link>
+                 </motion.div>
                ))}
              </nav>
           </motion.div>
