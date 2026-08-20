@@ -137,8 +137,23 @@ export default function CompetitionBanner({ competition, winner }: Props) {
 
       <style jsx>{`
         .competition-section {
-          background: linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%);
-          padding: 60px 0;
+          position: relative;
+          background: url('/images/best-lyrics-bg.jpg') center/cover no-repeat;
+          padding: 80px 0;
+          overflow: hidden;
+        }
+
+        .competition-section::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(10,10,12,0.95) 0%, rgba(10,10,12,0.5) 50%, rgba(10,10,12,0.95) 100%);
+          z-index: 0;
+        }
+
+        .container {
+          position: relative;
+          z-index: 1;
         }
 
         .competition-banner {
