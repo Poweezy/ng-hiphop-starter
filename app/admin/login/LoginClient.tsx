@@ -46,6 +46,7 @@ function PasswordField({ id, label, value, onChange, placeholder, autoComplete, 
 export default function LoginClient() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [resetSecret, setResetSecret] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -102,22 +103,29 @@ export default function LoginClient() {
         setError('');
         setSuccess('');
 
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await fetch('/api/admin/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, resetSecret, newPassword: password }),
+                body: JSON.stringify({ email, resetSecret, newPassword: password, confirmPassword }),
             });
 
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.error || 'Reset failed');
 
-            setSuccess('Password reset successfully! Redirecting to login...');
+            setSuccess('Password reset successfully! You can now log in.');
             setTimeout(() => {
                 setForgotPassword(false);
                 setSuccess('');
                 setPassword('');
+                setConfirmPassword('');
                 setResetSecret('');
             }, 3000);
         } catch (err: any) {
@@ -271,6 +279,17 @@ export default function LoginClient() {
                                 value={password}
                                 onChange={setPassword}
                                 placeholder="Min 8 characters"
+                                autoComplete="new-password"
+                                disabled={loading}
+                                ariaInvalid={!!error}
+                                ariaDescribedby={error ? 'reset-error' : undefined}
+                            />
+                            <PasswordField
+                                id="reset-confirm-password"
+                                label="Confirm New Password"
+                                value={confirmPassword}
+                                onChange={setConfirmPassword}
+                                placeholder="Re-enter new password"
                                 autoComplete="new-password"
                                 disabled={loading}
                                 ariaInvalid={!!error}

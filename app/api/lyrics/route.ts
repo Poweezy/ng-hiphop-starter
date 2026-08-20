@@ -6,6 +6,7 @@ import { recordRequest } from '@/lib/observability';
 import { extractIdempotencyKey, getCachedIdempotentResponse, withIdempotency } from '@/lib/idempotency';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { getClientIp } from '@/lib/ip';
+import { auth } from '@/lib/auth';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { notifyAdminModeration } from '@/lib/moderation';
 
@@ -47,6 +48,9 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        const session = await auth();
+        const userId = session?.user?.id ?? null;
+
         const body = await req.json();
         const validation = lyricCreateSchema.safeParse(body);
         
@@ -59,7 +63,7 @@ export async function POST(req: NextRequest) {
 
         const create = async () => {
             const entry = await prisma.lyricGame.create({
-                data: { lyric_text, correct_artist, is_active: !!is_active },
+                data: { lyric_text, correct_artist, is_active: !!is_active, userId },
             });
             return { response: entry, status: 201 as const };
         };
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
             notifyAdminModeration({
                 submissionType: 'lyric',
                 submissionId: (response as { id: string }).id,
-                submittedBy: '',
+                submittedBy: userId ?? '',
             }).catch((err) => {
                 console.error('Moderation notification failed:', err);
             });

@@ -97,7 +97,9 @@ export async function POST(req: NextRequest) {
                 },
             });
 
-            notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
+            notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch((err) => {
+                console.error('Moderation notification failed:', err);
+            });
 
             recordRequest('POST', '/api/graffiti', 201, performance.now() - start, requestId);
             return successResponse(newGraffiti, 201);
@@ -142,11 +144,14 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch(() => {});
+        notifyAdminModeration({ submissionType: 'graffiti', submissionId: newGraffiti.id, submittedBy: artistName }).catch((err) => {
+            console.error('Moderation notification failed:', err);
+        });
 
         recordRequest('POST', '/api/graffiti', 201, performance.now() - start, requestId);
         return successResponse(newGraffiti, 201);
-    } catch {
+    } catch (error) {
+        console.error('Graffiti submission error:', error);
         recordRequest('POST', '/api/graffiti', 500, performance.now() - start, requestId);
         return errorResponse('Server error', 500, 'GRAFFITI_SUBMISSION_ERROR');
     }

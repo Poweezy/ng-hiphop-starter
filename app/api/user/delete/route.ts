@@ -34,6 +34,8 @@ export async function DELETE(req: NextRequest) {
     await prisma.$transaction([
       prisma.quoteSubmission.deleteMany({ where: { submitted_by: session.user.email } }),
       prisma.graffitiSubmission.deleteMany({ where: { artist_name: session.user.email } }),
+      prisma.lyricGame.deleteMany({ where: { userId: user.id } }),
+      prisma.subscriber.deleteMany({ where: { email: session.user.email } }),
       prisma.user.delete({ where: { id: user.id } }),
     ]);
 

@@ -85,12 +85,14 @@ model LyricGame {
   is_active      Boolean  @default(false)
   competitionId  String?
   competition    LyricCompetition? @relation(fields: [competitionId], references: [id])
+  userId         String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([is_active])
   @@index([createdAt])
   @@index([competitionId])
+  @@index([userId])
 }
 
 model LyricCompetition {
@@ -205,13 +207,15 @@ model SubmissionModeration {
 }
 
 model CompetitionParticipant {
-  id             String   @id @default(cuid())
-  competitionId  String   @unique
-  userId         String   @unique
-  submissionCount Int    @default(0)
-  joinedAt       DateTime @default(now())
+  id              String   @id @default(cuid())
+  competitionId   String
+  userId          String
+  submissionCount Int      @default(0)
+  joinedAt        DateTime @default(now())
 
   competition    LyricCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, userId])
 }
 
 model Subscriber {
