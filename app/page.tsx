@@ -46,12 +46,12 @@ export default async function Home() {
   let featuredQuote: { id: string; quote_text: string; submitted_by: string } | null = null;
   let graffitiItems: { id: string; image_url: string; artist_name: string }[] = [];
   let lyrics: { id: string; lyric_text: string; correct_artist: string; competitionId?: string | null }[] = [];
-  let activeCompetition: { id: string; title: string; period: string; endDate: string; is_active: boolean; winnerId: string | null } | null = null;
+  let activeCompetition: { id: string; title: string; type: string; endDate: string; is_active: boolean } | null = null;
   let winner: { lyric_text: string; correct_artist: string } | null = null;
 
   try {
     const competitionResult = await prisma.lyricCompetition.findFirst({
-      where: { is_active: true },
+      where: { is_active: true, status: 'published' },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -87,13 +87,16 @@ export default async function Home() {
       }),
     ]);
 
-    if (activeCompetition?.winnerId) {
-      const winnerLyric = await prisma.lyricGame.findUnique({
-        where: { id: activeCompetition.winnerId },
-        select: { lyric_text: true, correct_artist: true },
+    if (activeCompetition) {
+      const winnerRecord = await prisma.winner.findFirst({
+        where: { competitionId: activeCompetition.id },
+        include: { submission: { select: { lyrics: true, artistAlias: true } } },
       });
-      if (winnerLyric) {
-        winner = winnerLyric;
+      if (winnerRecord?.submission) {
+        winner = {
+          lyric_text: winnerRecord.submission.lyrics,
+          correct_artist: winnerRecord.submission.artistAlias,
+        };
       }
     }
   } catch {

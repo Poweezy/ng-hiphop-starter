@@ -3,6 +3,7 @@ import './globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
 import ConsentAwareAnalytics from '@/components/ConsentAwareAnalytics';
+import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
     title: {
@@ -73,9 +74,11 @@ export default function RootLayout({
                 <link rel="icon" href="/images/logo.png" />
             </head>
             <body>
-                <SplashScreenWrapper />
-                <LayoutWrapper>{children}</LayoutWrapper>
-                <ConsentAwareAnalytics />
+                <SessionProvider>
+                    <SplashScreenWrapper />
+                    <LayoutWrapper>{children}</LayoutWrapper>
+                    <ConsentAwareAnalytics />
+                </SessionProvider>
             </body>
         </html>
     );

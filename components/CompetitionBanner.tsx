@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 interface Competition {
   id: string;
   title: string;
-  period: string;
+  type: string;
   endDate: string;
   is_active: boolean;
-  winnerId: string | null;
 }
 
 interface Winner {
@@ -83,7 +83,7 @@ export default function CompetitionBanner({ competition, winner }: Props) {
             <>
               <h2 className="competition-title">{competition.title}</h2>
               <div className="competition-meta">
-                <span className="competition-period">{competition.period.toUpperCase()}</span>
+                 <span className="competition-period">{competition.type.toUpperCase()}</span>
                 {isEnded ? (
                   <span className="competition-ended">Ended</span>
                 ) : (
@@ -97,29 +97,36 @@ export default function CompetitionBanner({ competition, winner }: Props) {
           )}
 
           {!winner && !isEnded && (
-            <form onSubmit={handleSubscribe} className="subscribe-form">
-              <label htmlFor="subscribe-email" className="subscribe-label">
-                Get notified when the winner is announced
-              </label>
-              <div className="subscribe-input-group">
-                <input
-                  id="subscribe-email"
-                  type="email"
-                  className="subscribe-input"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  disabled={status === 'loading'}
-                />
-                <button type="submit" className="btn-subscribe" disabled={status === 'loading' || !email.trim()}>
-                  {status === 'loading' ? '...' : 'Subscribe'}
-                </button>
+            <>
+              <form onSubmit={handleSubscribe} className="subscribe-form">
+                <label htmlFor="subscribe-email" className="subscribe-label">
+                  Get notified when the winner is announced
+                </label>
+                <div className="subscribe-input-group">
+                  <input
+                    id="subscribe-email"
+                    type="email"
+                    className="subscribe-input"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                    disabled={status === 'loading'}
+                  />
+                  <button type="submit" className="btn-subscribe" disabled={status === 'loading' || !email.trim()}>
+                    {status === 'loading' ? '...' : 'Subscribe'}
+                  </button>
+                </div>
+                {status !== 'idle' && (
+                  <div className={`subscribe-message subscribe-message--${status}`}>{message}</div>
+                )}
+              </form>
+              <div style={{ marginTop: 16 }}>
+                <Link href="/game/best-lyrics" className="hero-btn-ghost" style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                  Enter Competition →
+                </Link>
               </div>
-              {status !== 'idle' && (
-                <div className={`subscribe-message subscribe-message--${status}`}>{message}</div>
-              )}
-            </form>
+            </>
           )}
 
           {isEnded && !winner && (

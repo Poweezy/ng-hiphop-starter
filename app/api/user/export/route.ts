@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 
     // Scope lyrics to competitions the requesting user subscribed to,
     // since LyricGame has no submitted_by field.
-    const subscribedCompetitions = await prisma.competitionSubscriber.findMany({
+    const subscribedCompetitions = await prisma.subscriber.findMany({
       where: { email: session.user.email },
       select: { competitionId: true },
     });

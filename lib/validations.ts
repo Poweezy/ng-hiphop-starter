@@ -53,28 +53,110 @@ export const sloganUpdateSchema = z.object({
   slogan: z.string().min(1).max(200).trim(),
 });
 
-// Competition validation
+// ============================================
+// Best Lyrics Portal — Competition Management
+// ============================================
+
 export const competitionCreateSchema = z.object({
   title: z.string().min(1).max(200).trim(),
-  period: z.enum(['monthly', 'yearly']),
+  description: z.string().max(2000).optional().nullable(),
+  type: z.enum(['monthly', 'yearly', 'custom']).default('monthly'),
+  status: z.enum(['draft', 'published', 'archived']).default('draft'),
+  slug: z.string().max(200).optional().nullable(),
   startDate: z.string().datetime(),
   endDate: z.string().datetime(),
+  submissionDeadline: z.string().datetime(),
+  bannerUrl: z.string().url().optional().nullable(),
+  shortDescription: z.string().max(500).optional().nullable(),
+  socialSharingText: z.string().max(280).optional().nullable(),
   is_active: z.boolean().optional(),
 });
 
 export const competitionUpdateSchema = z.object({
   id: z.string().cuid(),
   title: z.string().min(1).max(200).trim().optional(),
-  period: z.enum(['monthly', 'yearly']).optional(),
+  description: z.string().max(2000).optional().nullable(),
+  type: z.enum(['monthly', 'yearly', 'custom']).optional(),
+  status: z.enum(['draft', 'published', 'archived']).optional(),
+  slug: z.string().max(200).optional().nullable(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
+  submissionDeadline: z.string().datetime().optional(),
+  bannerUrl: z.string().url().optional().nullable(),
+  shortDescription: z.string().max(500).optional().nullable(),
+  socialSharingText: z.string().max(280).optional().nullable(),
   is_active: z.boolean().optional(),
-  winnerId: z.string().cuid().optional().nullable(),
+});
+
+export const competitionRuleSchema = z.object({
+  competitionId: z.string().cuid(),
+  minLength: z.number().int().positive().optional().nullable(),
+  maxLength: z.number().int().positive().optional().nullable(),
+  originalityRequired: z.boolean().default(true),
+  copyrightRequirements: z.string().max(1000).optional().nullable(),
+  maxSubmissionsPerUser: z.number().int().positive().default(1),
+  eligibilityRequirements: z.string().max(1000).optional().nullable(),
+  ageRestriction: z.string().max(50).optional().nullable(),
+  moderationRequired: z.boolean().default(true),
+});
+
+export const competitionPrizeSchema = z.object({
+  competitionId: z.string().cuid(),
+  position: z.number().int().positive(),
+  name: z.string().min(1).max(200).trim(),
+  cashAmount: z.number().nonnegative().optional().nullable(),
+  description: z.string().max(500).optional().nullable(),
+});
+
+export const lyricSubmissionSchema = z.object({
+  competitionId: z.string().cuid(),
+  artistAlias: z.string().min(1).max(100).trim(),
+  lyrics: z.string().min(10).max(5000).trim(),
+  songTitle: z.string().max(200).optional().nullable(),
+  audioUrl: z.string().url().optional().nullable(),
+  socialLinks: z.string().max(500).optional().nullable(),
+  copyrightAccepted: z.boolean().default(false),
+});
+
+export const submissionModerationSchema = z.object({
+  submissionId: z.string().cuid(),
+  action: z.enum(['approve', 'reject', 'request_changes', 'disqualify']),
+  reason: z.string().max(500).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+});
+
+export const winnerSelectionSchema = z.object({
+  competitionId: z.string().cuid(),
+  submissionId: z.string().cuid(),
+  position: z.number().int().positive(),
+  prizeId: z.string().cuid().optional().nullable(),
+});
+
+export const subscriberSchema = z.object({
+  competitionId: z.string().cuid(),
+  email: z.string().email(),
+  name: z.string().max(100).optional().nullable(),
+  source: z.string().max(200).default(''),
+  consentStatus: z.enum(['granted', 'withdrawn']).default('granted'),
+  subscriptionStatus: z.enum(['active', 'unsubscribed', 'bounced']).default('active'),
+});
+
+export const emailCampaignSchema = z.object({
+  name: z.string().min(1).max(200).trim(),
+  subject: z.string().min(1).max(200).trim(),
+  body: z.string().min(1).max(10000),
+  recipientFilter: z.string().max(1000).optional().nullable(),
+  recipientIds: z.string().max(10000).optional().nullable(),
+  scheduledAt: z.string().datetime().optional().nullable(),
+  status: z.enum(['draft', 'scheduled', 'sending', 'sent', 'failed']).default('draft'),
 });
 
 export const competitionSubscribeSchema = z.object({
   competitionId: z.string().cuid(),
   email: z.string().email(),
+  name: z.string().max(100).optional().nullable(),
+  source: z.string().max(200).default('Best Lyrics Portal'),
+  consentStatus: z.enum(['granted', 'withdrawn']).default('granted'),
 });
 
 export const competitionAssignSchema = z.object({
@@ -85,11 +167,6 @@ export const competitionAssignSchema = z.object({
 export const adminUsersPatchSchema = z.object({
   id: z.string().cuid(),
   role: z.enum(['USER', 'ADMIN']),
-});
-
-// Admin: declare competition winner
-export const winnerSchema = z.object({
-  winnerId: z.string().cuid(),
 });
 
 // Admin: reset user password (master secret flow)

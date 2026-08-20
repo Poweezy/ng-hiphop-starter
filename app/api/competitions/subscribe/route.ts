@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return errorResponse('Competition not found', 404, 'NOT_FOUND');
     }
 
-    await prisma.competitionSubscriber.upsert({
+    await prisma.subscriber.upsert({
       where: {
         competitionId_email: {
           competitionId,
@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
       create: {
         competitionId,
         email,
+        source: 'Best Lyrics Portal',
       },
     });
 

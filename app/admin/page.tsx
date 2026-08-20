@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { prisma } from '@/app/db';
-import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
+import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
 
 export default async function AdminPage() {
     const session = await auth();
@@ -12,7 +12,7 @@ export default async function AdminPage() {
         redirect('/admin/login');
     }
 
-    const [slogan, songs, quotes, graffiti, lyrics, users, competitions] = await Promise.all([
+    const [slogan, songs, quotes, graffiti, lyrics, users, competitions, submissions, winners, subscribers] = await Promise.all([
         prisma.slogan.findUnique({ where: { id: 1 } }),
         prisma.song.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
         prisma.quoteSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
@@ -27,7 +27,42 @@ export default async function AdminPage() {
                     select: {
                         lyrics: true,
                         subscribers: true,
+                        submissions: true,
                     },
+                },
+            },
+        }),
+        prisma.lyricSubmission.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 200,
+            include: {
+                competition: {
+                    select: { id: true, title: true },
+                },
+            },
+        }),
+        prisma.winner.findMany({
+            orderBy: { winningDate: 'desc' },
+            take: 100,
+            include: {
+                submission: {
+                    select: {
+                        artistAlias: true,
+                        lyrics: true,
+                        songTitle: true,
+                    },
+                },
+                competition: {
+                    select: { id: true, title: true },
+                },
+            },
+        }),
+        prisma.subscriber.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 200,
+            include: {
+                competition: {
+                    select: { id: true, title: true },
                 },
             },
         }),
@@ -37,6 +72,8 @@ export default async function AdminPage() {
         if (value instanceof Date) return value.toISOString();
         return value;
     };
+
+    const serializeDecimal = (value: number | null | undefined | any) => value != null ? Number(value) : null;
 
     const usersWithData = await Promise.all(
         users.map(async (u) => {
@@ -66,10 +103,41 @@ export default async function AdminPage() {
                 ...c,
                 startDate: serializeDate(c.startDate) ?? new Date().toISOString(),
                 endDate: serializeDate(c.endDate) ?? new Date().toISOString(),
+                submissionDeadline: serializeDate(c.submissionDeadline) ?? new Date().toISOString(),
                 createdAt: serializeDate(c.createdAt) ?? new Date().toISOString(),
                 updatedAt: serializeDate(c.updatedAt) ?? new Date().toISOString(),
-                _count: c._count,
-            }))}
+                _count: c._count ? {
+                    lyrics: c._count.lyrics,
+                    subscribers: c._count.subscribers,
+                    submissions: c._count.submissions,
+                } : undefined,
+            })) as CompetitionSummary[]}
+            initialSubmissions={submissions.map(s => ({
+                ...s,
+                createdAt: serializeDate(s.createdAt) ?? new Date().toISOString(),
+                updatedAt: serializeDate(s.updatedAt) ?? new Date().toISOString(),
+                competition: s.competition ? { id: s.competition.id, title: s.competition.title } : undefined,
+            })) as LyricSubmissionSummary[]}
+            initialWinners={winners.map(w => ({
+                ...w,
+                winningDate: serializeDate(w.winningDate) ?? new Date().toISOString(),
+                createdAt: serializeDate(w.createdAt) ?? new Date().toISOString(),
+                cashAmount: serializeDecimal(w.cashAmount),
+                submission: w.submission ? {
+                    artistAlias: w.submission.artistAlias,
+                    lyrics: w.submission.lyrics,
+                    songTitle: w.submission.songTitle,
+                } : undefined,
+            })) as WinnerSummary[]}
+            initialSubscribers={subscribers.map(s => ({
+                ...s,
+                consentTimestamp: serializeDate(s.consentTimestamp) ?? new Date().toISOString(),
+                unsubscribedAt: serializeDate(s.unsubscribedAt),
+                lastEmailSentAt: serializeDate(s.lastEmailSentAt),
+                createdAt: serializeDate(s.createdAt) ?? new Date().toISOString(),
+                updatedAt: serializeDate(s.updatedAt) ?? new Date().toISOString(),
+                competition: s.competition ? { title: s.competition.title } : undefined,
+            })) as SubscriberSummary[]}
             initialUsers={usersWithData}
         />
     );

@@ -52,6 +52,7 @@ export default function Navigation() {
           <Link href="/#community-quotes" className="nav-link">Community</Link>
           <Link href="/#graffiti"        className="nav-link">Gallery</Link>
           <Link href="/#lyric-game"      className="nav-link">Game</Link>
+          <Link href="/game/best-lyrics" className="nav-link">Best Lyrics</Link>
           <Link href="/admin/login"      className="nav-link nav-link-admin">Admin</Link>
         </div>
 
@@ -78,14 +79,15 @@ export default function Navigation() {
             className="nav-mobile-menu"
           >
              <nav className="nav-mobile-links" aria-label="Mobile navigation">
-               {[
-                 { href: '/#latest-release',   label: 'Music' },
-                 { href: '/library',           label: 'Library' },
-                 { href: '/#community-quotes', label: 'Community' },
-                 { href: '/#graffiti',         label: 'Gallery' },
-                 { href: '/#lyric-game',       label: 'Game' },
-                 { href: '/admin/login',       label: 'Admin' },
-               ].map(({ href, label }) => (
+                {[
+                  { href: '/#latest-release',   label: 'Music' },
+                  { href: '/library',           label: 'Library' },
+                  { href: '/#community-quotes', label: 'Community' },
+                  { href: '/#graffiti',         label: 'Gallery' },
+                  { href: '/#lyric-game',       label: 'Game' },
+                  { href: '/game/best-lyrics',  label: 'Best Lyrics' },
+                  { href: '/admin/login',       label: 'Admin' },
+                ].map(({ href, label }) => (
                  <Link
                    key={href}
                    href={href}
