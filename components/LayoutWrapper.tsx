@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { ToastProvider } from '@/components/ToastProvider';
@@ -7,14 +8,24 @@ import CookieConsent from '@/components/CookieConsent';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isAdmin = pathname?.startsWith('/admin');
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      setMounted(true);
+      if (pathname) {
+        setIsAdmin(pathname.startsWith('/admin'));
+      }
+    }, [pathname]);
+
+    const showNavigation = mounted ? !isAdmin : true;
 
     return (
         <ToastProvider>
             <a href="#main-content" className="skip-link">Skip to content</a>
-            {!isAdmin && <Navigation />}
+            {showNavigation && <Navigation />}
             <main id="main-content">{children}</main>
-            {!isAdmin && (
+            {showNavigation && (
                 <footer className="disclaimer-footer" role="contentinfo" aria-label="Legal disclaimer">
                     ⚖️ All content published on this platform is licensed, owned, and legally distributed.
                     Unauthorized use is prohibited.
@@ -25,7 +36,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                     </span>
                 </footer>
             )}
-            {!isAdmin && <CookieConsent />}
+            {showNavigation && <CookieConsent />}
         </ToastProvider>
     );
 }

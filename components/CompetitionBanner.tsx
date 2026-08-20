@@ -138,7 +138,7 @@ export default function CompetitionBanner({ competition, winner }: Props) {
       <style jsx>{`
         .competition-section {
           position: relative;
-          background: url('/images/competition-bg.jpg') center/cover no-repeat;
+          background: #0a0a0c url('/images/competition-bg.jpg') center/cover no-repeat;
           padding: 80px 0;
           overflow: hidden;
         }
@@ -147,7 +147,7 @@ export default function CompetitionBanner({ competition, winner }: Props) {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, rgba(10,10,12,0.95) 0%, rgba(10,10,12,0.5) 50%, rgba(10,10,12,0.95) 100%);
+          background: linear-gradient(180deg, rgba(10,10,12,0.75) 0%, rgba(10,10,12,0.3) 50%, rgba(10,10,12,0.75) 100%);
           z-index: 0;
         }
 
