@@ -225,7 +225,7 @@ export default function LoginClient() {
                                 id="admin-password"
                                 label="Password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 autoComplete="current-password"
                                 disabled={loading}
@@ -269,7 +269,7 @@ export default function LoginClient() {
                                 id="reset-secret"
                                 label="Master Secret Key"
                                 value={resetSecret}
-                                onChange={(e) => setResetSecret(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setResetSecret(e.target.value)}
                                 placeholder="Enter reset secret from .env"
                                 autoComplete="off"
                                 disabled={loading}
@@ -281,7 +281,7 @@ export default function LoginClient() {
                                 id="reset-password"
                                 label="New Password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                 placeholder="Min 8 characters"
                                 autoComplete="new-password"
                                 disabled={loading}
@@ -292,7 +292,7 @@ export default function LoginClient() {
                                 id="reset-confirm-password"
                                 label="Confirm New Password"
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                                 placeholder="Re-enter new password"
                                 autoComplete="new-password"
                                 disabled={loading}
