@@ -1,4 +1,4 @@
-import { prisma } from "@/app/db";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { captureQueueError } from "./observability";
 

@@ -81,7 +81,7 @@ export default async function Home() {
         take: 10,
       }),
       prisma.lyricGame.findMany({
-        where: activeCompetition ? { is_active: true, competitionId: activeCompetition.id } : { is_active: true },
+        where: { is_active: true },
         orderBy: { createdAt: 'asc' },
         take: 200,
       }),
