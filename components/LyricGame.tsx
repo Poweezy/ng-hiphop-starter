@@ -671,10 +671,10 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .intro-hint { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; font-size: 0.78rem; color: var(--color-text-muted); font-family: var(--font-condensed); letter-spacing: 0.08em; }
                 .intro-hint-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-green); box-shadow: 0 0 8px var(--color-green); animation: pulse-dot 2s ease-in-out infinite; flex-shrink: 0; }
                 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.18); border-radius: 40px; padding: 36px 40px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.15); overflow: hidden; transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                @media (max-width: 640px) { .game-card { padding: 24px 18px 28px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.25rem !important; } .lyric-box { padding: 18px 16px 18px 20px; } }
-                .game-card { position: relative; background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.18); border-radius: 40px; padding: 36px 40px 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(139,92,246,0.15); overflow: hidden; transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-                @media (max-width: 640px) { .game-card { padding: 24px 18px 28px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.25rem !important; } .lyric-box { padding: 18px 16px 18px 20px; } }
+                .game-card { position: relative; background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06); overflow: hidden; transition: box-shadow 0.4s ease, border-color 0.4s ease; }
+                .game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); }
+                .game-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 24px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08); }
+                @media (max-width: 640px) { .game-card { padding: 24px 18px 28px; border-radius: 20px; } .game-intro { padding: 40px 24px; } .intro-title { font-size: 1.8rem; } .lyric-text { font-size: 1.25rem !important; } .lyric-box { padding: 18px 16px 18px 20px; } }
                 .game-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
                 .hud-stat { display: flex; flex-direction: column; gap: 2px; }
                 .hud-stat--right { align-items: flex-end; }
@@ -700,20 +700,25 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .lyric-box-divider { flex: 1; height: 1px; background: rgba(139,92,246,0.15); }
                 .lyric-quote-mark { display: inline; font-family: Georgia, serif; font-size: 2rem; line-height: 1; color: rgba(139,92,246,0.45); user-select: none; vertical-align: -0.12em; }
                 .lyric-text { font-size: clamp(1.3rem, 2.5vw, 1.7rem); font-weight: 600; color: white; line-height: 1.5; font-style: italic; overflow-wrap: break-word; text-wrap: balance; letter-spacing: -0.01em; }
-                .options-list { display: flex; flex-direction: column; gap: 8px; }
-                .option-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0; display: flex; align-items: stretch; color: white; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; position: relative; touch-action: manipulation; min-height: 52px; overflow: hidden; }
+                .options-list { display: flex; flex-direction: column; gap: 10px; }
+                .option-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 0; display: flex; align-items: stretch; color: white; cursor: pointer; transition: all 0.2s ease; position: relative; touch-action: manipulation; min-height: 56px; overflow: hidden; }
+                .option-btn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: transparent; transition: background 0.2s ease; }
                 .option-btn:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
-                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.45); box-shadow: 0 0 0 1px rgba(139,92,246,0.2), 0 4px 20px rgba(139,92,246,0.12); transform: translateY(-1px); }
-                .option-btn:active:not(:disabled) { transform: translateY(0); }
-                .option-btn:disabled { cursor: default; }
-                .option-number { width: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); background: rgba(139,92,246,0.12); border-right: 1px solid rgba(139,92,246,0.2); letter-spacing: 0.04em; transition: background 0.15s ease, color 0.15s ease; }
-                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.22); color: #c4b5fd; }
-                .option-label { flex: 1; font-size: 0.95rem; font-weight: 600; line-height: 1.3; text-align: left; padding: 0 18px; display: flex; align-items: center; font-family: var(--font-body); letter-spacing: 0.01em; }
-                .option-btn.correct { background: rgba(16,185,129,0.1); border-color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.25), 0 4px 16px rgba(16,185,129,0.1); }
-                .option-btn.correct .option-number { background: rgba(16,185,129,0.2); border-right-color: rgba(16,185,129,0.4); color: #10b981; }
-                .option-btn.wrong { background: rgba(239,68,68,0.1); border-color: #ef4444; box-shadow: 0 0 0 1px rgba(239,68,68,0.25); }
-                .option-btn.wrong .option-number { background: rgba(239,68,68,0.2); border-right-color: rgba(239,68,68,0.4); color: #ef4444; }
-                .option-btn.reveal-correct { border-color: #10b981; border-width: 1px; }
+                .option-btn:hover:not(:disabled) { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.4); transform: translateX(4px); }
+                .option-btn:hover:not(:disabled)::before { background: var(--color-purple); }
+                .option-btn:active:not(:disabled) { transform: translateX(2px) scale(0.99); }
+                .option-btn:disabled { cursor: default; opacity: 0.7; }
+                .option-number { width: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; font-family: var(--font-condensed); color: var(--color-purple-light); background: rgba(139,92,246,0.1); border-right: 1px solid rgba(139,92,246,0.15); letter-spacing: 0.04em; transition: all 0.2s ease; }
+                .option-btn:hover:not(:disabled) .option-number { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+                .option-label { flex: 1; font-size: 0.95rem; font-weight: 600; line-height: 1.4; text-align: left; padding: 0 18px; display: flex; align-items: center; font-family: var(--font-body); letter-spacing: 0.01em; }
+                .option-btn.correct { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.5); box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 20px rgba(16,185,129,0.15); }
+                .option-btn.correct::before { background: #10b981; }
+                .option-btn.correct .option-number { background: rgba(16,185,129,0.25); border-right-color: rgba(16,185,129,0.5); color: #10b981; }
+                .option-btn.wrong { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.5); box-shadow: 0 0 0 1px rgba(239,68,68,0.3); }
+                .option-btn.wrong::before { background: #ef4444; }
+                .option-btn.wrong .option-number { background: rgba(239,68,68,0.25); border-right-color: rgba(239,68,68,0.5); color: #ef4444; }
+                .option-btn.reveal-correct { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.06); }
+                .option-btn.reveal-correct::before { background: rgba(16,185,129,0.5); }
                 .option-btn.reveal-correct .option-number { background: rgba(16,185,129,0.2); border-right-color: rgba(16,185,129,0.4); color: #10b981; }
                 .feedback-icon { padding-right: 16px; font-size: 1rem; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; }
                 .keyboard-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 0.72rem; color: rgba(255,255,255,0.3); font-family: var(--font-condensed); letter-spacing: 0.06em; }
