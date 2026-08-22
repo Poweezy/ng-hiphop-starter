@@ -66,6 +66,8 @@ export default function CompetitionBanner({ competition, winner }: Props) {
       animate={{ opacity: 1, y: 0 }}
       className="section competition-section"
     >
+      <div className="competition-bg-blur" aria-hidden="true" />
+      <div className="competition-bg-overlay" aria-hidden="true" />
       <div className="container">
         <div className="competition-banner">
           <div className="competition-badge">🎤 Lyric Competition</div>
@@ -138,22 +140,33 @@ export default function CompetitionBanner({ competition, winner }: Props) {
       <style jsx>{`
         .competition-section {
           position: relative;
-          background: #0a0a0c url('/images/competition-bg.jpg') center/cover no-repeat;
           padding: 80px 0;
           overflow: hidden;
         }
 
-        .competition-section::before {
-          content: '';
+        .competition-bg-blur {
+          position: absolute;
+          inset: -60px;
+          background-image: url('/images/competition-bg.jpg');
+          background-size: cover;
+          background-position: center;
+          filter: blur(4px) saturate(1.2) brightness(0.9);
+          opacity: 1;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .competition-bg-overlay {
           position: absolute;
           inset: 0;
           background: linear-gradient(180deg, rgba(10,10,12,0.75) 0%, rgba(10,10,12,0.3) 50%, rgba(10,10,12,0.75) 100%);
-          z-index: 0;
+          z-index: 1;
+          pointer-events: none;
         }
 
         .container {
           position: relative;
-          z-index: 1;
+          z-index: 2;
         }
 
         .competition-banner {
