@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { storage } from '@/lib/storage';
 import { optimizeImage } from '@/lib/imageOptimizer';

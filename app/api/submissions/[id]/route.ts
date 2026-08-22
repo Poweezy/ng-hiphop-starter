@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { submissionUpdateSchema } from '@/lib/validations';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getRequestId(req);
@@ -52,7 +53,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     const body = await req.json();
-    const { status, score, moderationStatus, moderationNotes, moderationReason } = body;
+    const validation = submissionUpdateSchema.safeParse(body);
+    if (!validation.success) {
+      recordRequest('PATCH', `/api/submissions/${id}`, 400, performance.now() - start, requestId);
+      return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
+    }
+
+    const { status, score, moderationStatus, moderationNotes, moderationReason } = validation.data;
 
     const updateData: Record<string, unknown> = {};
     if (status !== undefined) updateData.status = status;

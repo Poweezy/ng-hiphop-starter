@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
-import { getRequestId, errorResponse, successResponse } from '@/lib/api';
+import { getRequestId, errorResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { getClientIp } from '@/lib/ip';
 
 export async function GET(req: NextRequest) {
   const requestId = getRequestId(req);
@@ -12,6 +14,14 @@ export async function GET(req: NextRequest) {
     if (!session) {
       recordRequest('GET', '/api/subscribers/export', error!.status, performance.now() - start, requestId);
       return errorResponse(error!.message, error!.status, 'UNAUTHORIZED');
+    }
+
+    const ip = getClientIp(req);
+    const rateKey = `subscribers-export:${session.user.id}:${ip}`;
+    const { allowed } = await checkRateLimit({ key: rateKey, max: 10, periodSeconds: 60 });
+    if (!allowed) {
+      recordRequest('GET', '/api/subscribers/export', 429, performance.now() - start, requestId);
+      return errorResponse('Too many export requests. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
     }
 
     const { searchParams } = new URL(req.url);

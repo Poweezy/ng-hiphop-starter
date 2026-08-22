@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
@@ -39,8 +39,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { competitionId: id },
       include: { submission: { select: { artistAlias: true, lyrics: true } } },
     });
-
-    const message = `Competition "${competition.title}" winner announced!${winner ? ` Winning lyric by ${winner.submission?.artistAlias}: "${winner.submission?.lyrics?.substring(0, 100)}"` : ''}`;
 
     await prisma.subscriber.updateMany({
       where: { competitionId: id },

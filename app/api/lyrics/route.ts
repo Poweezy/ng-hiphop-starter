@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
-import { lyricCreateSchema, lyricUpdateSchema, lyricDeleteSchema } from '@/lib/validations';
+import { lyricCreateSchema, lyricUpdateSchema } from '@/lib/validations';
 import { errorResponse, successResponse, getRequestId } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
 import { extractIdempotencyKey, getCachedIdempotentResponse, withIdempotency } from '@/lib/idempotency';

@@ -3,6 +3,7 @@ import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { subscriberUpdateSchema } from '@/lib/validations';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getRequestId(req);
@@ -16,7 +17,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     const body = await req.json();
-    const { name, subscriptionStatus, consentStatus } = body;
+    const validation = subscriberUpdateSchema.safeParse(body);
+    if (!validation.success) {
+      recordRequest('PATCH', `/api/subscribers/${id}`, 400, performance.now() - start, requestId);
+      return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
+    }
+
+    const { name, subscriptionStatus, consentStatus } = validation.data;
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;

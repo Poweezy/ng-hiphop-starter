@@ -1896,6 +1896,132 @@ img[loading="lazy"] {
 }
 
 /* ===================================
+   ADMIN LOGIN
+   =================================== */
+.admin-login-page {
+  min-height: 100vh;
+  background: var(--color-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: var(--font-body);
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.admin-login-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-login-portal {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  color: var(--color-grey-blue);
+  margin-top: 4px;
+  text-align: center;
+}
+
+.admin-login-back {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.8rem;
+  text-decoration: none;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.admin-login-back:hover {
+  color: rgba(255,255,255,0.7);
+}
+
+.admin-login-form-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(4,120,87,0.3);
+  border-radius: 12px;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-login-label {
+  color: var(--color-green-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.admin-login-link {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-top: 10px;
+  padding: 0;
+}
+
+.admin-login-link:hover {
+  color: rgba(255,255,255,0.7);
+}
+
+.admin-login-footer {
+  text-align: center;
+  color: rgba(255,255,255,0.2);
+  font-size: 0.75rem;
+  margin-top: 20px;
+}
+
+.admin-success-box {
+  padding: 12px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  color: #10b981;
+  font-size: 0.85rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+.password-toggle:hover {
+  color: rgba(255,255,255,0.8);
+}
+
+.password-field-wrap {
+  position: relative;
+}
+
+.password-field-input {
+  padding-right: 44px;
+}
+
+/* ===================================
    COOKIE CONSENT
    =================================== */
 .cookie-consent {

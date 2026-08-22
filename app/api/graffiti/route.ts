@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { auth } from '@/lib/auth';
 import { storage } from '@/lib/storage';
 import { graffitiUpdateSchema } from '@/lib/validations';
-import { z } from 'zod';
 import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { requireAdmin } from '@/app/api/_lib/admin';

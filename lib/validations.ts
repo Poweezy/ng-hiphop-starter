@@ -125,6 +125,14 @@ export const submissionModerationSchema = z.object({
   notes: z.string().max(2000).optional().nullable(),
 });
 
+export const submissionUpdateSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected', 'disqualified', 'winner']).optional(),
+  score: z.number().int().nonnegative().optional(),
+  moderationStatus: z.enum(['pending', 'approved', 'rejected', 'changes_requested']).optional(),
+  moderationNotes: z.string().max(2000).optional().nullable(),
+  moderationReason: z.string().max(500).optional().nullable(),
+});
+
 export const winnerSelectionSchema = z.object({
   competitionId: z.string().cuid(),
   submissionId: z.string().cuid(),
@@ -149,6 +157,22 @@ export const emailCampaignSchema = z.object({
   recipientIds: z.string().max(10000).optional().nullable(),
   scheduledAt: z.string().datetime().optional().nullable(),
   status: z.enum(['draft', 'scheduled', 'sending', 'sent', 'failed']).default('draft'),
+});
+
+export const subscriberUpdateSchema = z.object({
+  name: z.string().max(100).optional().nullable(),
+  subscriptionStatus: z.enum(['active', 'unsubscribed', 'bounced']).optional(),
+  consentStatus: z.enum(['granted', 'withdrawn']).optional(),
+});
+
+export const emailCampaignUpdateSchema = z.object({
+  name: z.string().min(1).max(200).trim().optional(),
+  subject: z.string().min(1).max(200).trim().optional(),
+  body: z.string().min(1).max(10000).optional(),
+  recipientFilter: z.string().max(1000).optional().nullable(),
+  recipientIds: z.string().max(10000).optional().nullable(),
+  scheduledAt: z.string().datetime().optional().nullable(),
+  status: z.enum(['draft', 'scheduled', 'sending', 'sent', 'failed']).optional(),
 });
 
 export const competitionSubscribeSchema = z.object({
