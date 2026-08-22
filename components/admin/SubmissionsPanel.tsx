@@ -350,10 +350,10 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
                       />
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={handleModerate} className="btn-admin" disabled={moderating}>
+                      <button type="button" onClick={handleModerate} className="btn btn-primary$1" disabled={moderating}>
                         {moderating ? 'Saving...' : 'Submit Moderation'}
                       </button>
-                      <button type="button" onClick={() => { setModAction(''); setModReason(''); setModNotes(''); }} className="btn-outline-cancel">Cancel</button>
+                      <button type="button" onClick={() => { setModAction(''); setModReason(''); setModNotes(''); }} className="btn btn-secondary$1">Cancel</button>
                     </div>
                   </div>
                 )}

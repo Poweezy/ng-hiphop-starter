@@ -139,7 +139,7 @@ export default function LyricsPanel({ initialLyrics }: Props) {
                                 disabled={saving}
                             />
                         </div>
-                        <button type="submit" className="btn-admin" disabled={saving}>
+                        <button type="submit" className="btn btn-primary$1" disabled={saving}>
                             {saving ? '⏳ Saving...' : '+ Add Lyric'}
                         </button>
                         {status !== 'idle' && (

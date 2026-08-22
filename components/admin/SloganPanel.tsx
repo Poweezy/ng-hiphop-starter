@@ -55,7 +55,7 @@ export default function SloganPanel({ initialSlogan }: Props) {
                         <span className="admin-char-count">{slogan.length}/200</span>
                     </div>
 
-                    <button type="submit" className="btn-admin" disabled={status === 'loading' || slogan.trim() === saved}>
+                    <button type="submit" className="btn btn-primary$1" disabled={status === 'loading' || slogan.trim() === saved}>
                         {status === 'loading' ? '⏳ Saving...' : '✅ Update Live Slogan'}
                     </button>
 

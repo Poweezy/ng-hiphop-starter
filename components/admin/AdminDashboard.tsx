@@ -38,23 +38,30 @@ interface Props {
     initialUsers: { id: string; email: string; role: string; createdAt: string; updatedAt: string; submissionCount: number }[];
 }
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'users', label: 'Users', icon: '👥' },
-    { id: 'slogan', label: 'Slogan', icon: '✏️' },
-    { id: 'songs', label: 'Songs', icon: '🎵' },
-    { id: 'quotes', label: 'Quotes', icon: '💬' },
-    { id: 'graffiti', label: 'Graffiti', icon: '🎨' },
-    { id: 'lyrics', label: 'Lyrics', icon: '🎤' },
-    { id: 'best-lyrics', label: 'Best Lyrics Portal', icon: '🏆' },
-    { id: 'submissions', label: 'Submissions', icon: '📝' },
-    { id: 'winners', label: 'Winners', icon: '👑' },
-    { id: 'subscribers', label: 'Email Subscribers', icon: '📧' },
-    { id: 'security', label: 'Security', icon: '🔐' },
+const TABS: { id: Tab; label: string; icon: string; group: string }[] = [
+    { id: 'overview', label: 'Overview', icon: '📊', group: 'content' },
+    { id: 'songs', label: 'Songs', icon: '🎵', group: 'content' },
+    { id: 'quotes', label: 'Quotes', icon: '💬', group: 'content' },
+    { id: 'graffiti', label: 'Graffiti', icon: '🎨', group: 'content' },
+    { id: 'lyrics', label: 'Lyrics', icon: '🎤', group: 'content' },
+    { id: 'submissions', label: 'Submissions', icon: '📝', group: 'content' },
+    { id: 'best-lyrics', label: 'Competitions', icon: '🏆', group: 'management' },
+    { id: 'winners', label: 'Winners', icon: '👑', group: 'management' },
+    { id: 'subscribers', label: 'Subscribers', icon: '📧', group: 'management' },
+    { id: 'users', label: 'Users', icon: '👥', group: 'management' },
+    { id: 'slogan', label: 'Slogan', icon: '✏️', group: 'system' },
+    { id: 'security', label: 'Security', icon: '🔐', group: 'system' },
 ];
+
+const GROUP_LABELS: Record<string, string> = {
+    content: 'Content',
+    management: 'Management',
+    system: 'System',
+};
 
 export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialCompetitions, initialSubmissions, initialWinners, initialSubscribers, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
+    const [showShortcuts, setShowShortcuts] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -63,6 +70,48 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
         if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'best-lyrics', 'submissions', 'winners', 'subscribers', 'security'].includes(tab)) {
             setActiveTab(tab);
         }
+    }, [searchParams]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+                return;
+            }
+
+            if (e.key === '?') {
+                setShowShortcuts((v) => !v);
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                setShowShortcuts(false);
+                return;
+            }
+
+            const tabKeys: Record<string, Tab> = {
+                '1': 'overview',
+                '2': 'users',
+                '3': 'slogan',
+                '4': 'songs',
+                '5': 'quotes',
+                '6': 'graffiti',
+                '7': 'lyrics',
+                '8': 'best-lyrics',
+                '9': 'submissions',
+                '0': 'winners',
+                'e': 'subscribers',
+                's': 'security',
+            };
+
+            const tab = tabKeys[e.key.toLowerCase()];
+            if (tab) {
+                e.preventDefault();
+                handleTabChange(tab);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, [searchParams]);
 
     const handleTabChange = (tab: Tab) => {
@@ -98,15 +147,15 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                 </div>
 
                 <div className="header-right">
-                    <button onClick={handleBackToSite} className="btn-outline">
+                    <button onClick={handleBackToSite} className="btn btn-secondary btn-sm">
                         ← Back to Site
                     </button>
-                    <button onClick={handleViewSite} className="btn-outline">
+                    <button onClick={handleViewSite} className="btn btn-secondary btn-sm">
                         View Site ↗
                     </button>
                     <button
                         onClick={() => signOut({ callbackUrl: '/admin/login' })}
-                        className="btn-danger"
+                        className="btn btn-danger btn-sm"
                     >
                         Sign Out
                     </button>
@@ -115,26 +164,31 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
 
             <div className="admin-layout">
                 {/* Sidebar Nav */}
-                <nav className="admin-sidebar">
-                    {TABS.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => handleTabChange(tab.id)}
-                            aria-current={activeTab === tab.id ? 'page' : undefined}
-                            className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-                        >
-                            <motion.span 
-                                initial={false}
-                                animate={activeTab === tab.id ? { scale: 1.2 } : { scale: 1 }}
-                                className="nav-icon"
-                            >
-                                {tab.icon}
-                            </motion.span>
-                            {tab.label}
-                            {activeTab === tab.id && (
-                                <motion.div layoutId="sidebar-active" className="active-indicator" />
-                            )}
-                        </button>
+                <nav className="admin-sidebar" aria-label="Admin navigation">
+                    {Object.entries(GROUP_LABELS).map(([groupKey, groupLabel]) => (
+                        <div key={groupKey} className="sidebar-group">
+                            <div className="sidebar-group-label" aria-hidden="true">{groupLabel}</div>
+                            {TABS.filter(t => t.group === groupKey).map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => handleTabChange(tab.id)}
+                                    aria-current={activeTab === tab.id ? 'page' : undefined}
+                                    className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                                >
+                                    <motion.span
+                                        initial={false}
+                                        animate={activeTab === tab.id ? { scale: 1.2 } : { scale: 1 }}
+                                        className="nav-icon"
+                                    >
+                                        {tab.icon}
+                                    </motion.span>
+                                    {tab.label}
+                                    {activeTab === tab.id && (
+                                        <motion.div layoutId="sidebar-active" className="active-indicator" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
                     ))}
                 </nav>
 
@@ -251,24 +305,6 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     align-items: center;
                 }
 
-                .btn-outline {
-                    font-family: var(--font-condensed);
-                    font-size: 0.8rem;
-                    letter-spacing: 0.08em;
-                    text-transform: uppercase;
-                    color: var(--color-grey-blue);
-                    padding: 8px 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 8px;
-                    transition: all 0.2s ease;
-                    text-decoration: none;
-                }
-
-                .btn-outline:hover {
-                    border-color: rgba(255, 255, 255, 0.3);
-                    color: white;
-                }
-
                 .admin-layout {
                     display: flex;
                     flex: 1;
@@ -328,6 +364,28 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     border-radius: 0 4px 4px 0;
                 }
 
+                .sidebar-group {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+
+                .sidebar-group + .sidebar-group {
+                    margin-top: 16px;
+                    padding-top: 16px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
+                }
+
+                .sidebar-group-label {
+                    font-family: var(--font-condensed);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    letter-spacing: 0.2em;
+                    text-transform: uppercase;
+                    color: rgba(255, 255, 255, 0.25);
+                    padding: 0 20px 8px;
+                }
+
                 .admin-main {
                     flex: 1;
                     padding: 40px;
@@ -381,8 +439,91 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     .admin-main {
                         padding: 24px 16px;
                     }
+
+                    .shortcuts-overlay {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0, 0, 0, 0.8);
+                        backdrop-filter: blur(8px);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 2000;
+                        padding: 24px;
+                    }
+
+                    .shortcuts-modal {
+                        background: var(--color-bg-card);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        border-radius: var(--radius-lg);
+                        padding: 32px;
+                        max-width: 480px;
+                        width: 100%;
+                        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+                    }
+
+                    .shortcuts-title {
+                        font-family: var(--font-display);
+                        font-size: 1.5rem;
+                        color: white;
+                        margin-bottom: 24px;
+                        letter-spacing: 0.05em;
+                    }
+
+                    .shortcuts-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 12px;
+                    }
+
+                    .shortcut-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        font-size: 0.85rem;
+                        color: rgba(255, 255, 255, 0.7);
+                    }
+
+                    .shortcut-item kbd {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-width: 28px;
+                        height: 28px;
+                        padding: 0 8px;
+                        background: rgba(255, 255, 255, 0.08);
+                        border: 1px solid rgba(255, 255, 255, 0.15);
+                        border-radius: 6px;
+                        font-family: var(--font-condensed);
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        color: white;
+                        text-transform: uppercase;
+                    }
+
+                    @media (max-width: 480px) {
+                        .shortcuts-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
                 }
             `}</style>
+            {showShortcuts && (
+                <div className="shortcuts-overlay" onClick={() => setShowShortcuts(false)}>
+                    <div className="shortcuts-modal" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="shortcuts-title">Keyboard Shortcuts</h3>
+                        <div className="shortcuts-grid">
+                            <div className="shortcut-item"><kbd>1</kbd>–<kbd>9</kbd><span>Switch tabs</span></div>
+                            <div className="shortcut-item"><kbd>0</kbd><span>Winners tab</span></div>
+                            <div className="shortcut-item"><kbd>E</kbd><span>Email Subscribers</span></div>
+                            <div className="shortcut-item"><kbd>S</kbd><span>Security</span></div>
+                            <div className="shortcut-item"><kbd>?</kbd><span>Toggle this help</span></div>
+                            <div className="shortcut-item"><kbd>Esc</kbd><span>Close dialogs</span></div>
+                        </div>
+                        <button onClick={() => setShowShortcuts(false)} className="btn btn-secondary btn-sm" style={{ marginTop: 20 }}>Close</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

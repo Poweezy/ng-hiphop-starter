@@ -232,7 +232,7 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
           <h2 className="panel-title">LYRIC COMPETITIONS</h2>
           <p className="panel-desc">Create and manage monthly/yearly lyric competitions.</p>
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-admin">
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary$1">
           + New Competition
         </button>
       </div>
@@ -272,10 +272,10 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button type="submit" className="btn-admin" disabled={loading}>
+              <button type="submit" className="btn btn-primary$1" disabled={loading}>
                 {loading ? 'Saving...' : editingId ? 'Update' : 'Create'}
               </button>
-              <button type="button" onClick={resetForm} className="btn-outline-cancel">Cancel</button>
+              <button type="button" onClick={resetForm} className="btn btn-secondary$1">Cancel</button>
             </div>
             {status !== 'idle' && (
               <div className={`status-message status-message--${status}`}>{msg}</div>
@@ -318,7 +318,7 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
                       Assign Lyrics
                     </button>
                     {!competition.winnerId && (
-                      <button onClick={() => setWinnerConfirm({ id: competition.id, title: competition.title })} className="btn-admin btn-sm">
+                      <button onClick={() => setWinnerConfirm({ id: competition.id, title: competition.title })} className="btn btn-primary$1">
                         👑 Winner
                       </button>
                     )}
@@ -357,7 +357,7 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
                       Subscribers ({competition._count?.subscribers || 0})
                     </button>
                     {competition.winnerId && (
-                      <button onClick={() => handleNotify(competition.id)} className="btn-admin btn-sm">
+                      <button onClick={() => handleNotify(competition.id)} className="btn btn-primary$1">
                         📧 Notify
                       </button>
                     )}
@@ -396,10 +396,10 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
                     ))}
                 </select>
                 <div style={{ display: 'flex', gap: 12 }}>
-                    <button onClick={handleDeclareWinner} className="btn-admin" disabled={!selectedWinnerId}>
+                    <button onClick={handleDeclareWinner} className="btn btn-primary$1" disabled={!selectedWinnerId}>
                         Declare Winner
                     </button>
-                    <button onClick={() => { setWinnerConfirm(null); setSelectedWinnerId(''); }} className="btn-outline-cancel">Cancel</button>
+                    <button onClick={() => { setWinnerConfirm(null); setSelectedWinnerId(''); }} className="btn btn-secondary$1">Cancel</button>
                 </div>
             </div>
         </Modal>
@@ -465,8 +465,8 @@ export default function CompetitionsPanel({ initialCompetitions, initialLyrics }
                 )}
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 20, justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAssign(false)} className="btn-outline-cancel">Cancel</button>
-                <button onClick={handleAssignLyrics} className="btn-admin" disabled={selectedLyricIds.size === 0 || assignLoading}>
+                <button onClick={() => setShowAssign(false)} className="btn btn-secondary$1">Cancel</button>
+                <button onClick={handleAssignLyrics} className="btn btn-primary$1" disabled={selectedLyricIds.size === 0 || assignLoading}>
                     {assignLoading ? 'Assigning...' : `Assign ${selectedLyricIds.size} Lyric${selectedLyricIds.size !== 1 ? 's' : ''}`}
                 </button>
             </div>

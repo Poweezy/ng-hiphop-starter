@@ -249,8 +249,8 @@ export default function SongsPanel({ initialSongs }: Props) {
                             <input id="edit-song-pub" className="admin-input" value={editPubLink} onChange={e => setEditPubLink(e.target.value)} placeholder="https://..." />
                         </div>
                         <div className="modal-actions">
-                            <button type="button" onClick={() => setEditingId(null)} className="btn-outline-cancel">Cancel</button>
-                            <button type="submit" className="btn-admin" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
+                            <button type="button" onClick={() => setEditingId(null)} className="btn btn-secondary$1">Cancel</button>
+                            <button type="submit" className="btn btn-primary$1" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
                         </div>
                     </form>
                 </Modal>

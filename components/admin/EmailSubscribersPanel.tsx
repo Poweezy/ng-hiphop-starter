@@ -263,10 +263,10 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
             <button onClick={handleExportCSV} className="btn-badge">
               Export CSV
             </button>
-            <button onClick={() => setShowCampaignModal(true)} className="btn-admin">
+            <button onClick={() => setShowCampaignModal(true)} className="btn btn-primary$1">
               Send Email
             </button>
-            <button onClick={() => setSelectedIds(new Set())} className="btn-outline-cancel">
+            <button onClick={() => setSelectedIds(new Set())} className="btn btn-secondary$1">
               Clear Selection
             </button>
           </div>
@@ -416,7 +416,7 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
               </div>
             )}
             <div className="modal-actions">
-              <button type="button" onClick={() => setViewSubscriber(null)} className="btn-outline-cancel">Close</button>
+              <button type="button" onClick={() => setViewSubscriber(null)} className="btn btn-secondary$1">Close</button>
             </div>
           </div>
         )}
@@ -441,8 +441,8 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
             <textarea id="campaign-body" className="admin-input admin-textarea" value={campaignBody} onChange={(e) => setCampaignBody(e.target.value)} required maxLength={10000} placeholder="Write your email content..." rows={6} />
           </div>
           <div className="modal-actions">
-            <button type="button" onClick={() => setShowCampaignModal(false)} className="btn-outline-cancel">Cancel</button>
-            <button type="submit" className="btn-admin" disabled={campaignLoading}>
+            <button type="button" onClick={() => setShowCampaignModal(false)} className="btn btn-secondary$1">Cancel</button>
+            <button type="submit" className="btn btn-primary$1" disabled={campaignLoading}>
               {campaignLoading ? 'Creating...' : 'Create Campaign'}
             </button>
           </div>
