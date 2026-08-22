@@ -69,6 +69,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [lyricError, setLyricError] = useState('');
+    const [artistError, setArtistError] = useState('');
 
     const [newLyric, setNewLyric] = useState('');
     const [newSong, setNewSong] = useState('');
@@ -252,6 +254,32 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const trimmedLyric = newLyric.trim();
+        const trimmedArtist = newSong.trim();
+
+        let hasError = false;
+        if (!trimmedLyric) {
+            setLyricError('Enter a lyric snippet.');
+            hasError = true;
+        } else if (trimmedLyric.length > 500) {
+            setLyricError('Lyric must be 500 characters or fewer.');
+            hasError = true;
+        } else {
+            setLyricError('');
+        }
+
+        if (!trimmedArtist) {
+            setArtistError('Enter the artist name.');
+            hasError = true;
+        } else if (trimmedArtist.length > 100) {
+            setArtistError('Artist name must be 100 characters or fewer.');
+            hasError = true;
+        } else {
+            setArtistError('');
+        }
+
+        if (hasError) return;
+
         setSubmitting(true);
         setSubmitError(null);
         try {
@@ -259,8 +287,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    lyric_text: newLyric,
-                    correct_artist: newSong,
+                    lyric_text: trimmedLyric,
+                    correct_artist: trimmedArtist,
                     is_active: false,
                 }),
             });
@@ -268,6 +296,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 setShowSubmitModal(false);
                 setNewLyric('');
                 setNewSong('');
+                setLyricError('');
+                setArtistError('');
             } else {
                 const data = await res.json().catch(() => null);
                 const msg = data?.error?.message || data?.data?.message || res.statusText || 'Failed to submit. Please try again.';
@@ -526,21 +556,25 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     <h3 className="modal-title" id="lyric-submit-title">Challenge the Community</h3>
                     <p className="modal-subtitle">Think you know the culture better than anyone else? Drop a bar and test the streets.</p>
                 </div>
-                <form onSubmit={handleFormSubmit} className="submit-form">
-                    <div className="input-group">
-                        <label htmlFor="new-lyric">The Bar (Lyric Snippet)</label>
-                        <textarea id="new-lyric" name="lyric_text" value={newLyric} onChange={(e) => setNewLyric(e.target.value)} onFocus={() => setSubmitError(null)} placeholder="“Real Gs move in silence…”" autoComplete="off" required rows={3} className="premium-input" />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="new-song-artist">The Artist (Correct Answer)</label>
-                        <input id="new-song-artist" name="correct_artist" type="text" value={newSong} onChange={(e) => setNewSong(e.target.value)} onFocus={() => setSubmitError(null)} placeholder="e.g. Burna Boy" autoComplete="off" required className="premium-input" />
-                    </div>
-                    {submitError && <div className="submit-error" role="alert" aria-live="polite">{submitError}</div>}
-                    <div className="form-actions">
-                        <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
-                        <button type="submit" disabled={submitting} className="btn-premium">                            {submitting ? 'Dropping logic…' : 'Submit Challenge'}</button>
-                    </div>
-                </form>
+                 <form onSubmit={handleFormSubmit} className="submit-form">
+                     <div className="input-group">
+                         <label htmlFor="new-lyric">The Bar (Lyric Snippet)</label>
+                         <textarea id="new-lyric" name="lyric_text" value={newLyric} onChange={(e) => { setNewLyric(e.target.value); if (lyricError) setLyricError(''); }} onFocus={() => setSubmitError(null)} placeholder="“Real Gs move in silence…”" autoComplete="off" required rows={3} className="premium-input" aria-invalid={!!lyricError} aria-describedby={lyricError ? 'new-lyric-error' : 'new-lyric-help'} />
+                         <p id="new-lyric-help" className="input-help">Drop a bar from a song (max 500 characters).</p>
+                         {lyricError && <p id="new-lyric-error" className="input-error" role="alert">{lyricError}</p>}
+                     </div>
+                     <div className="input-group">
+                         <label htmlFor="new-song-artist">The Artist (Correct Answer)</label>
+                         <input id="new-song-artist" name="correct_artist" type="text" value={newSong} onChange={(e) => { setNewSong(e.target.value); if (artistError) setArtistError(''); }} onFocus={() => setSubmitError(null)} placeholder="e.g. Burna Boy" autoComplete="off" required className="premium-input" aria-invalid={!!artistError} aria-describedby={artistError ? 'new-song-artist-error' : 'new-song-artist-help'} />
+                         <p id="new-song-artist-help" className="input-help">Who made this bar? (max 100 characters).</p>
+                         {artistError && <p id="new-song-artist-error" className="input-error" role="alert">{artistError}</p>}
+                     </div>
+                     {submitError && <div className="submit-error" role="alert" aria-live="polite">{submitError}</div>}
+                     <div className="form-actions">
+                         <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
+                         <button type="submit" disabled={submitting} className="btn-premium">                            {submitting ? 'Dropping logic…' : 'Submit Challenge'}</button>
+                     </div>
+                 </form>
             </Modal>
             <style jsx>{`
                 .game-section { position: relative; }
@@ -667,6 +701,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .premium-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; color: white; outline: none; font-size: 1rem; transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease; font-family: inherit; }
                 .premium-input:focus-visible { border-color: var(--color-purple); background: rgba(139,92,246,0.05); box-shadow: 0 0 0 4px rgba(139,92,246,0.1); }
                 .premium-input::placeholder { color: rgba(255,255,255,0.2); font-style: italic; }
+                .input-help { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
+                .input-error { font-size: 0.75rem; color: #F87171; margin-top: 4px; }
                 .submit-error { background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 12px; padding: 12px 16px; font-size: 0.9rem; color: #fca5a5; }
                 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 24px; }
                 .btn-premium { background: linear-gradient(135deg, var(--color-purple), #6366f1); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-family: var(--font-condensed); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 14px rgba(139,92,246,0.3); touch-action: manipulation; }
