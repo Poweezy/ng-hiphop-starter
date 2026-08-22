@@ -62,6 +62,7 @@ const GROUP_LABELS: Record<string, string> = {
 export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialCompetitions, initialSubmissions, initialWinners, initialSubscribers, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -133,6 +134,14 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
             {/* Top Bar */}
             <header className="admin-header">
                 <div className="header-left">
+                    <button
+                        onClick={() => setSidebarOpen((v) => !v)}
+                        className="admin-sidebar-toggle"
+                        aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+                        aria-expanded={sidebarOpen}
+                    >
+                        {sidebarOpen ? '✕' : '☰'}
+                    </button>
                     <Image
                         src="/images/logo.png"
                         alt="Nerd Gauge Logo"
@@ -163,8 +172,13 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
             </header>
 
             <div className="admin-layout">
+                {/* Mobile sidebar overlay */}
+                {sidebarOpen && (
+                    <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
+                )}
+
                 {/* Sidebar Nav */}
-                <nav className="admin-sidebar" aria-label="Admin navigation">
+                <nav className={`admin-sidebar${sidebarOpen ? ' admin-sidebar--open' : ''}`} aria-label="Admin navigation">
                     {Object.entries(GROUP_LABELS).map(([groupKey, groupLabel]) => (
                         <div key={groupKey} className="sidebar-group">
                             <div className="sidebar-group-label" aria-hidden="true">{groupLabel}</div>
@@ -386,6 +400,36 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     padding: 0 20px 8px;
                 }
 
+                .admin-sidebar-toggle {
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 8px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: transparent;
+                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 1.2rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .admin-sidebar-toggle:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    color: white;
+                }
+
+                .admin-sidebar-overlay {
+                    display: none;
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(4px);
+                    z-index: 150;
+                }
+
                 .admin-main {
                     flex: 1;
                     padding: 40px;
@@ -424,14 +468,31 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                         justify-content: center;
                         gap: 12px;
                     }
+                    .admin-sidebar-toggle {
+                        display: flex;
+                    }
                     .admin-sidebar {
-                        width: 80px;
-                        padding: 24px 8px;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        bottom: 0;
+                        z-index: 200;
+                        width: 260px;
+                        padding: 32px 16px;
+                        transform: translateX(-100%);
+                        transition: transform 0.3s ease;
+                        border-right: 1px solid rgba(255, 255, 255, 0.05);
+                    }
+                    .admin-sidebar--open {
+                        transform: translateX(0);
+                    }
+                    .admin-sidebar-overlay {
+                        display: block;
                     }
                     .nav-item {
-                        padding: 14px;
-                        justify-content: center;
-                        font-size: 0;
+                        padding: 14px 20px;
+                        justify-content: flex-start;
+                        font-size: 0.95rem;
                     }
                     .nav-icon {
                         margin: 0;

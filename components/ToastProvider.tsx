@@ -11,6 +11,7 @@ export function useToast() {
     error: (message: string) => addToast({ message, type: 'error' }),
     info: (message: string) => addToast({ message, type: 'info' }),
     warning: (message: string) => addToast({ message, type: 'warning' }),
+    undo: (message: string, undoLabel: string, onUndo: () => void) => addToast({ message, type: 'info', duration: 8000, undo: { label: undoLabel, onUndo } }),
   };
 }
 
@@ -28,7 +29,19 @@ function Toast({ toast, onClose }: { toast: ToastItem; onClose: (id: string) => 
       aria-live="polite"
       onClick={() => onClose(toast.id)}
     >
-      {toast.message}
+      <span className="toast-message">{toast.message}</span>
+      {toast.undo && (
+        <button
+          className="toast-undo"
+          onClick={(e) => {
+            e.stopPropagation();
+            toast.undo!.onUndo();
+            onClose(toast.id);
+          }}
+        >
+          {toast.undo.label}
+        </button>
+      )}
     </div>
   );
 }

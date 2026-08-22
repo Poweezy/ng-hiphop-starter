@@ -83,18 +83,45 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
     const [file, setFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState('');
+    const [artistNameError, setArtistNameError] = useState('');
+    const [fileError, setFileError] = useState('');
     const mountedRef = useRef(true);
+
+    const validateForm = () => {
+        let valid = true;
+        if (!artistName.trim()) {
+            setArtistNameError('Enter your tag name.');
+            valid = false;
+        } else if (artistName.trim().length > 50) {
+            setArtistNameError('Tag name must be 50 characters or fewer.');
+            valid = false;
+        } else {
+            setArtistNameError('');
+        }
+
+        if (!file) {
+            setFileError('Choose an image to upload.');
+            valid = false;
+        } else if (!file.type.startsWith('image/')) {
+            setFileError('Only image files are allowed.');
+            valid = false;
+        } else {
+            setFileError('');
+        }
+        return valid;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!file || !artistName) return;
+        if (!validateForm()) return;
 
         setSubmitting(true);
         try {
-            // Submit the artwork directly; the API scans + optimizes server-side.
             const formData = new FormData();
-            formData.append('image', file);
-            formData.append('artistName', artistName);
+            if (file) {
+                formData.append('image', file);
+            }
+            formData.append('artistName', artistName.trim());
 
             const res = await fetch('/api/graffiti', { method: 'POST', body: formData });
             const data = await res.json();
@@ -102,6 +129,8 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
             if (res.ok) {
                 setArtistName('');
                 setFile(null);
+                setArtistNameError('');
+                setFileError('');
                 if (mountedRef.current) {
                     setTimeout(() => {
                         setShowSubmit(false);
@@ -192,9 +221,13 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                                 type="text"
                                 placeholder="Your Tag..."
                                 value={artistName}
-                                onChange={(e) => setArtistName(e.target.value)}
+                                onChange={(e) => { setArtistName(e.target.value); if (artistNameError) setArtistNameError(''); }}
                                 required
+                                aria-invalid={!!artistNameError}
+                                aria-describedby={artistNameError ? 'graffiti-artist-name-error' : 'graffiti-artist-name-help'}
                             />
+                            <p id="graffiti-artist-name-help" className="input-help">Your tag or artist name (max 50 characters).</p>
+                            {artistNameError && <p id="graffiti-artist-name-error" className="input-error" role="alert">{artistNameError}</p>}
                         </div>
                         <div className="input-group">
                             <label htmlFor="graffiti-artwork-file">Artwork File</label>
@@ -202,9 +235,13 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                                 id="graffiti-artwork-file"
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                onChange={(e) => { setFile(e.target.files?.[0] || null); if (fileError) setFileError(''); }}
                                 required
+                                aria-invalid={!!fileError}
+                                aria-describedby={fileError ? 'graffiti-artwork-file-error' : 'graffiti-artwork-file-help'}
                             />
+                            <p id="graffiti-artwork-file-help" className="input-help">Upload an image file (JPG, PNG, WebP).</p>
+                            {fileError && <p id="graffiti-artwork-file-error" className="input-error" role="alert">{fileError}</p>}
                         </div>
                         <button type="submit" disabled={submitting} className="btn btn-primary full-width">
                             {submitting ? 'Uploading...' : 'Submit Tag'}
@@ -544,6 +581,18 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .form-message.error {
                     color: #ef4444;
                     background: rgba(239, 68, 68, 0.08);
+                }
+
+                .input-help {
+                    font-size: 0.75rem;
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-top: 4px;
+                }
+
+                .input-error {
+                    font-size: 0.75rem;
+                    color: #F87171;
+                    margin-top: 4px;
                 }
 
                 .full-width {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useToast } from '@/components/ToastProvider';
 import { patchDisplayUntil } from '@/lib/adminHooks';
@@ -26,6 +26,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     const [approvedPage, setApprovedPage] = useState(1);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [batchLoading, setBatchLoading] = useState(false);
+    const deletedCache = useRef<Map<string, Quote>>(new Map());
 
     const handlePatch = async (id: string, patch: Partial<Quote>) => {
         const res = await fetch('/api/quotes', {
@@ -57,10 +58,26 @@ export default function QuotesPanel({ initialQuotes }: Props) {
     };
 
     const handleDelete = async (id: string) => {
+        const quote = quotes.find(q => q.id === id);
         const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
         if (res.ok) {
             setQuotes(quotes.filter(q => q.id !== id));
-            toast.success('Quote deleted');
+            if (quote) {
+                deletedCache.current.set(id, quote);
+                toast.undo('Quote deleted', 'Undo', () => {
+                    setQuotes(prev => {
+                        const exists = prev.find(q => q.id === id);
+                        if (!exists) {
+                            const cached = deletedCache.current.get(id);
+                            if (cached) return [...prev, cached];
+                        }
+                        return prev;
+                    });
+                    deletedCache.current.delete(id);
+                });
+            } else {
+                toast.success('Quote deleted');
+            }
         } else {
             toast.error('Delete failed');
         }

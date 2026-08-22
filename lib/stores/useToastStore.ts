@@ -7,11 +7,12 @@ export interface ToastItem {
   message: string;
   type: ToastType;
   duration: number;
+  undo?: { label: string; onUndo: () => void };
 }
 
 interface ToastState {
   toasts: ToastItem[];
-  addToast: (toast: { message: string; type: ToastType; duration?: number }) => void;
+  addToast: (toast: { message: string; type: ToastType; duration?: number; undo?: { label: string; onUndo: () => void } }) => void;
   removeToast: (id: string) => void;
 }
 
