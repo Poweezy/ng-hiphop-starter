@@ -1,9 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmptyState from './EmptyState';
+import { useAudio } from '@/lib/audioContext';
 
 interface Song {
     id: string;
@@ -20,19 +21,19 @@ interface LatestReleaseProps {
 }
 
 export default function LatestRelease({ song }: LatestReleaseProps) {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const { currentSong, isPlaying, play } = useAudio();
     const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
+    const isCurrentPlaying = song ? currentSong?.id === song.id && isPlaying : false;
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
-        if (isPlaying) {
+        if (isPlaying && currentSong?.id === song?.id) {
             interval = setInterval(() => {
                 setBars(prev => prev.map(() => Math.random() * 0.8 + 0.2));
             }, 100);
         }
         return () => clearInterval(interval);
-    }, [isPlaying]);
+    }, [isPlaying, currentSong?.id, song?.id]);
 
     if (!song) {
         return (
@@ -130,15 +131,14 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
                         {/* Audio Player */}
                         <div className="player-container">
-                            <p className="player-label">{isPlaying ? '▶ Now Playing' : '⏸ Stream Preview'}</p>
+                            <p className="player-label">{isCurrentPlaying ? '▶ Now Playing' : '⏸ Stream Preview'}</p>
                             <div className="audio-wrapper">
                                 <audio
-                                    ref={audioRef}
                                     controls
                                     src={song.file_url}
                                     preload="metadata"
-                                    onPlay={() => setIsPlaying(true)}
-                                    onPause={() => setIsPlaying(false)}
+                                    onPlay={() => play(song)}
+                                    onPause={() => {}}
                                     className="custom-audio"
                                     aria-label={`Preview of ${song.title}`}
                                 />

@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { ToastProvider } from '@/components/ToastProvider';
 import CookieConsent from '@/components/CookieConsent';
+import MiniPlayer from '@/components/MiniPlayer';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -25,6 +27,8 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
             <a href="#main-content" className="skip-link">Skip to content</a>
             {showNavigation && <Navigation />}
             <main id="main-content">{children}</main>
+            {showNavigation && <MiniPlayer />}
+            {showNavigation && <BottomNavigation />}
             {showNavigation && (
                 <footer className="disclaimer-footer" role="contentinfo" aria-label="Legal disclaimer">
                     ⚖️ All content published on this platform is licensed, owned, and legally distributed.

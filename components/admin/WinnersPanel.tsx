@@ -192,7 +192,7 @@ export default function WinnersPanel({ initialWinners }: Props) {
           <h2 className="panel-title">WINNERS</h2>
           <p className="panel-desc">Historical winners and prize records across all competitions.</p>
         </div>
-        <button onClick={openSelect} className="btn-admin">
+        <button onClick={openSelect} className="btn btn-primary$1">
           + Select Winner
         </button>
       </div>
@@ -317,10 +317,10 @@ export default function WinnersPanel({ initialWinners }: Props) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button type="submit" className="btn-admin" disabled={submitting || !selectedCompetitionId || !selectedSubmissionId}>
+            <button type="submit" className="btn btn-primary$1" disabled={submitting || !selectedCompetitionId || !selectedSubmissionId}>
               {submitting ? 'Selecting...' : 'Select Winner'}
             </button>
-            <button type="button" onClick={() => setSelectOpen(false)} className="btn-outline-cancel">Cancel</button>
+            <button type="button" onClick={() => setSelectOpen(false)} className="btn btn-secondary$1">Cancel</button>
           </div>
         </form>
       </Modal>

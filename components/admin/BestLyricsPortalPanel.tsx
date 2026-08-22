@@ -395,7 +395,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
           <h2 className="panel-title">BEST LYRICS PORTAL</h2>
           <p className="panel-desc">Create and manage monthly and yearly competitions to find the best lyrics in the game.</p>
         </div>
-        <button onClick={openCreate} className="btn-admin">
+        <button onClick={openCreate} className="btn btn-primary$1">
           + Create New Competition
         </button>
       </div>
@@ -458,8 +458,8 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
                   </div>
                 </div>
                 <div className="admin-card-actions">
-                  <button onClick={() => openEdit(competition)} className="btn-admin btn-sm">Edit</button>
-                  <button onClick={() => setViewCompetition(competition)} className="btn-admin btn-sm">View</button>
+                  <button onClick={() => openEdit(competition)} className="btn btn-primary$1">Edit</button>
+                  <button onClick={() => setViewCompetition(competition)} className="btn btn-primary$1">View</button>
                   <button onClick={() => setDeleteId(competition.id)} className="btn-danger btn-xs">Delete</button>
                 </div>
               </div>
@@ -621,7 +621,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
                           Moderation Required
                         </label>
                       </div>
-                      <button type="button" onClick={handleSaveRules} className="btn-admin" disabled={formLoading}>
+                      <button type="button" onClick={handleSaveRules} className="btn btn-primary$1" disabled={formLoading}>
                         {formLoading ? 'Saving...' : 'Save Rules'}
                       </button>
                     </>
@@ -672,7 +672,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
                         <label className="form-label admin-label--green">Description</label>
                         <input className="admin-input" value={prizeDescription} onChange={e => setPrizeDescription(e.target.value)} maxLength={500} />
                       </div>
-                      <button type="button" onClick={handleAddPrize} className="btn-admin" disabled={formLoading || !prizeName.trim()}>
+                      <button type="button" onClick={handleAddPrize} className="btn btn-primary$1" disabled={formLoading || !prizeName.trim()}>
                         Add Prize
                       </button>
                     </>
@@ -681,10 +681,10 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
               )}
 
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                <button type="submit" className="btn-admin" disabled={formLoading}>
+                <button type="submit" className="btn btn-primary$1" disabled={formLoading}>
                   {formLoading ? 'Saving...' : editingId ? 'Save Changes' : 'Create Competition'}
                 </button>
-                <button type="button" onClick={resetForm} className="btn-outline-cancel">Cancel</button>
+                <button type="button" onClick={resetForm} className="btn btn-secondary$1">Cancel</button>
               </div>
             </form>
           )}
@@ -739,7 +739,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-            <button onClick={() => setViewCompetition(null)} className="btn-outline-cancel">Close</button>
+            <button onClick={() => setViewCompetition(null)} className="btn btn-secondary$1">Close</button>
           </div>
         </Modal>
       )}

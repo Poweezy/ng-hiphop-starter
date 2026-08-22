@@ -203,10 +203,10 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 </div>
                 <div className="admin-card-actions">
                     {!q.approved && (
-                        <button onClick={() => handlePatch(q.id, { approved: true })} className="btn-admin btn-md">✓ Approve</button>
+                        <button onClick={() => handlePatch(q.id, { approved: true })} className="btn btn-primary$1">✓ Approve</button>
                     )}
                     {q.approved && !q.is_featured && (
-                        <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn-admin btn-md">⭐ Feature</button>
+                        <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn btn-primary$1">⭐ Feature</button>
                     )}
                     {q.approved && (
                         <>
@@ -275,10 +275,10 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                         <div className="batch-actions" style={{ marginBottom: 16 }}>
                             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>{selectedIds.size} selected</span>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={batchApprove} className="btn-admin btn-sm" disabled={batchLoading}>✓ Approve Selected</button>
+                                <button onClick={batchApprove} className="btn btn-primary$1" disabled={batchLoading}>✓ Approve Selected</button>
                                 <button onClick={batchReject} className="btn-danger btn-sm" disabled={batchLoading}>✗ Reject Selected</button>
                                 <button onClick={batchDelete} className="btn-danger btn-sm" disabled={batchLoading}>🗑️ Delete Selected</button>
-                                <button onClick={() => setSelectedIds(new Set())} className="btn-outline-cancel btn-sm">Cancel</button>
+                                <button onClick={() => setSelectedIds(new Set())} className="btn btn-secondary$1">Cancel</button>
                             </div>
                         </div>
                     )}

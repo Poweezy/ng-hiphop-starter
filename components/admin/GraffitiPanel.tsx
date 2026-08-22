@@ -213,7 +213,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                     <p className="admin-artist-name" style={{ margin: 0 }}>{g.artist_name}</p>
                 </label>
                 <div className="admin-card-actions">
-                    {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn-admin btn-sm">✓ Approve</button>}
+                    {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn btn-primary$1">✓ Approve</button>}
                     {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger btn-sm">✗ Remove</button>}
                     <button onClick={() => setDeleteId(g.id)} className="btn-danger btn-sm">Delete</button>
                 </div>
@@ -300,7 +300,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                             />
                         </div>
-                        <button type="submit" className="btn-admin" disabled={uploading || !file || !artistName.trim()}>
+                        <button type="submit" className="btn btn-primary$1" disabled={uploading || !file || !artistName.trim()}>
                             {uploading ? '⏳ Uploading...' : '🎨 Submit Artwork'}
                         </button>
                         {status !== 'idle' && (
@@ -315,8 +315,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                         <div className="batch-actions" style={{ marginBottom: 16 }}>
                             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>{selectedIds.size} selected</span>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={batchApprove} className="btn-admin btn-sm" disabled={batchLoading}>✓ Approve Selected</button>
-                                <button onClick={() => { setSelectedIds(new Set()); }} className="btn-outline-cancel btn-sm">Cancel</button>
+                                <button onClick={batchApprove} className="btn btn-primary$1" disabled={batchLoading}>✓ Approve Selected</button>
+                                <button onClick={() => { setSelectedIds(new Set()); }} className="btn btn-secondary$1">Cancel</button>
                             </div>
                         </div>
                     )}

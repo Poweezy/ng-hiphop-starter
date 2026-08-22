@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 
 export default function Navigation() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -45,16 +47,16 @@ export default function Navigation() {
           />
         </Link>
 
-        {/* Desktop navigation */}
-        <div className="nav-desktop-menu">
-          <Link href="/#latest-release" className="nav-link">Music</Link>
-          <Link href="/library"          className="nav-link">Library</Link>
-          <Link href="/#community-quotes" className="nav-link">Community</Link>
-          <Link href="/#graffiti"        className="nav-link">Gallery</Link>
-          <Link href="/#lyric-game"      className="nav-link">Game</Link>
-          <Link href="/game/best-lyrics" className="nav-link">Best Lyrics</Link>
-          <Link href="/admin/login"      className="nav-link nav-link-admin">Admin</Link>
-        </div>
+         {/* Desktop navigation */}
+         <div className="nav-desktop-menu">
+           <Link href="/#latest-release" className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Music</Link>
+           <Link href="/library"          className="nav-link" aria-current={pathname === '/library' ? 'page' : undefined}>Library</Link>
+           <Link href="/#community-quotes" className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Community</Link>
+           <Link href="/#graffiti"        className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Gallery</Link>
+           <Link href="/#lyric-game"      className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Game</Link>
+           <Link href="/game/best-lyrics" className="nav-link" aria-current={pathname?.startsWith('/game/best-lyrics') ? 'page' : undefined}>Competitions</Link>
+           <Link href="/admin/login"      className="nav-link nav-link-admin" aria-current={pathname?.startsWith('/admin') ? 'page' : undefined}>Admin</Link>
+         </div>
 
         {/* Hamburger (mobile) */}
         <button
@@ -79,29 +81,30 @@ export default function Navigation() {
             className="nav-mobile-menu"
           >
              <nav className="nav-mobile-links" aria-label="Mobile navigation">
-                {[
-                  { href: '/#latest-release',   label: 'Music' },
-                  { href: '/library',           label: 'Library' },
-                  { href: '/#community-quotes', label: 'Community' },
-                  { href: '/#graffiti',         label: 'Gallery' },
-                  { href: '/#lyric-game',       label: 'Game' },
-                  { href: '/game/best-lyrics',  label: 'Best Lyrics' },
-                  { href: '/admin/login',       label: 'Admin' },
-                ].map(({ href, label }) => (
-                 <motion.div
-                   key={href}
-                   initial={{ opacity: 0, x: -20 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   exit={{ opacity: 0, x: -10 }}
-                   transition={{ duration: 0.2, ease: "easeOut" }}
-                 >
-                   <Link
-                     href={href}
-                     className="nav-mobile-link"
-                     onClick={() => setMobileMenuOpen(false)}
-                   >
-                     {label}
-                   </Link>
+                  {[
+                    { href: '/#latest-release',   label: 'Music', current: pathname === '/' },
+                    { href: '/library',           label: 'Library', current: pathname === '/library' },
+                    { href: '/#community-quotes', label: 'Community', current: pathname === '/' },
+                    { href: '/#graffiti',         label: 'Gallery', current: pathname === '/' },
+                    { href: '/#lyric-game',       label: 'Game', current: pathname === '/' },
+                    { href: '/game/best-lyrics',  label: 'Competitions', current: pathname?.startsWith('/game/best-lyrics') },
+                    { href: '/admin/login',       label: 'Admin', current: pathname?.startsWith('/admin') },
+                  ].map(({ href, label, current }) => (
+                  <motion.div
+                    key={href}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Link
+                      href={href}
+                      className="nav-mobile-link"
+                      aria-current={current ? 'page' : undefined}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {label}
+                    </Link>
                  </motion.div>
                ))}
              </nav>

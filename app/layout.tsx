@@ -4,6 +4,7 @@ import LayoutWrapper from '@/components/LayoutWrapper';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
 import ConsentAwareAnalytics from '@/components/ConsentAwareAnalytics';
 import { SessionProvider } from 'next-auth/react';
+import { AudioProvider } from '@/lib/audioContext';
 
 export const metadata: Metadata = {
     title: {
@@ -75,9 +76,11 @@ export default function RootLayout({
             </head>
             <body>
                 <SessionProvider>
-                    <SplashScreenWrapper />
-                    <LayoutWrapper>{children}</LayoutWrapper>
-                    <ConsentAwareAnalytics />
+                    <AudioProvider>
+                        <SplashScreenWrapper />
+                        <LayoutWrapper>{children}</LayoutWrapper>
+                        <ConsentAwareAnalytics />
+                    </AudioProvider>
                 </SessionProvider>
             </body>
         </html>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmptyState from './EmptyState';
+import { useAudio } from '@/lib/audioContext';
 
 interface Song {
     id: string;
@@ -20,54 +21,39 @@ interface MusicLibraryProps {
 }
 
 export default function MusicLibrary({ songs }: MusicLibraryProps) {
-    const [playingId, setPlayingId] = useState<string | null>(null);
-    const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-
+    const { currentSong, isPlaying, play, pause } = useAudio();
     const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
-        if (playingId) {
+        if (isPlaying && currentSong) {
             interval = setInterval(() => {
                 setBars(prev => prev.map(() => Math.random() * 0.8 + 0.2));
             }, 100);
         }
         return () => clearInterval(interval);
-    }, [playingId]);
+    }, [isPlaying, currentSong?.id]);
 
-    const playSong = (id: string) => {
-        Object.keys(audioRefs.current).forEach(key => {
-            if (key !== id && audioRefs.current[key]) {
-                audioRefs.current[key]?.pause();
-            }
-        });
-        const audio = audioRefs.current[id];
-        if (audio) {
-            audio.play().catch(() => {});
+    const playSong = (id: string, file_url: string, cover_url: string, title: string) => {
+        if (currentSong?.id === id && isPlaying) {
+            pause();
+            return;
         }
-        setPlayingId(id);
-    };
-
-    const handlePlay = (id: string) => {
-        setPlayingId(id);
-    };
-
-    const handlePause = (id: string) => {
-        if (playingId === id) {
-            setPlayingId(null);
-        }
+        play({ id, title, file_url, cover_url, description: '' });
     };
 
     const handlePlayAll = () => {
         if (songs.length > 0) {
-            playSong(songs[0].id);
+            const s = songs[0];
+            playSong(s.id, s.file_url, s.cover_url, s.title);
         }
     };
 
     const handleShuffle = () => {
         if (songs.length > 0) {
-            const randomIndex = Math.floor(Math.random() * songs.length);
-            playSong(songs[randomIndex].id);
+            const s = songs[Math.floor(Math.random() * songs.length)];
+            playSong(s.id, s.file_url, s.cover_url, s.title);
         }
     };
 
@@ -124,15 +110,33 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                     <button onClick={handleShuffle} className="library-control-btn library-control-btn--accent" aria-label="Shuffle and play">
                         🔀 Shuffle
                     </button>
+                    <div className="library-search">
+                        <input
+                            type="search"
+                            placeholder="Search tracks..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="library-search-input"
+                            aria-label="Search music library"
+                        />
+                    </div>
                 </div>
 
                 <div className="library-grid">
-                    {songs.map((song, idx) => {
+                    {songs
+                        .filter((song) => {
+                            const q = searchQuery.toLowerCase();
+                            return (
+                                song.title.toLowerCase().includes(q) ||
+                                (song.description?.toLowerCase().includes(q) ?? false)
+                            );
+                        })
+                        .map((song, idx) => {
                         let links: { spotify?: string; apple?: string; distro?: string; publisher?: string } = {};
                         if (typeof song.distribution_links === 'string' && song.distribution_links) {
                             try { links = JSON.parse(song.distribution_links); } catch { }
                         }
-                        const isPlaying = playingId === song.id;
+                        const isCurrentPlaying = currentSong?.id === song.id && isPlaying;
 
                         return (
                             <motion.div
@@ -140,7 +144,7 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05, duration: 0.5 }}
-                                className={`track-card ${isPlaying ? 'playing' : ''}`}
+                                className={`track-card ${isCurrentPlaying ? 'playing' : ''}`}
                             >
                                 <div className="card-inner">
                                     <div className="cover-wrapper group">
@@ -150,14 +154,14 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                                                 alt={song.title}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, 33vw"
-                                                className={`object-cover transition-transform ${isPlaying ? 'scale-110' : 'group-hover-scale'}`}
+                                                className={`object-cover transition-transform ${isCurrentPlaying ? 'scale-110' : 'group-hover-scale'}`}
                                             />
                                         </div>
                                         <div className="cover-overlay" />
                                         
                                         {/* Play State Indicator */}
                                         <AnimatePresence>
-                                            {isPlaying && (
+                                            {isCurrentPlaying && (
                                                 <motion.div 
                                                     initial={{ opacity: 0 }} 
                                                     animate={{ opacity: 1 }}
@@ -186,12 +190,10 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                                         
                                         <div className="player-wrapper">
                                             <audio
-                                                ref={el => { audioRefs.current[song.id] = el; }}
                                                 controls
                                                 src={song.file_url}
                                                 preload="none"
-                                                onPlay={() => handlePlay(song.id)}
-                                                onPause={() => handlePause(song.id)}
+                                                onPlay={() => playSong(song.id, song.file_url, song.cover_url, song.title)}
                                                 className="custom-audio"
                                                 aria-label={`Preview of ${song.title}`}
                                             />
@@ -309,6 +311,48 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                     background: rgba(139, 92, 246, 0.25);
                     border-color: var(--color-purple);
                     color: white;
+                }
+
+                .library-search {
+                    flex: 1;
+                    max-width: 320px;
+                }
+
+                .library-search-input {
+                    width: 100%;
+                    padding: 10px 16px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 99px;
+                    color: white;
+                    font-size: 0.85rem;
+                    outline: none;
+                    transition: all 0.2s ease;
+                }
+
+                .library-search-input::placeholder {
+                    color: rgba(255, 255, 255, 0.35);
+                }
+
+                .library-search-input:focus {
+                    border-color: var(--color-purple);
+                    background: rgba(255, 255, 255, 0.08);
+                    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+                }
+
+                @media (max-width: 640px) {
+                    .library-controls {
+                        flex-wrap: wrap;
+                    }
+
+                    .library-search {
+                        max-width: 100%;
+                        width: 100%;
+                    }
+
+                    .library-search-input {
+                        max-width: 100%;
+                    }
                 }
 
                 .library-grid {

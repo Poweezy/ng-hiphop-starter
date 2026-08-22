@@ -75,6 +75,15 @@ export default function Hero({ slogan }: HeroProps) {
             <span aria-hidden="true">🔥</span> Latest Drop
           </a>
         </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="hero-value-prop"
+        >
+          Stream the latest Eswatini hip-hop, join the community, and test your knowledge.
+        </motion.p>
       </div>
 
       {/* Scroll indicator */}
@@ -234,6 +243,16 @@ export default function Hero({ slogan }: HeroProps) {
           background: rgba(255,255,255,0.12);
           border-color: rgba(255,255,255,0.4);
           transform: translateY(-3px) scale(1.04);
+        }
+
+        .hero-value-prop {
+          margin-top: 28px;
+          font-size: clamp(0.9rem, 2vw, 1.05rem);
+          color: rgba(255, 255, 255, 0.55);
+          max-width: 520px;
+          margin-left: auto;
+          margin-right: auto;
+          line-height: 1.6;
         }
 
         .hero-btn-primary:focus-visible,

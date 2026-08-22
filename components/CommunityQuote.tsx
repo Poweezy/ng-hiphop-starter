@@ -19,6 +19,8 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [reduceMotion, setReduceMotion] = useState(false);
+    const [nameError, setNameError] = useState('');
+    const [quoteError, setQuoteError] = useState('');
     
     const containerRef = useRef(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.2 });
@@ -53,20 +55,46 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim() || !quote.trim()) return;
+
+        const nameTrimmed = name.trim();
+        const quoteTrimmed = quote.trim();
+
+        let hasError = false;
+        if (!nameTrimmed) {
+            setNameError('Please enter your alias.');
+            hasError = true;
+        } else if (nameTrimmed.length > 50) {
+            setNameError('Alias must be 50 characters or fewer.');
+            hasError = true;
+        } else {
+            setNameError('');
+        }
+
+        if (!quoteTrimmed) {
+            setQuoteError('Please enter a quote.');
+            hasError = true;
+        } else if (quoteTrimmed.length > 280) {
+            setQuoteError('Quote must be 280 characters or fewer.');
+            hasError = true;
+        } else {
+            setQuoteError('');
+        }
+
+        if (hasError) return;
 
         setStatus('loading');
         try {
             const res = await fetch('/api/quotes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name.trim(), quote: quote.trim() }),
+                body: JSON.stringify({ name: nameTrimmed, quote: quoteTrimmed }),
             });
             const data = await res.json();
             if (res.ok) {
                 setStatus('success');
                 setMessage("Quote submitted! It's pending admin approval. 🎤");
                 setName(''); setQuote('');
+                setNameError(''); setQuoteError('');
             } else {
                 setStatus('error');
                 setMessage(data.error?.message || 'Something went wrong. Try again.');
@@ -151,27 +179,35 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                                         type="text"
                                         placeholder="STREET_NAME"
                                         value={name}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={(e) => { setName(e.target.value); if (nameError) setNameError(''); }}
                                         required
                                         disabled={status === 'loading'}
+                                        aria-invalid={!!nameError}
+                                        aria-describedby={nameError ? 'quote-name-error' : 'quote-name-help'}
                                     />
+                                    {nameError && <p id="quote-name-error" className="input-error" role="alert">{nameError}</p>}
+                                    <p id="quote-name-help" className="input-help">Enter your alias or stage name.</p>
                                 </div>
 
                                 <div className="input-group">
                                     <div className="label-row">
                                         <label htmlFor="quote-text">The Quote</label>
-                                        <span className="char-count">{quote.length}/280</span>
+                                        <span id="quote-char-count" className={`char-count ${quote.length > 250 ? 'char-count--warn' : ''}`}>{quote.length}/280</span>
                                     </div>
                                     <textarea
                                         id="quote-text"
                                         placeholder="What's the word on the street?"
                                         value={quote}
-                                        onChange={(e) => setQuote(e.target.value)}
+                                        onChange={(e) => { setQuote(e.target.value); if (quoteError) setQuoteError(''); }}
                                         maxLength={280}
                                         required
                                         disabled={status === 'loading'}
                                         rows={4}
+                                        aria-invalid={!!quoteError}
+                                        aria-describedby={quoteError ? 'quote-text-error' : 'quote-text-help'}
                                     />
+                                    {quoteError && <p id="quote-text-error" className="input-error" role="alert">{quoteError}</p>}
+                                    <p id="quote-text-help" className="input-help">Share your favorite lyrics or original thoughts. Max 280 characters.</p>
                                 </div>
 
                                 <button 
@@ -413,6 +449,22 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 .char-count {
                     font-size: 0.7rem;
                     color: rgba(255, 255, 255, 0.55);
+                }
+
+                .char-count--warn {
+                    color: #FBBF24;
+                }
+
+                .input-help {
+                    font-size: 0.75rem;
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-top: 4px;
+                }
+
+                .input-error {
+                    font-size: 0.75rem;
+                    color: #F87171;
+                    margin-top: 4px;
                 }
 
                 input, textarea {
