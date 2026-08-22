@@ -17,7 +17,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
         const user = await prisma.user.findUnique({
             where: { id },
-            select: { id: true, email: true },
+            select: { id: true, email: true, role: true },
         });
 
         if (!user) {
@@ -28,6 +28,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         if (id === session.user?.id) {
             recordRequest('DELETE', `/api/admin/users/${id}`, 400, performance.now() - start, requestId);
             return errorResponse('Cannot delete your own account from admin panel', 400, 'INVALID_OPERATION');
+        }
+
+        if (user.role === 'ADMIN') {
+            recordRequest('DELETE', `/api/admin/users/${id}`, 400, performance.now() - start, requestId);
+            return errorResponse('Cannot delete another admin account', 400, 'INVALID_OPERATION');
         }
 
         await prisma.$transaction([

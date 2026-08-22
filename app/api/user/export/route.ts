@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/app/db';
-import { getRequestId, errorResponse } from '@/lib/api';
+import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { getClientIp } from '@/lib/ip';
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     };
 
     recordRequest('GET', '/api/user/export', 200, performance.now() - start, requestId);
-    return NextResponse.json(exportData);
+    return successResponse(exportData);
   } catch (error) {
     console.error('Data export error:', error);
     recordRequest('GET', '/api/user/export', 500, performance.now() - start, requestId);

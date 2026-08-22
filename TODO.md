@@ -2,7 +2,7 @@
 
 ## Current status
 - ✅ Upstash-based rate limiter integrated with local dev fallback
-- ✅ Next.js updated to 14.2.28
+- ✅ Next.js updated to 15.5.23 (CVE-2025-66478 fixed)
 - ✅ Strict TypeScript enabled
 - ✅ Shared `requireAdmin()` helper across admin routes
 - ✅ Splash screen restored via client wrapper
@@ -33,6 +33,11 @@
 - ✅ ClamAV scanner socketRef bug fixed (uploadScanner.ts)
 - ✅ Deployment zip verification script (scripts/verify-zip.ps1)
 - ✅ Accessibility audit completed for admin login (docs/ACCESSIBILITY-AUDIT-ADMIN-LOGIN.md)
+- ✅ ESLint configured with flat config (eslint.config.js)
+- ✅ Vitest testing infrastructure added with 15 passing core tests
+- ✅ GitHub Actions CI workflow added (.github/workflows/ci.yml)
+- ✅ Inline styles extracted from LoginClient.tsx to CSS classes
+- ✅ Unused imports cleaned from 28 API route files
 
 ## Remaining
 1. Review DEPLOYMENT.md for platform-specific nuances ✅
@@ -43,6 +48,9 @@
 
 ## Open
 1. Upgrade next-auth from beta to stable v5
-2. Run npm audit fix for 6 dependency vulnerabilities
+2. Run npm audit fix for dependency vulnerabilities
 3. Add CSP nonce support to remove unsafe-inline from script-src
 4. Set TRUSTED_PROXIES env var in production
+5. Standardize API error envelopes across all routes
+6. Complete WCAG 2.2 AA accessibility audit for all pages
+7. Complete red-team security review and penetration testing

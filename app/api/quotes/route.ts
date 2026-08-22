@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/db';
 import { auth } from '@/lib/auth';
 import { quoteSubmissionSchema, quoteUpdateSchema } from '@/lib/validations';
-import { z } from 'zod';
 
 import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { competitionSubscribeSchema } from '@/lib/validations';
 import { getClientIp } from '@/lib/ip';

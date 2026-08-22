@@ -1,31 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/app/api/_lib/admin';
-import { sloCollector, SLO } from '@/lib/slo';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
-
-// Internal/admin paths excluded from SLO recording (must match lib/slo.ts INTERNAL_PATHS).
-const INTERNAL_PATHS = ['/api/slo', '/api/health', '/api/admin', '/api/_next'];
-
-function isInternalPath(path: string): boolean {
-  for (const prefix of INTERNAL_PATHS) {
-    if (path === prefix || path.startsWith(`${prefix}/`)) return true;
-  }
-  return false;
-}
+import { recordRequest } from '@/lib/observability';
+import { sloCollector, SLO } from '@/lib/slo';
 
 export async function GET(req: NextRequest) {
   const requestId = getRequestId(req);
   const start = performance.now();
   try {
-    const { session } = await requireAdmin();
+    const { session, error } = await requireAdmin();
     if (!session) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      recordRequest('GET', '/api/slo', error!.status, performance.now() - start, requestId);
+      return errorResponse(error!.message, error!.status, 'UNAUTHORIZED');
     }
 
     const metrics = sloCollector.getMetrics();
 
-    // Do NOT record the SLO endpoint itself — it would inflate error rates / p99.
-    return NextResponse.json({
+    recordRequest('GET', '/api/slo', 200, performance.now() - start, requestId);
+    return successResponse({
       metrics,
       slo: SLO,
       healthy: {
@@ -36,6 +28,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('SLO fetch error:', error);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    recordRequest('GET', '/api/slo', 500, performance.now() - start, requestId);
+    return errorResponse('Server error', 500, 'SLO_FETCH_ERROR');
   }
 }

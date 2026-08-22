@@ -208,6 +208,7 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                         checked={selectedIds.has(g.id)}
                         onChange={() => toggleSelect(g.id)}
                         style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                        aria-label={`Select graffiti by ${g.artist_name}`}
                     />
                     <p className="admin-artist-name" style={{ margin: 0 }}>{g.artist_name}</p>
                 </label>

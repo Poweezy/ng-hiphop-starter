@@ -194,6 +194,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                             checked={selectedIds.has(q.id)}
                             onChange={() => toggleSelect(q.id)}
                             style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                            aria-label={`Select quote by ${q.submitted_by}`}
                         />
                     </label>
                     <p className="admin-text-quote">"{q.quote_text}"</p>
@@ -290,6 +291,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                                         checked={filteredPending.length > 0 && filteredPending.every(q => selectedIds.has(q.id))}
                                         onChange={() => toggleSelectAll(filteredPending.map(q => q.id))}
                                         style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                                        aria-label="Select all pending quotes"
                                     />
                                     <span style={{ fontSize: '0.8rem', color: 'var(--color-grey-blue)' }}>Select all pending</span>
                                 </div>
@@ -310,6 +312,7 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                                         checked={filteredApproved.length > 0 && filteredApproved.every(q => selectedIds.has(q.id))}
                                         onChange={() => toggleSelectAll(filteredApproved.map(q => q.id))}
                                         style={{ width: 16, height: 16, accentColor: 'var(--color-purple)' }}
+                                        aria-label="Select all approved quotes"
                                     />
                                     <span style={{ fontSize: '0.8rem', color: 'var(--color-grey-blue)' }}>Select all approved</span>
                                 </div>

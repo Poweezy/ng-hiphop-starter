@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { emailCampaignUpdateSchema } from '@/lib/validations';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getRequestId(req);
@@ -16,7 +17,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     const body = await req.json();
-    const { name, subject, body: campaignBody, recipientFilter, recipientIds, scheduledAt, status } = body;
+    const validation = emailCampaignUpdateSchema.safeParse(body);
+    if (!validation.success) {
+      recordRequest('PATCH', `/api/campaigns/${id}`, 400, performance.now() - start, requestId);
+      return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
+    }
+
+    const { name, subject, body: campaignBody, recipientFilter, recipientIds, scheduledAt, status } = validation.data;
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;

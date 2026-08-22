@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { winnerSelectionSchema } from '@/lib/validations';
@@ -119,6 +119,11 @@ export async function POST(req: NextRequest) {
     const prize = prizeId
       ? await prisma.competitionPrize.findUnique({ where: { id: prizeId } })
       : null;
+
+    if (prize && prize.competitionId !== competitionId) {
+      recordRequest('POST', '/api/winners', 400, performance.now() - start, requestId);
+      return errorResponse('Prize does not belong to this competition', 400, 'INVALID_PRIZE');
+    }
 
     const winner = await prisma.winner.create({
       data: {
