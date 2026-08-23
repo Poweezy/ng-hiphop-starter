@@ -839,7 +839,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.2em;
-                    color: rgba(255, 255, 255, 0.4);
+                    color: rgba(255, 255, 255, 0.6);
                     margin-bottom: 20px;
                     text-align: center;
                 }
@@ -1432,7 +1432,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     gap: 6px;
                     margin-top: 14px;
                     font-size: 0.72rem;
-                    color: rgba(255,255,255,0.3);
+                    color: rgba(255,255,255,0.55);
                     font-family: var(--font-condensed);
                     letter-spacing: 0.06em;
                 }
@@ -1733,7 +1733,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
                 .input-help {
                     font-size: 0.75rem;
-                    color: rgba(255,255,255,0.4);
+                    color: rgba(255,255,255,0.6);
                     margin-top: 4px;
                 }
 
