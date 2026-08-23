@@ -2828,7 +2828,8 @@ img[loading="lazy"] {
   }
 }
 
-/* Add padding to body when mini player is active to prevent content occlusion */
+/* Add padding to body when mini player is active to prevent content occlusion.
+   Bottom-nav clearance is handled separately by .bottom-nav-spacer. */
 body.has-mini-player {
   padding-bottom: 88px;
 }
@@ -2841,7 +2842,7 @@ body.has-mini-player {
   }
 
   body.has-mini-player {
-    padding-bottom: calc(148px + env(safe-area-inset-bottom));
+    padding-bottom: 88px;
   }
 }
 
@@ -2904,5 +2905,18 @@ body.has-mini-player {
 @media (max-width: 768px) {
   .bottom-nav {
     display: flex;
+  }
+}
+
+/* Spacer reserving room for the fixed bottom nav so the disclaimer footer
+   is never occluded on mobile. Rendered by LayoutWrapper on public pages. */
+.bottom-nav-spacer {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav-spacer {
+    display: block;
+    height: calc(64px + env(safe-area-inset-bottom));
   }
 }

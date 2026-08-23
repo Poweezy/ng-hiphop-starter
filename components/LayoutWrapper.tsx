@@ -20,17 +20,18 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
             <main id="main-content">{children}</main>
             {!isAdmin && <MiniPlayer />}
             {!isAdmin && <BottomNavigation />}
-            {!isAdmin && (
-                <footer className="disclaimer-footer" role="contentinfo" aria-label="Legal disclaimer">
-                    ⚖️ All content published on this platform is licensed, owned, and legally distributed.
-                    Unauthorized use is prohibited.
-                    <span className="footer-links">
-                        <a href="/privacy">Privacy</a>
-                        <span className="footer-sep">·</span>
-                        <a href="/terms">Terms</a>
-                    </span>
-                </footer>
-            )}
+            {/* Legal disclaimer footer renders on EVERY page, including /admin */}
+            <footer className="disclaimer-footer" role="contentinfo" aria-label="Legal disclaimer">
+                ⚖️ All content published on this platform is licensed, owned, and legally distributed.
+                Unauthorized use is prohibited.
+                <span className="footer-links">
+                    <a href="/privacy">Privacy</a>
+                    <span className="footer-sep">·</span>
+                    <a href="/terms">Terms</a>
+                </span>
+            </footer>
+            {/* Reserves space so the fixed mobile bottom nav never occludes the footer */}
+            {!isAdmin && <div className="bottom-nav-spacer" aria-hidden="true" />}
             {!isAdmin && <CookieConsent />}
         </ToastProvider>
     );
