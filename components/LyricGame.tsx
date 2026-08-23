@@ -18,6 +18,16 @@ interface LyricGameProps {
 type GamePhase = 'intro' | 'playing' | 'interstitial' | 'gameover';
 
 const INTERSTITIAL_DURATION = 2000;
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'] as const;
+const RING_RADIUS = 54;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+const GAME_TIPS = [
+    'Listen carefully to the rhythm and context of the song!',
+    'Fast answers earn bonus points — trust your first instinct.',
+    'Streaks build momentum. Don\u2019t break the chain!',
+    'Rounds get faster as you climb the difficulty tiers.',
+];
 
 function getTimerForRound(roundIndex: number): number {
     if (roundIndex < 5) return 12;
@@ -47,6 +57,17 @@ function getResultText(selectedOption: string | null, isCorrect: boolean | null,
     return `Not quite. The right answer was ${correctArtist}.`;
 }
 
+function Waveform({ flip = false }: { flip?: boolean }) {
+    const bars = [6, 12, 8, 16, 10, 18, 7, 14, 9, 5];
+    return (
+        <svg className={`lyric-wave${flip ? ' lyric-wave--flip' : ''}`} viewBox="0 0 64 24" aria-hidden="true">
+            {bars.map((h, i) => (
+                <rect key={i} x={i * 6.4 + 1} y={12 - h / 2} width="3.2" height={h} rx="1.6" />
+            ))}
+        </svg>
+    );
+}
+
 export default function LyricGame({ lyrics }: LyricGameProps) {
     const reduced = useReducedMotion();
     const [gameLyrics, setGameLyrics] = useState<LyricEntry[]>([]);
@@ -54,6 +75,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     const [score, setScore] = useState(0);
     const [streak, setStreak] = useState(0);
     const [bestStreak, setBestStreak] = useState(0);
+    const [bestScore, setBestScore] = useState(0);
+    const [newBestScore, setNewBestScore] = useState(false);
+    const prevBestScoreRef = useRef(0);
     const [totalRounds, setTotalRounds] = useState(0);
     const [correctAnswers, setCorrectAnswers] = useState(0);
 
@@ -81,8 +105,10 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     const [interstitialSecondsLeft, setInterstitialSecondsLeft] = useState(0);
 
     useEffect(() => {
-        const saved = localStorage.getItem('ng-lyric-game-best-streak');
-        if (saved) setBestStreak(parseInt(saved, 10));
+        const savedStreak = localStorage.getItem('ng-lyric-game-best-streak');
+        if (savedStreak) setBestStreak(parseInt(savedStreak, 10));
+        const savedScore = localStorage.getItem('ng-lyric-game-best-score');
+        if (savedScore) setBestScore(parseInt(savedScore, 10));
     }, []);
 
     useEffect(() => {
@@ -91,6 +117,13 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
             localStorage.setItem('ng-lyric-game-best-streak', String(streak));
         }
     }, [streak, bestStreak]);
+
+    useEffect(() => {
+        if (score > bestScore) {
+            setBestScore(score);
+            localStorage.setItem('ng-lyric-game-best-score', String(score));
+        }
+    }, [score, bestScore]);
 
     useEffect(() => {
         if (lyrics && lyrics.length > 0) {
@@ -103,6 +136,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         };
     }, [lyrics]);
 
+    const optionsRef = useRef<HTMLDivElement | null>(null);
+
     useEffect(() => {
         if (gameLyrics.length === 0) return;
 
@@ -111,6 +146,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 const key = e.key.toLowerCase();
                 let idx = -1;
                 if (key >= '1' && key <= '4') idx = parseInt(key) - 1;
+                if (['a', 'b', 'c', 'd'].includes(key)) idx = key.charCodeAt(0) - 97;
 
                 if (idx >= 0 && idx < options.length) {
                     e.preventDefault();
@@ -133,6 +169,14 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [gamePhase, isPlaying, selectedOption, options, gameLyrics, currentIndex, interstitialSecondsLeft]);
 
+    // Move focus to the options group when a new question mounts so keyboard
+    // and screen-reader users don't lose their place after "Next Question".
+    useEffect(() => {
+        if (gamePhase === 'playing') {
+            optionsRef.current?.focus();
+        }
+    }, [gamePhase, currentIndex]);
+
     useEffect(() => {
         if (gamePhase === 'interstitial') {
             setInterstitialSecondsLeft(Math.floor(INTERSTITIAL_DURATION / 1000));
@@ -150,6 +194,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     }, [timeLeft, isPlaying, gamePhase]);
 
     const startGame = () => {
+        prevBestScoreRef.current = bestScore;
+        setNewBestScore(false);
         const shuffled = [...lyrics].sort(() => Math.random() - 0.5);
         setGameLyrics(shuffled);
         setCurrentIndex(0);
@@ -242,6 +288,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     };
 
     const endGame = () => {
+        setNewBestScore(score > prevBestScoreRef.current && score > 0);
         setGamePhase('gameover');
         setIsPlaying(false);
         setSelectedOption(null);
@@ -336,6 +383,101 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     const timerColor = timeLeft <= 3 ? '#ef4444' : timeLeft <= maxTime / 2 ? '#f59e0b' : '#10b981';
     const difficultyClass = `difficulty-${getDifficultyLabel(currentIndex).toLowerCase()}`;
     const secondsLeft = gamePhase === 'interstitial' ? interstitialSecondsLeft : 0;
+    const progressPct = gameLyrics.length > 0 ? Math.round(((currentIndex + 1) / gameLyrics.length) * 100) : 0;
+    const maxPossibleScore: number = Array.from({ length: Math.max(totalRounds, 0) })
+        .reduce<number>((sum, _, i) => sum + 10 + getTimerForRound(i), 0);
+    const ringPct = maxPossibleScore > 0 ? Math.min(100, Math.round((score / maxPossibleScore) * 100)) : 0;
+    const wrongAnswers = Math.max(0, totalRounds - correctAnswers);
+    const shareText = `I scored ${score} points on NG Hip Hop's Lyric Master! 🔥 My max streak: ${bestStreak}. Can you beat it?`;
+    const tip = GAME_TIPS[currentIndex % GAME_TIPS.length];
+
+    const renderStatsBar = (showTimer: boolean) => (
+        <div className="hud-grid" role="group" aria-label="Game statistics">
+            <div className="stat-tile">
+                <span className={`stat-tile-icon${streak >= 3 ? ' stat-tile-icon--hot' : ''}`} aria-hidden="true">🔥</span>
+                <div className="stat-tile-body">
+                    <span className="stat-tile-label">Current Streak</span>
+                    <span className={`stat-tile-value${streak >= 3 ? ' stat-tile-value--hot' : ''}`}>{streak}</span>
+                    <span className="stat-tile-sub">Best: {bestStreak}</span>
+                </div>
+            </div>
+            <div className="stat-tile">
+                <span className="stat-tile-icon stat-tile-icon--gold" aria-hidden="true">⭐</span>
+                <div className="stat-tile-body">
+                    <span className="stat-tile-label">Score</span>
+                    <span className="stat-tile-value">{score.toLocaleString()}</span>
+                    <span className="stat-tile-sub">Best: {bestScore.toLocaleString()}</span>
+                </div>
+            </div>
+            <div className="stat-tile">
+                <span className="stat-tile-icon stat-tile-icon--purple" aria-hidden="true">🎯</span>
+                <div className="stat-tile-body">
+                    <span className="stat-tile-label">Accuracy</span>
+                    <span className="stat-tile-value">{accuracy}%</span>
+                    <span className="stat-tile-sub">{correctAnswers}/{totalRounds} rounds</span>
+                </div>
+            </div>
+            {showTimer ? (
+                <div className="stat-tile stat-tile--timer">
+                    <span className="stat-tile-icon stat-tile-icon--blue" aria-hidden="true">⏱️</span>
+                    <div className="stat-tile-body">
+                        <span className="stat-tile-label">Time Left</span>
+                        <span className="stat-tile-value" aria-live="off" style={{ color: timeLeft <= 3 ? timerColor : undefined }}>{timeLeft}s</span>
+                        <span className="stat-tile-timer-track" aria-hidden="true">
+                            <motion.span
+                                className="stat-tile-timer-fill"
+                                animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timerColor }}
+                                transition={{ duration: 1, ease: 'linear' }}
+                            />
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div className="stat-tile">
+                    <span className="stat-tile-icon stat-tile-icon--blue" aria-hidden="true">⏱️</span>
+                    <div className="stat-tile-body">
+                        <span className="stat-tile-label">Time Left</span>
+                        <span className="stat-tile-value">—</span>
+                        <span className="stat-tile-sub">Paused</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    const renderOptions = (interactive: boolean) => (
+        <div className="options-list" role="group" aria-label="Answer options" ref={optionsRef} tabIndex={-1}>
+            {options.map((option, idx) => {
+                const isThisSelected = selectedOption === option;
+                const isThisCorrect = option === currentLyric?.correct_artist;
+                let btnClass = 'option-btn';
+                if (selectedOption) {
+                    if (isThisSelected && isCorrect) btnClass += ' correct';
+                    else if (isThisSelected && !isCorrect) btnClass += ' wrong';
+                    else if (isThisCorrect) btnClass += ' reveal-correct';
+                }
+                return (
+                    <motion.button
+                        key={option}
+                        whileHover={!reduced && interactive && !selectedOption ? { scale: 1.01 } : undefined}
+                        whileTap={!reduced && interactive && !selectedOption ? { scale: 0.98 } : undefined}
+                        onClick={interactive ? () => handleOptionSelect(option) : undefined}
+                        className={btnClass}
+                        disabled={!interactive || !!selectedOption}
+                        aria-label={`Option ${OPTION_LETTERS[idx]}: ${option}${isThisSelected ? ' (selected)' : ''}${isThisCorrect && selectedOption ? ' (correct answer)' : ''}`}
+                    >
+                        <span className="option-letter" aria-hidden="true">{OPTION_LETTERS[idx]}</span>
+                        <span className="option-label">{option}</span>
+                        {selectedOption && (isThisSelected || isThisCorrect) && (
+                            <span className={`feedback-icon ${isThisCorrect ? 'feedback-icon--correct' : 'feedback-icon--wrong'}`} aria-hidden="true">
+                                {isThisCorrect ? '✓' : '✕'}
+                            </span>
+                        )}
+                    </motion.button>
+                );
+            })}
+        </div>
+    );
 
     let gameContent: React.ReactNode = null;
 
@@ -372,9 +514,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                             <span className="intro-stat-bar" style={{ width: '85%' }} />
                         </div>
                         <div className="intro-stat-card">
-                            <span className="intro-stat-value">3</span>
-                            <span className="intro-stat-label">Tiers</span>
-                            <span className="intro-stat-bar" style={{ width: '60%' }} />
+                            <span className="intro-stat-value">⭐ {bestScore.toLocaleString()}</span>
+                            <span className="intro-stat-label">Best Score</span>
+                            <span className="intro-stat-bar" style={{ width: Math.min(100, bestScore) + '%' }} />
                         </div>
                         <div className="intro-stat-card">
                             <span className="intro-stat-value">🏆 {bestStreak}</span>
@@ -395,7 +537,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                         </div>
                         <div className="intro-instruction">
                             <span className="step-num">03</span>
-                            <span>Use <kbd>1–4</kbd> on your keyboard to answer.</span>
+                            <span>Use <kbd>1–4</kbd> or <kbd>A–D</kbd> on your keyboard to answer.</span>
                         </div>
                     </div>
 
@@ -415,143 +557,181 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
     } else if (gamePhase === 'playing' && currentLyric) {
         gameContent = (
             <motion.div key={`round-${currentIndex}`} className="game-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                <div className="game-hud">
-                    <div className="hud-stat">
-                        <span className="hud-label">Score</span>
-                        <span className="hud-value">{score}</span>
-                    </div>
-                    <div className="hud-center">
-                        <span className={`difficulty-pill ${difficultyClass}`}>{getDifficultyLabel(currentIndex)}</span>
-                        <span className="round-indicator">Round {currentIndex + 1} / {gameLyrics.length}</span>
-                    </div>
-                    <div className="hud-stat hud-stat--right">
-                        <span className="hud-label">Streak</span>
-                        <span className="hud-value streak-value">🔥 {streak}</span>
-                    </div>
+                {renderStatsBar(true)}
+
+                <div className="question-meta">
+                    <span className={`question-pill ${difficultyClass}`}>
+                        QUESTION {currentIndex + 1} OF {gameLyrics.length} · {getDifficultyLabel(currentIndex)}
+                    </span>
                 </div>
+
                 <div className="progress-row" role="progressbar" aria-valuemin={0} aria-valuemax={gameLyrics.length} aria-valuenow={currentIndex + 1} aria-label={`Question ${currentIndex + 1} of ${gameLyrics.length}`}>
-                    <motion.div className="progress-fill" initial={false} animate={{ width: `${((currentIndex + 1) / gameLyrics.length) * 100}%` }} transition={{ duration: 0.4, ease: 'easeOut' }} />
-                </div>
-                <div className="timer-row" aria-live="polite" aria-atomic="true">
-                    <div className="timer-track">
-                        <motion.div className="timer-bar" animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timerColor }} transition={{ duration: 1, ease: 'linear' }} />
+                    <div className="progress-track">
+                        <motion.div className="progress-fill" initial={false} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4, ease: 'easeOut' }} />
                     </div>
-                    <div className="timer-badge" style={{ borderColor: `${timerColor}40`, background: `${timerColor}12` }}>
-                        <span className="timer-label" style={{ color: timerColor }}>{timeLeft}s</span>
-                        {(timeLeft <= maxTime / 2) && <span className="timer-urgency" style={{ color: timerColor }}>{timeLeft <= 3 ? '⚡QUICK' : 'FAST'}</span>}
-                    </div>
+                    <span className="progress-pct">{progressPct}%</span>
                 </div>
-                <div className="lyric-box">
-                    <div className="lyric-box-header">
-                        <span className="lyric-box-label">Guess the Artist</span>
-                        <div className="lyric-box-divider" />
-                    </div>
-                    <p className="lyric-text"><span className="lyric-quote-mark" aria-hidden="true">&ldquo;</span>{currentLyric.lyric_text}<span className="lyric-quote-mark" aria-hidden="true">&rdquo;</span></p>
+
+                <h3 className="question-heading">Guess the Artist</h3>
+
+                <div className="lyric-quote">
+                    <Waveform />
+                    <blockquote className="lyric-quote-text">
+                        &ldquo;{currentLyric.lyric_text}&rdquo;
+                    </blockquote>
+                    <Waveform flip />
                 </div>
-                <div className="options-list" role="group" aria-label="Answer options">
-                    {options.map((option, idx) => {
-                        const isThisSelected = selectedOption === option;
-                        const isThisCorrect = option === currentLyric.correct_artist;
-                        let btnClass = 'option-btn';
-                        if (selectedOption) {
-                            if (isThisSelected && isCorrect) btnClass += ' correct';
-                            else if (isThisSelected && !isCorrect) btnClass += ' wrong';
-                            else if (isThisCorrect) btnClass += ' reveal-correct';
-                        }
-                        return (
-                            <motion.button key={option} whileHover={!reduced && !selectedOption ? { scale: 1.01 } : undefined} whileTap={!reduced && !selectedOption ? { scale: 0.98 } : undefined} onClick={() => handleOptionSelect(option)} className={btnClass} disabled={!!selectedOption} aria-label={`Option ${idx + 1}: ${option}${isThisSelected ? ' (selected)' : ''}${isThisCorrect && selectedOption ? ' (correct answer)' : ''}`}>
-                                <span className="option-number">{idx + 1}</span>
-                                <span className="option-label">{option}</span>
-                                {selectedOption && (isThisSelected || isThisCorrect) && <span className="feedback-icon" aria-hidden="true">{isThisCorrect ? '✓' : '✕'}</span>}
-                            </motion.button>
-                        );
-                    })}
+
+                {renderOptions(true)}
+
+                <div className="keyboard-hint" aria-hidden="true"><kbd>1–4</kbd> or <kbd>A–D</kbd> to select</div>
+
+                <div className="tip-strip" role="note">
+                    <span className="tip-icon" aria-hidden="true">💡</span>
+                    <span className="tip-text"><strong>TIP:</strong> {tip}</span>
                 </div>
-                <div className="keyboard-hint" aria-hidden="true"><kbd>1–4</kbd> to select</div>
             </motion.div>
         );
     } else if (gamePhase === 'interstitial' && currentLyric) {
         gameContent = (
             <motion.div key={`interstitial-${currentIndex}`} className="game-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                <div className="game-hud">
-                    <div className="hud-stat">
-                        <span className="hud-label">Score</span>
-                        <span className="hud-value">{score}</span>
-                    </div>
-                    <div className="hud-center">
-                        <span className={`difficulty-pill ${difficultyClass}`}>{getDifficultyLabel(currentIndex)}</span>
-                        <span className="round-indicator">Round {currentIndex + 1} / {gameLyrics.length}</span>
-                    </div>
-                    <div className="hud-stat hud-stat--right">
-                        <span className="hud-label">Streak</span>
-                        <span className="hud-value streak-value">🔥 {streak}</span>
-                    </div>
+                {renderStatsBar(false)}
+
+                <div className="question-meta">
+                    <span className={`question-pill ${difficultyClass}`}>
+                        QUESTION {currentIndex + 1} OF {gameLyrics.length} · {getDifficultyLabel(currentIndex)}
+                    </span>
                 </div>
-                <div className="lyric-box">
-                    <div className="lyric-box-header">
-                        <span className="lyric-box-label">Guess the Artist</span>
-                        <div className="lyric-box-divider" />
-                    </div>
-                    <p className="lyric-text"><span className="lyric-quote-mark" aria-hidden="true">&ldquo;</span>{currentLyric.lyric_text}<span className="lyric-quote-mark" aria-hidden="true">&rdquo;</span></p>
+
+                <div className="lyric-quote">
+                    <Waveform />
+                    <blockquote className="lyric-quote-text">
+                        &ldquo;{currentLyric.lyric_text}&rdquo;
+                    </blockquote>
+                    <Waveform flip />
                 </div>
+
+                {renderOptions(false)}
+
                 <div className={`result-banner ${isCorrect ? 'result-correct-bg' : 'result-wrong-bg'}`} role="status" aria-live="polite">
-                    <div className={`result-banner-text ${isCorrect ? 'result-correct' : 'result-wrong'}`}>{getResultText(selectedOption, isCorrect, currentLyric.correct_artist)}</div>
-                    <div className="result-banner-meta">
-                        {isCorrect && timeLeft > 0 && <span className="interstitial-points">+{10 + timeLeft} pts</span>}
-                        <span className="interstitial-countdown">Next in {secondsLeft}s</span>
-                        <button onClick={advanceRound} className="btn-skip">Skip →</button>
+                    <div className="result-banner-main">
+                        <div className={`result-banner-text ${isCorrect ? 'result-correct' : 'result-wrong'}`}>{getResultText(selectedOption, isCorrect, currentLyric.correct_artist)}</div>
+                        <div className="result-banner-meta">
+                            {isCorrect && timeLeft > 0 && <span className="interstitial-points">+{10 + timeLeft} pts</span>}
+                            <span className="interstitial-countdown">Next in {secondsLeft}s</span>
+                        </div>
                     </div>
-                </div>
-                <div className="options-list" role="group" aria-label="Answer options">
-                    {options.map((option, idx) => {
-                        const isThisSelected = selectedOption === option;
-                        const isThisCorrect = option === currentLyric.correct_artist;
-                        let btnClass = 'option-btn';
-                        if (isThisSelected && isCorrect) btnClass += ' correct';
-                        else if (isThisSelected && !isCorrect) btnClass += ' wrong';
-                        else if (isThisCorrect) btnClass += ' reveal-correct';
-                        return (
-                            <motion.button key={option} className={btnClass} disabled aria-label={`Option ${idx + 1}: ${option}${isThisCorrect ? ' (correct answer)' : ''}`}>
-                                <span className="option-number">{idx + 1}</span>
-                                <span className="option-label">{option}</span>
-                                {selectedOption && (isThisSelected || isThisCorrect) && <span className="feedback-icon" aria-hidden="true">{isThisCorrect ? '✓' : '✕'}</span>}
-                            </motion.button>
-                        );
-                    })}
+                    <button onClick={advanceRound} className="btn-next">
+                        Next Question <span className="btn-next-arrow" aria-hidden="true">→</span>
+                    </button>
                 </div>
             </motion.div>
         );
     } else if (gamePhase === 'gameover') {
         gameContent = (
-            <motion.div key="gameover" className="game-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                <h3>Game Over</h3>
-                <div className={`accuracy-badge ${accuracy >= 70 ? 'accuracy-high' : accuracy >= 40 ? 'accuracy-medium' : 'accuracy-low'}`} role="status">
-                    {accuracy}% Accuracy
+            <motion.div key="gameover" className="results-panel" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
+                <div className="confetti-layer" aria-hidden="true">
+                    {Array.from({ length: 10 }).map((_, i) => (
+                        <span key={i} className={`confetti-dot confetti-dot--${i + 1}`} />
+                    ))}
                 </div>
-                <p className="result-message" role="status">{accuracy >= 90 ? 'Certified lyricologist. The culture salutes you. 🏆' : accuracy >= 70 ? 'Heavy rotation knowledge — the streets respect it.' : accuracy >= 40 ? 'Solid foundation — keep digging in the crates.' : 'Time to study up — the vault stays locked for now.'}</p>
-                <div className="accuracy-grid">
-                    <div className="stat-item">
-                        <div className="stat-value">{score}</div>
-                        <div className="stat-label">Final Score</div>
-                    </div>
-                    <div className="stat-item">
-                        <div className="stat-value">{totalRounds}</div>
-                        <div className="stat-label">Rounds</div>
-                    </div>
-                    <div className="stat-item">
-                        <div className="stat-value">🔥 {streak}</div>
-                        <div className="stat-label">Max Streak</div>
-                    </div>
-                    <div className="stat-item">
-                        <div className="stat-value">🏆 {bestStreak}</div>
-                        <div className="stat-label">Best Ever</div>
+
+                <h3 className="results-title" role="status">{accuracy >= 70 ? 'Great Job!' : 'Game Over'}</h3>
+                <p className="results-subtitle" role="status">{accuracy >= 90 ? 'Certified lyricologist. The culture salutes you. 🏆' : accuracy >= 70 ? 'Heavy rotation knowledge — the streets respect it.' : accuracy >= 40 ? 'Solid foundation — keep digging in the crates.' : 'Time to study up — the vault stays locked for now.'}</p>
+
+                <div className="score-ring-wrap">
+                    <svg viewBox="0 0 120 120" className="score-ring" role="img" aria-label={`Score ${score} out of a possible ${maxPossibleScore} — ${ringPct} percent`}>
+                        <defs>
+                            <linearGradient id="lyric-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#8B5CF6" />
+                                <stop offset="60%" stopColor="#EC4899" />
+                                <stop offset="100%" stopColor="#F59E0B" />
+                            </linearGradient>
+                        </defs>
+                        <circle className="score-ring-bg" cx="60" cy="60" r={RING_RADIUS} />
+                        <motion.circle
+                            className="score-ring-fill"
+                            cx="60"
+                            cy="60"
+                            r={RING_RADIUS}
+                            stroke="url(#lyric-ring-gradient)"
+                            strokeDasharray={RING_CIRCUMFERENCE}
+                            initial={{ strokeDashoffset: RING_CIRCUMFERENCE }}
+                            animate={{ strokeDashoffset: RING_CIRCUMFERENCE * (1 - ringPct / 100) }}
+                            transition={{ duration: reduced ? 0 : 1.4, ease: 'easeOut', delay: 0.3 }}
+                        />
+                    </svg>
+                    <div className="score-ring-center" aria-hidden="true">
+                        <span className="score-ring-label">Score</span>
+                        <span className="score-ring-value">{score.toLocaleString()}</span>
+                        <span className="score-ring-max">of {maxPossibleScore.toLocaleString()}</span>
                     </div>
                 </div>
-                <div className="footer-actions">
-                    <button onClick={handleRestart} className="btn btn-primary">Play Again</button>
-                    <button onClick={() => setShowSubmitModal(true)} className="btn btn-secondary">Submit a Lyric</button>
-                    <button onClick={shareScore} className="btn-share">{shareState === 'shared' ? 'Copied!' : 'Share Score'}</button>
+
+                <div className="results-trio">
+                    <div className="trio-stat trio-stat--correct">
+                        <span className="trio-icon" aria-hidden="true">✓</span>
+                        <span className="trio-label">Correct</span>
+                        <span className="trio-value">{correctAnswers}</span>
+                    </div>
+                    <div className="trio-stat trio-stat--wrong">
+                        <span className="trio-icon" aria-hidden="true">✕</span>
+                        <span className="trio-label">Incorrect</span>
+                        <span className="trio-value">{wrongAnswers}</span>
+                    </div>
+                    <div className="trio-stat trio-stat--accuracy">
+                        <span className="trio-icon" aria-hidden="true">◎</span>
+                        <span className="trio-label">Accuracy</span>
+                        <span className="trio-value">{accuracy}%</span>
+                    </div>
                 </div>
+
+                {newBestScore && (
+                    <div className="best-banner" role="status">
+                        <span className="best-banner-icon" aria-hidden="true">⭐</span>
+                        <div className="best-banner-body">
+                            <span className="best-banner-title">New Personal Best!</span>
+                            <span className="best-banner-sub">You beat your previous score ({prevBestScoreRef.current.toLocaleString()})</span>
+                        </div>
+                    </div>
+                )}
+
+                <div className="share-row">
+                    <span className="share-row-label">Share Your Score</span>
+                    <div className="share-row-buttons">
+                        <a
+                            className="share-pill share-pill--wa"
+                            href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Share your score on WhatsApp"
+                        >
+                            <span aria-hidden="true">💬</span> WhatsApp
+                        </a>
+                        <a
+                            className="share-pill share-pill--x"
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Share your score on X (Twitter)"
+                        >
+                            <span aria-hidden="true">𝕏</span> Post
+                        </a>
+                        <button className="share-pill share-pill--copy" onClick={shareScore}>
+                            <span aria-hidden="true">{shareState === 'shared' ? '✓' : '🔗'}</span> {shareState === 'shared' ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="results-actions">
+                    <button onClick={handleRestart} className="btn-home">
+                        <span aria-hidden="true">⌂</span> Home
+                    </button>
+                    <button onClick={startGame} className="btn-again">
+                        <span aria-hidden="true">↻</span> Play Again
+                    </button>
+                </div>
+                <button onClick={() => setShowSubmitModal(true)} className="submit-link">Submit a Lyric</button>
             </motion.div>
         );
     }
@@ -622,7 +802,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                      {submitError && <div className="submit-error" role="alert" aria-live="polite">{submitError}</div>}
                      <div className="form-actions">
                          <button type="button" onClick={() => setShowSubmitModal(false)} className="btn-text">Cancel</button>
-                         <button type="submit" disabled={submitting} className="btn-premium">                            {submitting ? 'Dropping logic…' : 'Submit Challenge'}</button>
+                         <button type="submit" disabled={submitting} className="btn-premium">{submitting ? 'Dropping logic…' : 'Submit Challenge'}</button>
                      </div>
                  </form>
             </Modal>
@@ -642,7 +822,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .section-intro .intro-stat-label { font-family: var(--font-condensed); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.5); }
                 .game-card-wrapper { position: relative; z-index: 20; background: rgba(10, 10, 18, 0.6); border-radius: 28px; padding: 4px; box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25), 0 0 40px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
-                /* Intro Card */
+                /* ===================================
+                   INTRO CARD
+                =================================== */
                 .game-intro {
                     background: linear-gradient(160deg, rgba(20, 20, 35, 0.95) 0%, rgba(10, 10, 20, 0.98) 100%);
                     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -900,7 +1082,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     justify-content: center;
                     gap: 14px;
                     width: 100%;
-                    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+                    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
                     color: white;
                     border: none;
                     padding: 20px 36px;
@@ -912,7 +1094,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     text-transform: uppercase;
                     cursor: pointer;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 6px 30px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+                    box-shadow: 0 6px 30px rgba(139, 92, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
                     touch-action: manipulation;
                     overflow: hidden;
                 }
@@ -928,7 +1110,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
                 .btn-start:hover {
                     transform: translateY(-3px);
-                    box-shadow: 0 12px 44px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 12px 44px rgba(139, 92, 246, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
                 }
 
                 .btn-start:hover::before {
@@ -940,7 +1122,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 .btn-start:focus-visible {
-                    outline: 2px solid var(--color-green);
+                    outline: 2px solid var(--color-purple);
                     outline-offset: 3px;
                 }
 
@@ -983,7 +1165,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     50% { opacity: 0.4; }
                 }
 
-                /* Game Card — deep dark glassmorphism with neon rim */
+                /* ===================================
+                   GAME CARD — deep dark glassmorphism
+                =================================== */
                 .game-card {
                     position: relative;
                     background: linear-gradient(170deg, rgba(18, 18, 30, 0.92) 0%, rgba(8, 8, 16, 0.96) 100%);
@@ -991,7 +1175,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     backdrop-filter: blur(20px);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     border-radius: 24px;
-                    padding: 32px;
+                    padding: 28px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(139, 92, 246, 0.1);
                     overflow: hidden;
                     transition: box-shadow 0.4s ease, border-color 0.4s ease;
@@ -1016,14 +1200,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     border-radius: 24px;
                 }
 
-                .game-card:hover {
-                    border-color: rgba(139, 92, 246, 0.3);
-                    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 30px rgba(139, 92, 246, 0.12);
-                }
-
                 @media (max-width: 640px) {
                     .game-card {
-                        padding: 24px 18px 28px;
+                        padding: 20px 16px 22px;
                         border-radius: 20px;
                     }
                     .game-intro {
@@ -1032,270 +1211,260 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     .intro-title {
                         font-size: 1.8rem;
                     }
-                    .lyric-text {
+                    .lyric-quote-text {
                         font-size: 1.25rem !important;
                     }
-                    .lyric-box {
-                        padding: 18px 16px 18px 20px;
-                    }
                 }
 
-                /* HUD — glassmorphism header bar */
-                .game-hud {
+                /* ===================================
+                   STATS BAR — 4 tiles
+                =================================== */
+                .hud-grid {
                     display: grid;
-                    grid-template-columns: 1fr auto 1fr;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 20px;
-                    padding: 14px 18px;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 10px;
+                    margin-bottom: 24px;
+                }
+
+                .stat-tile {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 10px;
+                    padding: 12px 14px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.06);
-                    border-radius: 16px;
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
+                    border-radius: 14px;
+                    min-width: 0;
                 }
 
-                .hud-stat {
+                .stat-tile-icon {
+                    font-size: 1.1rem;
+                    line-height: 1.4;
+                    flex-shrink: 0;
+                }
+
+                .stat-tile-icon--gold { filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5)); }
+                .stat-tile-icon--purple { filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5)); }
+                .stat-tile-icon--blue { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
+                .stat-tile-icon--hot { animation: hotFlicker 1s ease-in-out infinite; }
+                .stat-tile-value--hot {
+                    color: #fbbf24;
+                    text-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
+                }
+                @keyframes hotFlicker {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.12); }
+                }
+
+                .stat-tile-body {
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
+                    min-width: 0;
                 }
 
-                .hud-stat--right {
-                    align-items: flex-end;
-                }
-
-                .hud-center {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 4px;
-                }
-
-                .hud-label {
+                .stat-tile-label {
                     font-family: var(--font-condensed);
                     font-size: 0.6rem;
+                    font-weight: 600;
                     text-transform: uppercase;
-                    letter-spacing: 0.14em;
-                    color: var(--color-grey-blue);
+                    letter-spacing: 0.12em;
+                    color: rgba(255, 255, 255, 0.45);
+                    white-space: nowrap;
                 }
 
-                .hud-value {
-                    font-size: 0.95rem;
-                    font-weight: 700;
-                    color: rgba(255, 255, 255, 0.9);
+                .stat-tile-value {
+                    font-size: 1.35rem;
+                    font-weight: 800;
+                    color: white;
+                    line-height: 1.1;
                     font-variant-numeric: tabular-nums;
-                    line-height: 1;
                 }
 
-                .streak-value {
-                    color: #F59E0B;
+                .stat-tile-sub {
+                    font-size: 0.65rem;
+                    color: rgba(255, 255, 255, 0.35);
+                    white-space: nowrap;
+                }
+
+                .stat-tile-timer-track {
+                    display: block;
+                    height: 4px;
+                    margin-top: 4px;
+                    border-radius: 2px;
+                    background: rgba(255, 255, 255, 0.08);
+                    overflow: hidden;
+                }
+
+                .stat-tile-timer-fill {
+                    display: block;
+                    height: 100%;
+                    border-radius: 2px;
+                    background: #10b981;
+                }
+
+                @media (max-width: 900px) {
+                    .hud-grid { grid-template-columns: repeat(2, 1fr); }
+                }
+
+                /* ===================================
+                   QUESTION META + PROGRESS
+                =================================== */
+                .question-meta {
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 16px;
+                }
+
+                .question-pill {
                     display: inline-flex;
                     align-items: center;
-                    gap: 3px;
-                    animation: pulse-glow 2s infinite;
-                }
-
-                @keyframes pulse-glow {
-                    0%, 100% { text-shadow: 0 0 8px rgba(245,158,11,0.3); }
-                    50% { text-shadow: 0 0 16px rgba(245,158,11,0.6); }
-                }
-
-                .difficulty-pill {
-                    padding: 4px 14px;
-                    border-radius: 20px;
+                    gap: 8px;
+                    font-family: var(--font-condensed);
                     font-size: 0.68rem;
                     font-weight: 700;
+                    letter-spacing: 0.18em;
                     text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+                    padding: 7px 18px;
+                    border-radius: var(--radius-pill);
+                    color: #c4b5fd;
+                    background: rgba(139, 92, 246, 0.12);
+                    border: 1px solid rgba(139, 92, 246, 0.35);
                 }
 
-                .difficulty-beginner { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); box-shadow: 0 0 12px rgba(16,185,129,0.15); }
-                .difficulty-intermediate { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); box-shadow: 0 0 12px rgba(245,158,11,0.15); }
-                .difficulty-expert { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); box-shadow: 0 0 12px rgba(239,68,68,0.15); }
+                .question-pill.difficulty-intermediate {
+                    color: #fcd34d;
+                    background: rgba(245, 158, 11, 0.1);
+                    border-color: rgba(245, 158, 11, 0.35);
+                }
 
-                .round-indicator { font-size: 0.72rem; color: var(--color-grey-blue); font-family: var(--font-condensed); letter-spacing: 0.08em; }
+                .question-pill.difficulty-expert {
+                    color: #fca5a5;
+                    background: rgba(239, 68, 68, 0.1);
+                    border-color: rgba(239, 68, 68, 0.35);
+                }
 
-                /* Question progress */
                 .progress-row {
-                    height: 4px;
-                    background: rgba(255,255,255,0.06);
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 24px;
+                }
+
+                .progress-track {
+                    flex: 1;
+                    height: 8px;
                     border-radius: 4px;
+                    background: rgba(255, 255, 255, 0.07);
                     overflow: hidden;
-                    margin-bottom: 14px;
                 }
 
                 .progress-fill {
                     height: 100%;
                     border-radius: 4px;
-                    background: linear-gradient(90deg, var(--color-green), var(--color-purple));
-                    box-shadow: 0 0 10px rgba(139,92,246,0.4);
+                    background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+                    box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
                 }
 
-                /* Timer — sleek pill with shine sweep */
-                .timer-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin-bottom: 24px;
-                }
-
-                .timer-badge {
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    border-radius: 8px;
-                    padding: 5px 12px;
-                    flex-shrink: 0;
-                    border: 1px solid;
-                    transition: border-color 0.5s ease, background 0.5s ease, box-shadow 0.5s ease;
-                }
-
-                .timer-urgency {
+                .progress-pct {
                     font-family: var(--font-condensed);
-                    font-size: 0.58rem;
+                    font-size: 0.75rem;
                     font-weight: 700;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    transition: color 0.5s ease;
-                    animation: urgencyPulse 1s ease-in-out infinite;
+                    color: rgba(255, 255, 255, 0.55);
+                    min-width: 36px;
+                    text-align: right;
+                    font-variant-numeric: tabular-nums;
                 }
 
-                @keyframes urgencyPulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.08); }
-                }
-
-                .timer-track {
-                    flex: 1;
-                    height: 8px;
-                    background: rgba(255,255,255,0.08);
-                    border-radius: 8px;
-                    overflow: hidden;
-                    position: relative;
-                }
-
-                .timer-bar {
-                    height: 100%;
-                    border-radius: 8px;
-                    position: relative;
-                    overflow: hidden;
-                    box-shadow: 0 0 12px currentColor;
-                }
-
-                .timer-bar::after {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-                    animation: timerShine 2s ease-in-out infinite;
-                }
-
-                @keyframes timerShine {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(100%); }
-                }
-
-                .timer-label {
-                    font-family: var(--font-condensed);
-                    font-size: 1rem;
+                /* ===================================
+                   LYRIC QUOTE
+                =================================== */
+                .question-heading {
+                    text-align: center;
+                    font-family: var(--font-body);
+                    font-size: 1.15rem;
                     font-weight: 700;
-                    letter-spacing: 0.04em;
-                    transition: color 0.5s ease;
-                }
-
-                /* Lyric Box — dark clue panel */
-                .lyric-box {
-                    position: relative;
-                    background: rgba(10, 10, 18, 0.7);
-                    border-left: 3px solid var(--color-purple);
-                    padding: 22px 22px 22px 26px;
-                    border-radius: 0 20px 20px 0;
-                    margin-bottom: 20px;
-                    box-shadow: inset 0 0 40px rgba(139, 92, 246, 0.05), 0 0 20px rgba(139, 92, 246, 0.04);
-                    backdrop-filter: blur(4px);
-                    -webkit-backdrop-filter: blur(4px);
-                }
-
-                .lyric-box-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 12px;
-                }
-
-                .lyric-box-label {
-                    font-family: var(--font-condensed);
-                    font-size: 0.6rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.18em;
-                    color: var(--color-purple-light);
-                    opacity: 0.6;
-                }
-
-                .lyric-box-divider {
-                    flex: 1;
-                    height: 1px;
-                    background: rgba(139,92,246,0.15);
-                }
-
-                .lyric-quote-mark {
-                    display: inline;
-                    font-family: Georgia, serif;
-                    font-size: 2rem;
-                    line-height: 1;
-                    color: rgba(139, 92, 246, 0.6);
-                    user-select: none;
-                    vertical-align: -0.12em;
-                    text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-                }
-
-                .lyric-text {
-                    font-size: clamp(1.3rem, 2.5vw, 1.7rem);
-                    font-weight: 600;
                     color: white;
-                    line-height: 1.5;
-                    font-style: italic;
-                    overflow-wrap: break-word;
-                    text-wrap: balance;
-                    letter-spacing: -0.01em;
-                    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+                    margin-bottom: 18px;
                 }
 
-                /* Options — game selection cards */
+                .lyric-quote {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 18px;
+                    margin-bottom: 28px;
+                }
+
+                .lyric-wave {
+                    width: 64px;
+                    height: 24px;
+                    flex-shrink: 0;
+                    opacity: 0.55;
+                }
+
+                .lyric-wave rect { fill: var(--color-purple-light); }
+                .lyric-wave--flip { transform: scaleX(-1); }
+
+                .lyric-quote-text {
+                    font-family: Georgia, 'Times New Roman', serif;
+                    font-style: italic;
+                    font-size: 1.45rem;
+                    line-height: 1.55;
+                    color: rgba(255, 255, 255, 0.92);
+                    text-align: center;
+                    max-width: 460px;
+                    margin: 0;
+                    text-wrap: balance;
+                }
+
+                @media (max-width: 640px) {
+                    .lyric-wave { display: none; }
+                    .lyric-quote-text { font-size: 1.25rem; }
+                }
+
+                /* ===================================
+                   OPTIONS — A/B/C/D rows
+                =================================== */
                 .options-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 10px;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    outline: none;
+                }
+
+                .options-list:focus-visible {
+                    outline: none;
+                }
+
+                .options-list:focus-visible .option-btn:first-child {
+                    border-color: rgba(139, 92, 246, 0.6);
+                    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
                 }
 
                 .option-btn {
-                    background: rgba(255,255,255,0.04);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 16px;
-                    padding: 0;
                     display: flex;
-                    align-items: stretch;
-                    color: white;
+                    align-items: center;
+                    gap: 16px;
+                    width: 100%;
+                    padding: 14px 18px;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 14px;
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 1rem;
+                    font-weight: 500;
+                    text-align: left;
                     cursor: pointer;
-                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                    position: relative;
+                    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
                     touch-action: manipulation;
-                    min-height: 56px;
-                    overflow: hidden;
                 }
 
-                .option-btn::before {
-                    content: '';
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    bottom: 0;
-                    width: 4px;
-                    background: transparent;
-                    transition: background 0.25s ease, box-shadow 0.25s ease;
+                .option-btn:hover:not(:disabled) {
+                    background: rgba(139, 92, 246, 0.1);
+                    border-color: rgba(139, 92, 246, 0.5);
+                    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
                 }
 
                 .option-btn:focus-visible {
@@ -1303,265 +1472,273 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     outline-offset: 2px;
                 }
 
-                .option-btn:hover:not(:disabled) {
-                    background: rgba(139,92,246,0.12);
-                    border-color: rgba(139,92,246,0.4);
-                    transform: translateX(6px);
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(139, 92, 246, 0.1);
-                }
-
-                .option-btn:hover:not(:disabled)::before {
-                    background: var(--color-purple);
-                    box-shadow: 0 0 12px var(--color-purple);
-                }
-
-                .option-btn:active:not(:disabled) {
-                    transform: translateX(6px) scale(0.99);
-                }
-
                 .option-btn:disabled {
                     cursor: default;
-                    opacity: 0.85;
                 }
 
-                .option-number {
-                    width: 52px;
-                    flex-shrink: 0;
-                    display: flex;
+                .option-letter {
+                    display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 0.9rem;
-                    font-weight: 700;
-                    font-family: var(--font-condensed);
-                    color: var(--color-purple-light);
-                    background: rgba(139,92,246,0.1);
-                    border-right: 1px solid rgba(139,92,246,0.15);
-                    letter-spacing: 0.04em;
-                    transition: all 0.25s ease;
-                }
-
-                .option-btn:hover:not(:disabled) .option-number {
-                    background: rgba(139,92,246,0.2);
+                    width: 32px;
+                    height: 32px;
+                    flex-shrink: 0;
+                    border-radius: 50%;
+                    border: 1px solid rgba(139, 92, 246, 0.5);
+                    background: rgba(139, 92, 246, 0.12);
                     color: #c4b5fd;
+                    font-family: var(--font-condensed);
+                    font-size: 0.85rem;
+                    font-weight: 700;
                 }
 
                 .option-label {
                     flex: 1;
-                    font-size: 0.95rem;
-                    font-weight: 600;
-                    line-height: 1.4;
-                    text-align: left;
-                    padding: 0 18px;
-                    display: flex;
-                    align-items: center;
-                    font-family: var(--font-body);
-                    letter-spacing: 0.01em;
+                    min-width: 0;
                 }
 
-                .option-btn.correct {
-                    background: rgba(16,185,129,0.12);
-                    border-color: rgba(16,185,129,0.5);
-                    box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 20px rgba(16,185,129,0.15), 0 0 24px rgba(16,185,129,0.12);
-                    animation: correctPulse 2s ease-in-out infinite;
+                .option-btn.correct,
+                .option-btn.reveal-correct {
+                    background: rgba(16, 185, 129, 0.12);
+                    border-color: rgba(16, 185, 129, 0.6);
+                    box-shadow: 0 0 24px rgba(16, 185, 129, 0.15);
                 }
 
-                @keyframes correctPulse {
-                    0%, 100% { box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 20px rgba(16,185,129,0.15), 0 0 24px rgba(16,185,129,0.12); }
-                    50% { box-shadow: 0 0 0 1px rgba(16,185,129,0.4), 0 4px 28px rgba(16,185,129,0.25), 0 0 36px rgba(16,185,129,0.2); }
-                }
-
-                .option-btn.correct::before {
-                    background: #10b981;
-                    box-shadow: 0 0 14px rgba(16,185,129,0.6);
-                }
-
-                .option-btn.correct .option-number {
-                    background: rgba(16,185,129,0.25);
-                    border-right-color: rgba(16,185,129,0.5);
-                    color: #10b981;
+                .option-btn.correct .option-letter,
+                .option-btn.reveal-correct .option-letter {
+                    border-color: rgba(16, 185, 129, 0.7);
+                    background: rgba(16, 185, 129, 0.2);
+                    color: #34d399;
                 }
 
                 .option-btn.wrong {
-                    background: rgba(239,68,68,0.12);
-                    border-color: rgba(239,68,68,0.5);
-                    box-shadow: 0 0 0 1px rgba(239,68,68,0.3);
-                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                    background: rgba(239, 68, 68, 0.1);
+                    border-color: rgba(239, 68, 68, 0.6);
                 }
 
-                @keyframes shake {
-                    10%, 90% { transform: translateX(-2px); }
-                    20%, 80% { transform: translateX(3px); }
-                    30%, 50%, 70% { transform: translateX(-5px); }
-                    40%, 60% { transform: translateX(5px); }
-                }
-
-                .option-btn.wrong::before {
-                    background: #ef4444;
-                    box-shadow: 0 0 14px rgba(239,68,68,0.6);
-                }
-
-                .option-btn.wrong .option-number {
-                    background: rgba(239,68,68,0.25);
-                    border-right-color: rgba(239,68,68,0.5);
-                    color: #ef4444;
-                }
-
-                .option-btn.reveal-correct {
-                    border-color: rgba(16,185,129,0.5);
-                    background: rgba(16,185,129,0.06);
-                    box-shadow: 0 0 0 1px rgba(16,185,129,0.2);
-                }
-
-                .option-btn.reveal-correct::before {
-                    background: rgba(16,185,129,0.5);
-                }
-
-                .option-btn.reveal-correct .option-number {
-                    background: rgba(16,185,129,0.2);
-                    border-right-color: rgba(16,185,129,0.4);
-                    color: #10b981;
+                .option-btn.wrong .option-letter {
+                    border-color: rgba(239, 68, 68, 0.7);
+                    background: rgba(239, 68, 68, 0.18);
+                    color: #fca5a5;
                 }
 
                 .feedback-icon {
-                    padding-right: 16px;
-                    font-size: 1rem;
-                    font-weight: 700;
-                    flex-shrink: 0;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .keyboard-hint {
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 6px;
-                    margin-top: 14px;
-                    font-size: 0.72rem;
-                    color: rgba(255,255,255,0.55);
-                    font-family: var(--font-condensed);
-                    letter-spacing: 0.06em;
+                    width: 26px;
+                    height: 26px;
+                    flex-shrink: 0;
+                    border-radius: 50%;
+                    font-size: 0.85rem;
+                    font-weight: 700;
                 }
 
-                @media (hover: none) { .keyboard-hint { display: none; } }
+                .feedback-icon--correct { background: rgba(16, 185, 129, 0.25); color: #34d399; }
+                .feedback-icon--wrong { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
 
-                kbd {
+                .keyboard-hint {
+                    text-align: center;
+                    font-size: 0.72rem;
+                    color: rgba(255, 255, 255, 0.35);
+                    margin-bottom: 14px;
+                }
+
+                .keyboard-hint kbd {
                     display: inline-block;
-                    padding: 2px 7px;
-                    background: rgba(255,255,255,0.06);
-                    border: 1px solid rgba(255,255,255,0.12);
+                    padding: 2px 8px;
+                    background: rgba(255, 255, 255, 0.06);
+                    border: 1px solid rgba(255, 255, 255, 0.14);
                     border-radius: 5px;
                     font-family: var(--font-condensed);
-                    font-size: 0.72rem;
-                    color: rgba(255,255,255,0.5);
-                    line-height: 1.6;
+                    font-size: 0.7rem;
+                    color: rgba(255, 255, 255, 0.6);
                 }
 
-                /* Result Banner */
+                /* ===================================
+                   TIP STRIP
+                =================================== */
+                .tip-strip {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 16px;
+                    background: rgba(245, 158, 11, 0.06);
+                    border: 1px solid rgba(245, 158, 11, 0.2);
+                    border-radius: 12px;
+                }
+
+                .tip-icon { font-size: 1rem; flex-shrink: 0; }
+
+                .tip-text {
+                    font-size: 0.82rem;
+                    color: rgba(255, 255, 255, 0.65);
+                    line-height: 1.5;
+                }
+
+                .tip-text strong {
+                    color: #fcd34d;
+                    font-family: var(--font-condensed);
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    font-size: 0.75rem;
+                }
+
+                /* ===================================
+                   RESULT BANNER (interstitial)
+                =================================== */
                 .result-banner {
                     display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                    padding: 16px 18px;
+                    border-radius: 14px;
+                }
+
+                .result-correct-bg {
+                    background: rgba(16, 185, 129, 0.08);
+                    border: 1px solid rgba(16, 185, 129, 0.35);
+                }
+
+                .result-wrong-bg {
+                    background: rgba(239, 68, 68, 0.07);
+                    border: 1px solid rgba(239, 68, 68, 0.35);
+                }
+
+                .result-banner-main {
+                    display: flex;
                     flex-direction: column;
-                    gap: 10px;
-                    border-radius: 16px;
-                    padding: 18px 22px;
-                    margin-bottom: 16px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .result-banner.result-correct-bg {
-                    background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 100%);
-                    border: 1px solid rgba(16,185,129,0.35);
-                    box-shadow: 0 0 24px rgba(16,185,129,0.12);
-                }
-
-                .result-banner.result-wrong-bg {
-                    background: linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 100%);
-                    border: 1px solid rgba(239,68,68,0.3);
-                    box-shadow: 0 0 24px rgba(239,68,68,0.1);
+                    gap: 4px;
+                    min-width: 0;
+                    flex: 1;
                 }
 
                 .result-banner-text {
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    line-height: 1.35;
-                    position: relative;
-                    z-index: 1;
+                    font-size: 0.92rem;
+                    font-weight: 600;
                 }
 
                 .result-correct { color: #34d399; }
-                .result-wrong { color: #f87171; }
+                .result-wrong { color: #fca5a5; }
 
                 .result-banner-meta {
                     display: flex;
                     align-items: center;
-                    gap: 14px;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .interstitial-countdown {
-                    font-size: 0.78rem;
-                    color: var(--color-grey-blue);
-                    font-family: var(--font-condensed);
-                }
-
-                .btn-skip {
-                    background: transparent;
-                    border: 1px solid rgba(255,255,255,0.2);
-                    color: var(--color-grey-blue);
-                    padding: 8px 20px;
-                    border-radius: 10px;
-                    font-family: var(--font-condensed);
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                    transition: color 0.2s ease, border-color 0.2s ease;
-                    touch-action: manipulation;
-                }
-
-                .btn-skip:hover {
-                    color: white;
-                    border-color: rgba(255,255,255,0.4);
-                }
-
-                .btn-skip:focus-visible {
-                    outline: 2px solid rgba(255,255,255,0.4);
-                    outline-offset: 2px;
+                    gap: 12px;
+                    font-size: 0.75rem;
                 }
 
                 .interstitial-points {
-                    font-size: 1.1rem;
-                    color: #a855f7;
                     font-family: var(--font-condensed);
                     font-weight: 700;
-                    animation: pointsPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    color: #34d399;
+                    letter-spacing: 0.05em;
                 }
 
-                @keyframes pointsPop {
-                    0% { transform: scale(0.5); opacity: 0; }
-                    60% { transform: scale(1.2); }
-                    100% { transform: scale(1); opacity: 1; }
+                .interstitial-countdown {
+                    color: rgba(255, 255, 255, 0.45);
+                    font-variant-numeric: tabular-nums;
                 }
 
-                .footer-actions {
-                    display: flex;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                    gap: 20px;
+                .btn-next {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 13px 26px;
+                    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-family: var(--font-condensed);
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    transition: transform 0.25s ease, box-shadow 0.25s ease;
+                    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+                    touch-action: manipulation;
+                    flex-shrink: 0;
                 }
 
-                /* Game Over — dark stats grid */
-                .game-over {
-                    text-align: center;
-                    padding: 60px 0;
+                .btn-next:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.55);
+                }
+
+                .btn-next:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                }
+
+                .btn-next-arrow { font-size: 1rem; }
+
+                /* ===================================
+                   RESULTS PANEL (game over)
+                =================================== */
+                .results-panel {
                     position: relative;
+                    background: linear-gradient(170deg, rgba(18, 18, 30, 0.92) 0%, rgba(8, 8, 16, 0.96) 100%);
+                    -webkit-backdrop-filter: blur(20px);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 24px;
+                    padding: 36px 32px 28px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(139, 92, 246, 0.1);
+                    overflow: hidden;
+                    text-align: center;
                 }
 
-                .game-over h3 {
+                .results-panel::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.5) 50%, transparent 100%);
+                }
+
+                .confetti-layer {
+                    position: absolute;
+                    inset: 0;
+                    pointer-events: none;
+                    overflow: hidden;
+                }
+
+                .confetti-dot {
+                    position: absolute;
+                    top: -12px;
+                    width: 7px;
+                    height: 11px;
+                    border-radius: 2px;
+                    opacity: 0;
+                    animation: confettiFall 1.6s ease-out forwards;
+                }
+
+                .confetti-dot--1 { left: 8%;  background: #8B5CF6; animation-delay: 0.1s; }
+                .confetti-dot--2 { left: 20%; background: #EC4899; animation-delay: 0.35s; }
+                .confetti-dot--3 { left: 32%; background: #34D399; animation-delay: 0.2s; }
+                .confetti-dot--4 { left: 45%; background: #F59E0B; animation-delay: 0.5s; }
+                .confetti-dot--5 { left: 57%; background: #3B82F6; animation-delay: 0.15s; }
+                .confetti-dot--6 { left: 68%; background: #EC4899; animation-delay: 0.42s; }
+                .confetti-dot--7 { left: 79%; background: #34D399; animation-delay: 0.28s; }
+                .confetti-dot--8 { left: 90%; background: #8B5CF6; animation-delay: 0.55s; }
+                .confetti-dot--9 { left: 14%; background: #F59E0B; animation-delay: 0.65s; }
+                .confetti-dot--10 { left: 84%; background: #3B82F6; animation-delay: 0.38s; }
+
+                @keyframes confettiFall {
+                    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                    100% { transform: translateY(220px) rotate(320deg); opacity: 0; }
+                }
+
+                .results-title {
                     font-family: var(--font-display);
-                    font-size: 2.5rem;
-                    margin-bottom: 20px;
-                    background: linear-gradient(135deg, #FFFFFF 0%, #8B5CF6 50%, #EC4899 100%);
+                    font-size: clamp(2.2rem, 5vw, 3rem);
+                    margin-bottom: 10px;
+                    background: linear-gradient(135deg, #FFFFFF 0%, #8B5CF6 55%, #EC4899 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
@@ -1569,102 +1746,331 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     filter: drop-shadow(0 4px 20px rgba(139, 92, 246, 0.3));
                 }
 
-                .accuracy-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                    gap: 16px;
-                    margin-bottom: 32px;
+                .results-subtitle {
+                    font-size: 0.95rem;
+                    color: var(--color-text-muted);
+                    max-width: 420px;
+                    margin: 0 auto 26px;
+                    line-height: 1.6;
                 }
 
-                .stat-item {
-                    text-align: center;
-                    padding: 24px 20px;
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.06);
-                    border-radius: 16px;
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                .score-ring-wrap {
+                    position: relative;
+                    width: 190px;
+                    height: 190px;
+                    margin: 0 auto 26px;
                 }
 
-                .stat-item:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 20px rgba(139, 92, 246, 0.08);
+                .score-ring {
+                    width: 100%;
+                    height: 100%;
+                    transform: rotate(-90deg);
                 }
 
-                .stat-value {
-                    font-size: 2rem;
+                .score-ring-bg {
+                    fill: none;
+                    stroke: rgba(255, 255, 255, 0.07);
+                    stroke-width: 9;
+                }
+
+                .score-ring-fill {
+                    fill: none;
+                    stroke-width: 9;
+                    stroke-linecap: round;
+                    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.45));
+                }
+
+                .score-ring-center {
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 2px;
+                }
+
+                .score-ring-label {
+                    font-family: var(--font-condensed);
+                    font-size: 0.65rem;
                     font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    color: rgba(255, 255, 255, 0.45);
+                }
+
+                .score-ring-value {
+                    font-size: 2.4rem;
+                    font-weight: 800;
                     color: white;
-                    margin-bottom: 4px;
+                    line-height: 1;
                     font-variant-numeric: tabular-nums;
                 }
 
-                .stat-label {
+                .score-ring-max {
                     font-size: 0.75rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    color: var(--color-grey-blue);
-                    font-family: var(--font-condensed);
+                    color: rgba(255, 255, 255, 0.4);
+                    font-variant-numeric: tabular-nums;
                 }
 
-                .accuracy-badge {
-                    display: inline-block;
-                    padding: 8px 22px;
+                .results-trio {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 10px;
+                    margin-bottom: 18px;
+                }
+
+                .trio-stat {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 3px;
+                    padding: 16px 10px;
+                    border-radius: 14px;
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    background: rgba(255, 255, 255, 0.03);
+                }
+
+                .trio-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                }
+
+                .trio-stat--correct .trio-icon { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+                .trio-stat--wrong .trio-icon { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+                .trio-stat--accuracy .trio-icon { background: rgba(59, 130, 246, 0.12); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+                .trio-label {
+                    font-family: var(--font-condensed);
+                    font-size: 0.6rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.14em;
+                    color: rgba(255, 255, 255, 0.4);
+                }
+
+                .trio-value {
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    color: white;
+                    font-variant-numeric: tabular-nums;
+                }
+
+                .best-banner {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    text-align: left;
+                    padding: 14px 18px;
+                    margin-bottom: 18px;
+                    background: rgba(245, 158, 11, 0.07);
+                    border: 1px solid rgba(245, 158, 11, 0.35);
+                    border-radius: 14px;
+                }
+
+                .best-banner-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 38px;
+                    height: 38px;
+                    flex-shrink: 0;
+                    border-radius: 50%;
+                    background: rgba(245, 158, 11, 0.15);
+                    font-size: 1.1rem;
+                }
+
+                .best-banner-body {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    min-width: 0;
+                }
+
+                .best-banner-title {
+                    font-family: var(--font-condensed);
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    color: #fcd34d;
+                }
+
+                .best-banner-sub {
+                    font-size: 0.8rem;
+                    color: rgba(255, 255, 255, 0.55);
+                }
+
+                .share-row {
+                    margin-bottom: 22px;
+                }
+
+                .share-row-label {
+                    display: block;
+                    font-family: var(--font-condensed);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-bottom: 10px;
+                }
+
+                .share-row-buttons {
+                    display: flex;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+
+                .share-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 10px 18px;
                     border-radius: var(--radius-pill);
+                    font-family: var(--font-condensed);
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    text-decoration: none;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+                    touch-action: manipulation;
+                    border: 1px solid transparent;
+                }
+
+                .share-pill:hover { transform: translateY(-2px); }
+                .share-pill:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
+
+                .share-pill--wa {
+                    background: rgba(16, 185, 129, 0.12);
+                    border-color: rgba(16, 185, 129, 0.4);
+                    color: #34d399;
+                }
+
+                .share-pill--wa:hover { box-shadow: 0 6px 18px rgba(16, 185, 129, 0.25); }
+
+                .share-pill--x {
+                    background: rgba(59, 130, 246, 0.12);
+                    border-color: rgba(59, 130, 246, 0.4);
+                    color: #93c5fd;
+                }
+
+                .share-pill--x:hover { box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25); }
+
+                .share-pill--copy {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: rgba(255, 255, 255, 0.14);
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+                .share-pill--copy:hover { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); color: white; }
+
+                .results-actions {
+                    display: flex;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    margin-bottom: 14px;
+                }
+
+                .btn-home {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 14px 28px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    border-radius: 12px;
+                    color: rgba(255, 255, 255, 0.8);
                     font-family: var(--font-condensed);
                     font-size: 0.9rem;
                     font-weight: 700;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 16px;
-                }
-
-                .result-message {
-                    font-size: 1rem;
-                    color: var(--color-grey-blue);
-                    max-width: 420px;
-                    margin: 0 auto 28px;
-                    line-height: 1.6;
-                }
-
-                .accuracy-high { background: rgba(16,185,129,0.15); color: #10b981; box-shadow: 0 0 20px rgba(16,185,129,0.2); }
-                .accuracy-medium { background: rgba(245,158,11,0.15); color: #f59e0b; box-shadow: 0 0 20px rgba(245,158,11,0.2); }
-                .accuracy-low { background: rgba(239,68,68,0.15); color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.2); }
-
-                .game-over p {
-                    font-size: 1.2rem;
-                    color: var(--color-grey-blue);
-                    margin-bottom: 8px;
-                }
-
-                .game-over strong {
-                    color: white;
-                }
-
-                .btn-share {
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    color: var(--color-grey-blue);
-                    padding: 12px 28px;
-                    border-radius: 8px;
-                    font-family: var(--font-condensed);
-                    font-weight: 600;
-                    letter-spacing: 0.05em;
-                    text-transform: uppercase;
                     cursor: pointer;
-                    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+                    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
                     touch-action: manipulation;
                 }
 
-                .btn-share:hover {
-                    background: rgba(255,255,255,0.08);
+                .btn-home:hover {
+                    background: rgba(255, 255, 255, 0.1);
                     color: white;
-                    border-color: rgba(255,255,255,0.2);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                    border-color: rgba(255, 255, 255, 0.3);
                 }
 
-                .btn-share:focus-visible {
-                    outline: 2px solid var(--color-green);
+                .btn-home:focus-visible {
+                    outline: 2px solid var(--color-purple);
                     outline-offset: 2px;
+                }
+
+                .btn-again {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 14px 32px;
+                    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+                    border: none;
+                    border-radius: 12px;
+                    color: white;
+                    font-family: var(--font-condensed);
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    transition: transform 0.25s ease, box-shadow 0.25s ease;
+                    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+                    touch-action: manipulation;
+                }
+
+                .btn-again:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.55);
+                }
+
+                .btn-again:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                }
+
+                .submit-link {
+                    background: none;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.45);
+                    font-family: var(--font-condensed);
+                    font-size: 0.78rem;
+                    font-weight: 600;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    text-decoration: underline;
+                    text-underline-offset: 4px;
+                    padding: 6px 10px;
+                    transition: color 0.2s ease;
+                }
+
+                .submit-link:hover { color: rgba(255, 255, 255, 0.8); }
+
+                .submit-link:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
+                }
+
+                @media (max-width: 640px) {
+                    .results-panel { padding: 28px 18px 22px; }
+                    .results-trio { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+                    .score-ring-wrap { width: 160px; height: 160px; }
+                    .score-ring-value { font-size: 2rem; }
                 }
 
                 .game-loading {
@@ -1673,10 +2079,11 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     color: var(--color-grey-blue);
                 }
 
-                /* Modal */
+                /* ===================================
+                   SUBMIT MODAL
+                =================================== */
                 .modal-header {
                     text-align: center;
-                    margin-bottom: 32px;
                 }
 
                 .modal-icon {

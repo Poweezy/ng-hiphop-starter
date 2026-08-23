@@ -51,6 +51,8 @@
   - GraffitiShowcase dead modal CSS wired via Modal className (lightbox + form panel); lightbox close button reachable + 44px touch target
   - Sitemap includes /game/best-lyrics + /submissions/status; library JSON-LD populated server-side
   - Splash screen dwell reduced (450ms hold / 0.45s exit); bottom-nav items unified (emoji set, "Library" label)
+  - Legal disclaimer footer rendered on every page incl. admin; bottom-nav spacer prevents mobile occlusion
+  - LyricGame redesigned to match approved mockup: 4-tile stats bar (streak/score/accuracy/timer), question pill + % progress, italic lyric quote with waveform flourishes, A–D letter options, tip strip, results panel with animated SVG score ring, confetti, personal-best banner, WhatsApp/X/Copy share row. Beyond mockup: A–D keyboard support, hot-streak glow, focus management per question, best-score persistence
 
 ## Remaining
 1. Review DEPLOYMENT.md for platform-specific nuances ✅
