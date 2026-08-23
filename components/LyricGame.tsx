@@ -131,7 +131,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [gamePhase, isPlaying, selectedOption, options, gameLyrics, currentIndex]);
+    }, [gamePhase, isPlaying, selectedOption, options, gameLyrics, currentIndex, interstitialSecondsLeft]);
 
     useEffect(() => {
         if (gamePhase === 'interstitial') {
@@ -310,16 +310,22 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         }
     };
 
+    const [shareState, setShareState] = useState<'idle' | 'shared'>('idle');
+
     const shareScore = async () => {
-        const text = `I scored ${score} points on NG Hip Hop's Lyric Master! 🔥 My max streak: ${streak}. Can you beat it?`;
-        if (navigator.share) {
-            try {
+        const text = `I scored ${score} points on NG Hip Hop's Lyric Master! 🔥 My max streak: ${bestStreak}. Can you beat it?`;
+        try {
+            if (navigator.share) {
                 await navigator.share({ text });
-            } catch {
+            } else if (navigator.clipboard) {
                 await navigator.clipboard.writeText(text);
+            } else {
+                return;
             }
-        } else if (navigator.clipboard) {
-            await navigator.clipboard.writeText(text);
+            setShareState('shared');
+            setTimeout(() => setShareState('idle'), 2500);
+        } catch {
+            // User dismissed the share sheet — nothing to do.
         }
     };
 
@@ -519,8 +525,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         gameContent = (
             <motion.div key="gameover" className="game-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                 <h3>Game Over</h3>
-                <div className="accuracy-badge" role="status">
-                    <span className={`accuracy-badge ${accuracy >= 70 ? 'accuracy-high' : accuracy >= 40 ? 'accuracy-medium' : 'accuracy-low'}`}>{accuracy}% Accuracy</span>
+                <div className={`accuracy-badge ${accuracy >= 70 ? 'accuracy-high' : accuracy >= 40 ? 'accuracy-medium' : 'accuracy-low'}`} role="status">
+                    {accuracy}% Accuracy
                 </div>
                 <p className="result-message" role="status">{accuracy >= 90 ? 'Certified lyricologist. The culture salutes you. 🏆' : accuracy >= 70 ? 'Heavy rotation knowledge — the streets respect it.' : accuracy >= 40 ? 'Solid foundation — keep digging in the crates.' : 'Time to study up — the vault stays locked for now.'}</p>
                 <div className="accuracy-grid">
@@ -544,7 +550,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 <div className="footer-actions">
                     <button onClick={handleRestart} className="btn btn-primary">Play Again</button>
                     <button onClick={() => setShowSubmitModal(true)} className="btn btn-secondary">Submit a Lyric</button>
-                    <button onClick={shareScore} className="btn-share">Share Score</button>
+                    <button onClick={shareScore} className="btn-share">{shareState === 'shared' ? 'Copied!' : 'Share Score'}</button>
                 </div>
             </motion.div>
         );
@@ -1540,6 +1546,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .footer-actions {
                     display: flex;
                     justify-content: center;
+                    flex-wrap: wrap;
                     gap: 20px;
                 }
 
@@ -1600,6 +1607,14 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 .accuracy-badge {
+                    display: inline-block;
+                    padding: 8px 22px;
+                    border-radius: var(--radius-pill);
+                    font-family: var(--font-condensed);
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
                     margin-bottom: 16px;
                 }
 

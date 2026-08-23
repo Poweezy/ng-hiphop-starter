@@ -3,6 +3,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 
 const nextConfig = {
     images: {
+        qualities: [75, 85],
         remotePatterns: [
             {
                 protocol: 'https',

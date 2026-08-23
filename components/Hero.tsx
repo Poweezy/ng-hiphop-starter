@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface HeroProps {
@@ -11,8 +12,17 @@ export default function Hero({ slogan }: HeroProps) {
     <section id="hero" className="hero-section">
       {/* Full-bleed hero art background */}
       <div className="hero-bg" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/hero-art.png" alt="" className="hero-bg-img" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+        <Image
+          src="/images/hero-art.webp"
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          quality={85}
+          className="hero-bg-img"
+          style={{ objectFit: 'cover', objectPosition: 'center top' }}
+        />
         <div className="hero-bg-overlay" />
       </div>
 
@@ -71,8 +81,8 @@ export default function Hero({ slogan }: HeroProps) {
           <a href="#latest-release" className="hero-btn-primary">
             <span aria-hidden="true">🎵</span> Listen Now
           </a>
-          <a href="#latest-release" className="hero-btn-ghost">
-            <span aria-hidden="true">🔥</span> Latest Drop
+          <a href="#lyric-game" className="hero-btn-ghost">
+            <span aria-hidden="true">🎮</span> Play The Game
           </a>
         </motion.div>
 

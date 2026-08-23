@@ -18,7 +18,7 @@ export default function SplashScreen() {
     const reduceMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const delay = reduceMotion ? 300 : 600;
+    const delay = reduceMotion ? 250 : 450;
 
     const timer = setTimeout(() => {
       setIsVisible(false);
@@ -54,7 +54,7 @@ export default function SplashScreen() {
             className="splash-container"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            transition={{ duration: 0.45, ease: 'easeInOut' }}
             aria-hidden="true"
           >
           {/* Logo */}
@@ -62,8 +62,8 @@ export default function SplashScreen() {
             className="splash-logo-wrap"
             initial={{ scale: 0.75, opacity: 0, filter: 'blur(24px)' }}
             animate={{ scale: 1,    opacity: 1, filter: 'blur(0px)' }}
-            exit={{   scale: 1.4,  opacity: 0, filter: 'blur(24px)' }}
-            transition={{ duration: 1.5, ease: 'easeOut' }}
+            exit={{   scale: 1.15,  opacity: 0, filter: 'blur(16px)' }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             <Image
               src="/images/logo.png"

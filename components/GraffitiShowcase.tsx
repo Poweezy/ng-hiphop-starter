@@ -195,7 +195,8 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
             </div>
 
             {/* Lightbox / Modal */}
-            <Modal isOpen={!!selectedImage} onClose={() => setSelectedImage(null)} titleId="graffiti-lightbox-title">
+            <Modal isOpen={!!selectedImage} onClose={() => setSelectedImage(null)} titleId="graffiti-lightbox-title" className="graffiti-lightbox-overlay">
+                <h3 id="graffiti-lightbox-title" className="sr-only">Graffiti large view</h3>
                 <Image
                     src={selectedImage!}
                     alt="Graffiti large view"
@@ -207,7 +208,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
             </Modal>
 
             {showSubmit && (
-                <Modal isOpen={showSubmit} onClose={() => setShowSubmit(false)} titleId="graffiti-form-title">
+                <Modal isOpen={showSubmit} onClose={() => setShowSubmit(false)} titleId="graffiti-form-title" className="graffiti-form-overlay">
                     <div className="form-header">
                         <h3 className="modal-title" id="graffiti-form-title">Tag the Wall</h3>
                         <button onClick={() => setShowSubmit(false)} className="close-btn-text">Cancel</button>
@@ -425,31 +426,20 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     backdrop-filter: blur(12px);
                 }
 
-                .graffiti-modal-content {
-                    background: rgba(10, 10, 15, 0.6);
-                    backdrop-filter: blur(40px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 28px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    position: relative;
-                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-                    margin: auto;
-                    display: block;
-                }
-
-                /* Lightbox - For viewing images */
-                .graffiti-modal-content.graffiti-lightbox {
+                /* Lightbox - wide, transparent content for viewing images */
+                .graffiti-lightbox-overlay :global(.modal-content) {
                     max-width: 900px;
                     width: 100%;
                     background: transparent;
                     border: none;
                     box-shadow: none;
                     overflow: visible;
+                    padding: 0;
+                    position: relative;
                 }
 
-                /* Tag the Wall - Definitive ID-based fix for proportion */
-                #graffiti-form-modal {
+                /* Tag the Wall form modal — premium purple-rim panel */
+                .graffiti-form-overlay :global(.modal-content) {
                     padding: 40px 32px;
                     border-radius: 32px;
                     display: flex;
@@ -477,18 +467,31 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
 
                 .close-btn {
                     position: absolute;
-                    top: -36px;
+                    top: -48px;
                     right: 0;
-                    background: none;
-                    border: none;
-                    color: rgba(255, 255, 255, 0.4);
-                    font-size: 1.2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 44px;
+                    height: 44px;
+                    background: rgba(255, 255, 255, 0.06);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 50%;
+                    color: rgba(255, 255, 255, 0.75);
+                    font-size: 1.1rem;
                     cursor: pointer;
-                    transition: color 0.2s;
+                    transition: all 0.2s;
                 }
 
                 .close-btn:hover {
                     color: white;
+                    background: rgba(255, 255, 255, 0.12);
+                    border-color: rgba(255, 255, 255, 0.3);
+                }
+
+                .close-btn:focus-visible {
+                    outline: 2px solid var(--color-purple);
+                    outline-offset: 2px;
                 }
 
                 .close-btn-text {

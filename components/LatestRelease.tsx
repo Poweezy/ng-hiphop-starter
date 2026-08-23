@@ -21,7 +21,7 @@ interface LatestReleaseProps {
 }
 
 export default function LatestRelease({ song }: LatestReleaseProps) {
-    const { currentSong, isPlaying, play } = useAudio();
+    const { currentSong, isPlaying, play, syncPlaying } = useAudio();
     const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
     const isCurrentPlaying = song ? currentSong?.id === song.id && isPlaying : false;
 
@@ -87,7 +87,6 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                 fill
                                 style={{ objectFit: 'cover' }}
                                 sizes="(max-width: 768px) 100vw, 35vw"
-                                priority
                             />
                             {/* Overlay shimmer */}
                             <div className="cover-shimmer" aria-hidden="true" />
@@ -137,8 +136,9 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                     controls
                                     src={song.file_url}
                                     preload="metadata"
-                                    onPlay={() => play(song)}
-                                    onPause={() => {}}
+                                    onPlay={(e) => play(song, e.currentTarget)}
+                                    onPause={() => syncPlaying(false)}
+                                    onEnded={() => syncPlaying(false)}
                                     className="custom-audio"
                                     aria-label={`Preview of ${song.title}`}
                                 />
@@ -388,12 +388,6 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                     outline: 2px solid var(--color-purple);
                     outline-offset: 2px;
                     box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
-                }
-
-                .link-btn:hover {
-                    background: var(--color-purple);
-                    border-color: var(--color-purple);
-                    transform: translateY(-4px) scale(1.05);
                 }
             `}</style>
         </section>
