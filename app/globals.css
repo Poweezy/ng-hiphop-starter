@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@700&family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap');
+/* Fonts are self-hosted via next/font (see app/layout.tsx) — variables
+   --font-bebas / --font-inter / --font-barlow / --font-dancing are injected
+   on <html>, eliminating the render-blocking Google Fonts request. */
 
 /* ===================================
    CSS CUSTOM PROPERTIES – BRAND SYSTEM
@@ -27,6 +29,14 @@
   --color-bg-glass: rgba(255, 255, 255, 0.08);
   --color-overlay: rgba(3, 3, 5, 0.85);
 
+  /* Border Radius Scale */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
   /* Semantic Text Colors (WCAG AA safe on dark backgrounds) */
   --color-text-primary: #FFFFFF;
   --color-text-secondary: rgba(255, 255, 255, 0.7);
@@ -41,10 +51,10 @@
   --gradient-green: linear-gradient(135deg, #10B981 0%, #34D399 100%);
   --gradient-glow: linear-gradient(90deg, #8B5CF6, #EC4899, #10B981);
   
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-condensed: 'Barlow Condensed', sans-serif;
-  --font-cursive: 'Dancing Script', cursive;
+  --font-display: var(--font-bebas), 'Bebas Neue', sans-serif;
+  --font-body: var(--font-inter), 'Inter', sans-serif;
+  --font-condensed: var(--font-barlow), 'Barlow Condensed', sans-serif;
+  --font-cursive: var(--font-dancing), 'Dancing Script', cursive;
   
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -541,7 +551,7 @@ select:focus-visible {
   padding: 12px 28px;
   font-size: 0.9rem;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-med);
   position: relative;
@@ -613,21 +623,21 @@ select:focus-visible {
 }
 
 .btn-xs {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
 }
 
 .btn-sm {
-  font-size: 0.8rem;
-  padding: 8px 16px;
-  border-radius: 8px;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);
 }
 
 .btn-md {
-  font-size: 0.85rem;
-  padding: 10px 20px;
-  border-radius: 10px;
+  font-size: 0.78rem;
+  padding: 7px 14px;
+  border-radius: 8px;
 }
 
 /* Standardized button variants */
@@ -1484,6 +1494,17 @@ img[loading="lazy"] {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
+.nav-link--active {
+  color: var(--color-white);
+  background: rgba(139, 92, 246, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.35);
+}
+
+.nav-link-admin.nav-link--active {
+  background: var(--color-purple);
+  border-color: var(--color-purple);
+}
+
 .nav-link-admin {
   background: rgba(139, 92, 246, 0.1);
   padding: 8px 24px;
@@ -1557,6 +1578,15 @@ img[loading="lazy"] {
 .nav-mobile-link:active {
   background: var(--color-purple);
   transform: scale(0.98);
+}
+
+.nav-mobile-link--active {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: rgba(139, 92, 246, 0.45);
+}
+
+.nav-mobile-link--admin {
+  color: var(--color-purple-light);
 }
 
 @media (max-width: 768px) {
@@ -1779,18 +1809,6 @@ img[loading="lazy"] {
   resize: vertical;
 }
 
-/* Small button variant */
-.btn-sm {
-  font-size: 0.75rem;
-  padding: 5px 10px;
-}
-
-/* Medium action button variant */
-.btn-md {
-  font-size: 0.78rem;
-  padding: 7px 14px;
-}
-
 /* Narrower glass panel */
 .glass-panel--narrow {
   max-width: 600px;
@@ -1918,12 +1936,6 @@ img[loading="lazy"] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Small button variant for admin actions */
-.btn-xs {
-  font-size: 0.8rem;
-  padding: 6px 14px;
 }
 
 /* Utility: flex-1 */
@@ -2280,32 +2292,6 @@ img[loading="lazy"] {
   }
 }
 
-.btn-admin-purple {
-  background: #7c3aed;
-  color: var(--color-white);
-  font-family: var(--font-condensed);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 12px 28px;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all var(--transition-med);
-}
-
-.btn-admin-purple:hover {
-  background: #6d28d9;
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
-  transform: translateY(-1px);
-}
-
-.btn-admin-purple:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
 .error-alert {
   padding: 12px;
   background: rgba(220,38,38,0.1);
@@ -2434,20 +2420,9 @@ img[loading="lazy"] {
   text-underline-offset: 3px;
 }
 
-@media (max-width: 480px) {
-  .cookie-consent {
-    padding: 12px;
-    align-items: flex-end;
-  }
-  .cookie-consent-card {
-    padding: 18px;
-    border-radius: 14px;
-  }
-}
-
 /* ===================================
-   MODAL UTILITIES
-   =================================== */
+    MODAL UTILITIES
+    =================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -2855,12 +2830,18 @@ img[loading="lazy"] {
 
 /* Add padding to body when mini player is active to prevent content occlusion */
 body.has-mini-player {
-  padding-bottom: 80px;
+  padding-bottom: 88px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  /* Stack the mini player above the fixed bottom navigation */
+  .mini-player {
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: 12px;
+  }
+
   body.has-mini-player {
-    padding-bottom: 72px;
+    padding-bottom: calc(148px + env(safe-area-inset-bottom));
   }
 }
 

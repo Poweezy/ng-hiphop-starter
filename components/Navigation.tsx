@@ -6,6 +6,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 
+interface NavLinkItem {
+  href: string;
+  label: string;
+  route?: string;
+  prefix?: string;
+  admin?: boolean;
+}
+
+const NAV_LINKS: NavLinkItem[] = [
+  { href: '/#latest-release',   label: 'Music' },
+  { href: '/library',           label: 'Library',    route: '/library' },
+  { href: '/#community-quotes', label: 'Community' },
+  { href: '/#graffiti',         label: 'Gallery' },
+  { href: '/#lyric-game',       label: 'Game' },
+  { href: '/game/best-lyrics',  label: 'Competitions', prefix: '/game/best-lyrics' },
+  { href: '/admin/login',       label: 'Admin',        prefix: '/admin', admin: true },
+];
+
 export default function Navigation() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -26,7 +44,28 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Close the mobile menu whenever the route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [mobileMenuOpen]);
+
   const logoSize = scrolled ? 48 : 68;
+
+  // Only route-based links can be "current"; hash links never claim aria-current.
+  const isActive = (link: NavLinkItem) => {
+    if (link.route) return pathname === link.route;
+    if (link.prefix) return pathname?.startsWith(link.prefix) ?? false;
+    return false;
+  };
 
   return (
     <nav className={`nav-main${scrolled ? ' nav-scrolled' : ''}`} role="navigation" aria-label="Main navigation">
@@ -47,16 +86,19 @@ export default function Navigation() {
           />
         </Link>
 
-         {/* Desktop navigation */}
-         <div className="nav-desktop-menu">
-           <Link href="/#latest-release" className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Music</Link>
-           <Link href="/library"          className="nav-link" aria-current={pathname === '/library' ? 'page' : undefined}>Library</Link>
-           <Link href="/#community-quotes" className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Community</Link>
-           <Link href="/#graffiti"        className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Gallery</Link>
-           <Link href="/#lyric-game"      className="nav-link" aria-current={pathname === '/' ? 'page' : undefined}>Game</Link>
-           <Link href="/game/best-lyrics" className="nav-link" aria-current={pathname?.startsWith('/game/best-lyrics') ? 'page' : undefined}>Competitions</Link>
-           <Link href="/admin/login"      className="nav-link nav-link-admin" aria-current={pathname?.startsWith('/admin') ? 'page' : undefined}>Admin</Link>
-         </div>
+        {/* Desktop navigation */}
+        <div className="nav-desktop-menu">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className={`nav-link${link.admin ? ' nav-link-admin' : ''}${isActive(link) ? ' nav-link--active' : ''}`}
+              aria-current={isActive(link) ? 'page' : undefined}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
 
         {/* Hamburger (mobile) */}
         <button
@@ -64,6 +106,7 @@ export default function Navigation() {
           onClick={() => setMobileMenuOpen((v) => !v)}
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
         >
           {mobileMenuOpen ? '✕' : '☰'}
         </button>
@@ -74,40 +117,33 @@ export default function Navigation() {
         {mobileMenuOpen && (
           <motion.div
             key="mobile-menu"
+            id="mobile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto', transition: { staggerChildren: 0.05, delayChildren: 0.1 } }}
             exit={{ opacity: 0, height: 0, transition: { staggerChildren: 0.03, staggerDirection: -1 } }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="nav-mobile-menu"
           >
-             <nav className="nav-mobile-links" aria-label="Mobile navigation">
-                  {[
-                    { href: '/#latest-release',   label: 'Music', current: pathname === '/' },
-                    { href: '/library',           label: 'Library', current: pathname === '/library' },
-                    { href: '/#community-quotes', label: 'Community', current: pathname === '/' },
-                    { href: '/#graffiti',         label: 'Gallery', current: pathname === '/' },
-                    { href: '/#lyric-game',       label: 'Game', current: pathname === '/' },
-                    { href: '/game/best-lyrics',  label: 'Competitions', current: pathname?.startsWith('/game/best-lyrics') },
-                    { href: '/admin/login',       label: 'Admin', current: pathname?.startsWith('/admin') },
-                  ].map(({ href, label, current }) => (
-                  <motion.div
-                    key={href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
+            <nav className="nav-mobile-links" aria-label="Mobile navigation">
+              {NAV_LINKS.map((link) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <Link
+                    href={link.href}
+                    className={`nav-mobile-link${isActive(link) ? ' nav-mobile-link--active' : ''}${link.admin ? ' nav-mobile-link--admin' : ''}`}
+                    aria-current={isActive(link) ? 'page' : undefined}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Link
-                      href={href}
-                      className="nav-mobile-link"
-                      aria-current={current ? 'page' : undefined}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {label}
-                    </Link>
-                 </motion.div>
-               ))}
-             </nav>
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>

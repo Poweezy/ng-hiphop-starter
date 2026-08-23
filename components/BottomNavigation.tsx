@@ -2,16 +2,15 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
 
   const items = [
-    { href: '/', label: 'Home', icon: '/images/logo.png', active: pathname === '/' },
-    { href: '/library', label: 'Music', icon: null, active: pathname === '/library', emoji: '🎵' },
-    { href: '/#community-quotes', label: 'Community', icon: null, active: false, emoji: '💬' },
-    { href: '/game/best-lyrics', label: 'Competitions', icon: null, active: pathname?.startsWith('/game/best-lyrics'), emoji: '🏆' },
+    { href: '/', label: 'Home', emoji: '🏠', active: pathname === '/' },
+    { href: '/library', label: 'Library', active: pathname === '/library' },
+    { href: '/#community-quotes', label: 'Community', active: false },
+    { href: '/game/best-lyrics', label: 'Competitions', active: pathname?.startsWith('/game/best-lyrics') ?? false },
   ];
 
   return (
@@ -23,11 +22,7 @@ export default function BottomNavigation() {
           className={`bottom-nav-item ${item.active ? 'bottom-nav-item--active' : ''}`}
           aria-current={item.active ? 'page' : undefined}
         >
-          {item.icon ? (
-            <Image src={item.icon} alt="" width={24} height={24} className="bottom-nav-icon" />
-          ) : (
-            <span className="bottom-nav-emoji" aria-hidden="true">{item.emoji}</span>
-          )}
+          <span className="bottom-nav-emoji" aria-hidden="true">{item.emoji}</span>
           <span className="bottom-nav-label">{item.label}</span>
         </Link>
       ))}

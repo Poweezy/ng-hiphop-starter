@@ -25,16 +25,6 @@ export const metadata: Metadata = {
         locale: 'en_US',
         type: 'website',
     },
-    other: {
-        'script:ld+json': JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'ItemList',
-            name: 'NG Hip Hop Music Library',
-            description: 'Full discography of active NG Hip Hop releases',
-            url: 'https://ng-hiphop.com/library',
-            itemListElement: [], // populated client-side or via server-side song mapping if desired
-        }),
-    },
 };
 
 export default async function LibraryPage() {
@@ -49,5 +39,28 @@ export default async function LibraryPage() {
         // Database unavailable during build or runtime — render empty library
     }
 
-    return <MusicLibrary songs={songs} />;
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'NG Hip Hop Music Library',
+        description: 'Full discography of active NG Hip Hop releases',
+        url: 'https://ng-hiphop.com/library',
+        numberOfItems: songs.length,
+        itemListElement: songs.map((song, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: song.title,
+            url: `https://ng-hiphop.com/library#song-${song.id}`,
+        })),
+    };
+
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <MusicLibrary songs={songs} />
+        </>
+    );
 }

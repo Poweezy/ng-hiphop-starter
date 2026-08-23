@@ -21,7 +21,7 @@ interface MusicLibraryProps {
 }
 
 export default function MusicLibrary({ songs }: MusicLibraryProps) {
-    const { currentSong, isPlaying, play, pause } = useAudio();
+    const { currentSong, isPlaying, play, pause, syncPlaying } = useAudio();
     const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -35,26 +35,20 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
         return () => clearInterval(interval);
     }, [isPlaying, currentSong?.id]);
 
-    const playSong = (id: string, file_url: string, cover_url: string, title: string) => {
-        if (currentSong?.id === id && isPlaying) {
+    const playSong = (song: Song, el?: HTMLAudioElement) => {
+        if (!el && currentSong?.id === song.id && isPlaying) {
             pause();
             return;
         }
-        play({ id, title, file_url, cover_url, description: '' });
+        play({ id: song.id, title: song.title, file_url: song.file_url, cover_url: song.cover_url, description: song.description }, el);
     };
 
     const handlePlayAll = () => {
-        if (songs.length > 0) {
-            const s = songs[0];
-            playSong(s.id, s.file_url, s.cover_url, s.title);
-        }
+        if (songs.length > 0) playSong(songs[0]);
     };
 
     const handleShuffle = () => {
-        if (songs.length > 0) {
-            const s = songs[Math.floor(Math.random() * songs.length)];
-            playSong(s.id, s.file_url, s.cover_url, s.title);
-        }
+        if (songs.length > 0) playSong(songs[Math.floor(Math.random() * songs.length)]);
     };
 
     if (!songs || songs.length === 0) {
@@ -193,7 +187,9 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                                                 controls
                                                 src={song.file_url}
                                                 preload="none"
-                                                onPlay={() => playSong(song.id, song.file_url, song.cover_url, song.title)}
+                                                onPlay={(e) => playSong(song, e.currentTarget)}
+                                                onPause={() => syncPlaying(false)}
+                                                onEnded={() => syncPlaying(false)}
                                                 className="custom-audio"
                                                 aria-label={`Preview of ${song.title}`}
                                             />

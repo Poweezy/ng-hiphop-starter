@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { scanBuffer } from '../uploadScanner';
 
 describe('scanBuffer', () => {
@@ -7,7 +7,6 @@ describe('scanBuffer', () => {
     const originalFailOpen = process.env.VIRUS_SCANNER_FAIL_OPEN;
     process.env.VIRUS_SCANNER_ENABLED = 'false';
     process.env.VIRUS_SCANNER_FAIL_OPEN = 'true';
-    process.env.NODE_ENV = 'test';
 
     const result = await scanBuffer(Buffer.from('hello'), 'test.txt');
 
@@ -21,7 +20,6 @@ describe('scanBuffer', () => {
     const originalFailOpen = process.env.VIRUS_SCANNER_FAIL_OPEN;
     process.env.VIRUS_SCANNER_ENABLED = 'false';
     process.env.VIRUS_SCANNER_FAIL_OPEN = 'false';
-    process.env.NODE_ENV = 'production';
 
     const result = await scanBuffer(Buffer.from('hello'), 'test.txt');
 

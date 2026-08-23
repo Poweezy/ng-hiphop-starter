@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Bebas_Neue, Inter, Barlow_Condensed, Dancing_Script } from 'next/font/google';
 import './globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
@@ -6,13 +7,41 @@ import ConsentAwareAnalytics from '@/components/ConsentAwareAnalytics';
 import { SessionProvider } from 'next-auth/react';
 import { AudioProvider } from '@/lib/audioContext';
 
+const bebasNeue = Bebas_Neue({
+    weight: '400',
+    subsets: ['latin'],
+    variable: '--font-bebas',
+    display: 'swap',
+});
+
+const inter = Inter({
+    subsets: ['latin'],
+    variable: '--font-inter',
+    display: 'swap',
+});
+
+const barlowCondensed = Barlow_Condensed({
+    weight: ['400', '600', '700', '900'],
+    subsets: ['latin'],
+    variable: '--font-barlow',
+    display: 'swap',
+});
+
+const dancingScript = Dancing_Script({
+    weight: '700',
+    subsets: ['latin'],
+    variable: '--font-dancing',
+    display: 'swap',
+});
+
 export const metadata: Metadata = {
     title: {
         default: 'NG — Built From Bars. Raised By Beats.',
         template: '%s | NG Hip Hop'
     },
     icons: {
-        icon: '/images/logo.png'
+        icon: '/favicon.ico',
+        apple: '/images/apple-touch-icon.png',
     },
     description: 'The official platform for NG. Authentic hip-hop, community-driven, and legally distributed. Stream the latest releases and join the movement.',
     keywords: ['NG Hip Hop', 'Eswatini Music', 'African Rap', 'Urban Culture', 'Music Platform'],
@@ -70,9 +99,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en">
+        <html lang="en" className={`${bebasNeue.variable} ${inter.variable} ${barlowCondensed.variable} ${dancingScript.variable}`}>
             <head>
-                <link rel="icon" href="/images/logo.png" />
+                <link rel="icon" href="/favicon.ico" sizes="any" />
+                <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
             </head>
             <body>
                 <SessionProvider>

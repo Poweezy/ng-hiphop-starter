@@ -13,64 +13,104 @@ interface Song {
 interface AudioContextValue {
   currentSong: Song | null;
   isPlaying: boolean;
-  play: (song: Song) => void;
+  /**
+   * Register playback. Call from an inline <audio> element's onPlay handler,
+   * passing the element so the provider can pause every other source and
+   * route MiniPlayer controls to it. Called without an element (Play All /
+   * Shuffle), the provider plays through its own headless audio element.
+   */
+  play: (song: Song, el?: HTMLAudioElement) => void;
   pause: () => void;
-  toggle: (song?: Song) => void;
-  audioRef: React.RefObject<HTMLAudioElement | null>;
+  toggle: () => void;
+  close: () => void;
+  syncPlaying: (playing: boolean) => void;
 }
 
 const AudioContext = createContext<AudioContextValue | null>(null);
 
+function pauseOtherAudio(except: HTMLAudioElement | null) {
+  document.querySelectorAll('audio').forEach((el) => {
+    if (el !== except && !el.paused) {
+      el.pause();
+    }
+  });
+}
+
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const activeElRef = useRef<HTMLAudioElement | null>(null);
+  const remoteRef = useRef<HTMLAudioElement | null>(null);
+  const currentIdRef = useRef<string | null>(null);
 
-  const play = useCallback((song: Song) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (currentSong?.id === song.id) {
-      audio.play().catch(() => {});
-      setIsPlaying(true);
-      return;
+  const ensureRemote = useCallback(() => {
+    if (!remoteRef.current) {
+      const audio = new Audio();
+      audio.preload = 'metadata';
+      audio.addEventListener('play', () => setIsPlaying(true));
+      audio.addEventListener('pause', () => setIsPlaying(false));
+      audio.addEventListener('ended', () => setIsPlaying(false));
+      remoteRef.current = audio;
     }
+    return remoteRef.current;
+  }, []);
 
-    setCurrentSong(song);
-    audio.src = song.file_url;
-    audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-  }, [currentSong?.id]);
+  const syncPlaying = useCallback((playing: boolean) => {
+    setIsPlaying(playing);
+  }, []);
 
   const pause = useCallback(() => {
-    audioRef.current?.pause();
+    activeElRef.current?.pause();
+    remoteRef.current?.pause();
     setIsPlaying(false);
   }, []);
 
-  const toggle = useCallback((song?: Song) => {
-    if (song && currentSong?.id !== song.id) {
-      play(song);
+  const play = useCallback((song: Song, el?: HTMLAudioElement) => {
+    if (el) {
+      // The inline element is already playing natively — take ownership of it,
+      // mute everything else, and mirror state for the MiniPlayer.
+      pauseOtherAudio(el);
+      activeElRef.current = el;
+      currentIdRef.current = song.id;
+      setCurrentSong(song);
+      setIsPlaying(true);
       return;
     }
-    if (isPlaying) {
-      pause();
-    } else if (currentSong) {
-      audioRef.current?.play().catch(() => {});
-      setIsPlaying(true);
+
+    // Programmatic playback through the headless element.
+    const audio = ensureRemote();
+    pauseOtherAudio(audio);
+    activeElRef.current = null;
+    if (currentIdRef.current !== song.id) {
+      audio.src = song.file_url;
+      currentIdRef.current = song.id;
     }
-  }, [currentSong?.id, isPlaying, play, pause]);
+    setCurrentSong(song);
+    audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+  }, [ensureRemote]);
+
+  const toggle = useCallback(() => {
+    const el = activeElRef.current ?? remoteRef.current;
+    if (!el || !currentIdRef.current) return;
+    if (el.paused) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  }, []);
+
+  const close = useCallback(() => {
+    activeElRef.current?.pause();
+    remoteRef.current?.pause();
+    activeElRef.current = null;
+    currentIdRef.current = null;
+    setCurrentSong(null);
+    setIsPlaying(false);
+  }, []);
 
   return (
-    <AudioContext.Provider value={{ currentSong, isPlaying, play, pause, toggle, audioRef }}>
+    <AudioContext.Provider value={{ currentSong, isPlaying, play, pause, toggle, close, syncPlaying }}>
       {children}
-      <audio
-        ref={audioRef}
-        preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        className="sr-only"
-        aria-hidden="true"
-      />
     </AudioContext.Provider>
   );
 }

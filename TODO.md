@@ -38,6 +38,19 @@
 - ✅ GitHub Actions CI workflow added (.github/workflows/ci.yml)
 - ✅ Inline styles extracted from LoginClient.tsx to CSS classes
 - ✅ Unused imports cleaned from 28 API route files
+- ✅ Full-site quality audit (Aug 2026):
+  - Fixed double-audio playback (inline `<audio>` + global provider both played); single-source audio architecture in `lib/audioContext.tsx`
+  - MiniPlayer close button now dismisses (was pause-only); mini player stacks above bottom nav on mobile
+  - Hero LCP: 3.6MB raw PNG replaced with 414KB WebP via next/image; deleted broken 0KB hero-art.jpg; logo 1.7MB→76KB + 14KB apple-touch-icon
+  - Fonts self-hosted via next/font (removed render-blocking Google Fonts @import)
+  - Defined missing `--radius-*` tokens (form inputs were silently square); de-duplicated .btn-xs/.btn-sm/.btn-md/.btn-admin-purple definitions
+  - Fixed admin-page chrome flash (LayoutWrapper mounted-gate removed)
+  - Navigation: correct aria-current semantics, active link states, Escape closes mobile menu, menu closes on route change
+  - Hero CTAs de-duplicated (ghost CTA now targets the lyric game)
+  - LyricGame share text uses best streak (was resetting streak); copy feedback; footer-actions wrap; accuracy badge markup fixed
+  - GraffitiShowcase dead modal CSS wired via Modal className (lightbox + form panel); lightbox close button reachable + 44px touch target
+  - Sitemap includes /game/best-lyrics + /submissions/status; library JSON-LD populated server-side
+  - Splash screen dwell reduced (450ms hold / 0.45s exit); bottom-nav items unified (emoji set, "Library" label)
 
 ## Remaining
 1. Review DEPLOYMENT.md for platform-specific nuances ✅

@@ -15,6 +15,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: 'https://ng-hiphop.com/game/best-lyrics',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://ng-hiphop.com/submissions/status',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
       url: 'https://ng-hiphop.com/terms',
       lastModified: new Date(),
       changeFrequency: 'monthly',

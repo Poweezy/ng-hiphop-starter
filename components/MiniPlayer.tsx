@@ -6,7 +6,7 @@ import { useAudio } from '@/lib/audioContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MiniPlayer() {
-  const { currentSong, isPlaying, toggle, pause } = useAudio();
+  const { currentSong, isPlaying, toggle, close } = useAudio();
 
   useEffect(() => {
     if (currentSong) {
@@ -66,7 +66,7 @@ export default function MiniPlayer() {
               )}
             </button>
             <button
-              onClick={pause}
+              onClick={close}
               className="mini-player-btn mini-player-btn--close"
               aria-label="Close player"
             >

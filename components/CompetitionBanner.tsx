@@ -116,7 +116,7 @@ export default function CompetitionBanner({ competition, winner }: Props) {
                     disabled={status === 'loading'}
                   />
                   <button type="submit" className="btn-subscribe" disabled={status === 'loading' || !email.trim()}>
-                    {status === 'loading' ? '...' : 'Subscribe'}
+                    {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
                   </button>
                 </div>
                 {status !== 'idle' && (
