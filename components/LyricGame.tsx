@@ -423,6 +423,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                         <span className="hud-value streak-value">🔥 {streak}</span>
                     </div>
                 </div>
+                <div className="progress-row" role="progressbar" aria-valuemin={0} aria-valuemax={gameLyrics.length} aria-valuenow={currentIndex + 1} aria-label={`Question ${currentIndex + 1} of ${gameLyrics.length}`}>
+                    <motion.div className="progress-fill" initial={false} animate={{ width: `${((currentIndex + 1) / gameLyrics.length) * 100}%` }} transition={{ duration: 0.4, ease: 'easeOut' }} />
+                </div>
                 <div className="timer-row" aria-live="polite" aria-atomic="true">
                     <div className="timer-track">
                         <motion.div className="timer-bar" animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timerColor }} transition={{ duration: 1, ease: 'linear' }} />
@@ -516,7 +519,10 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
         gameContent = (
             <motion.div key="gameover" className="game-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                 <h3>Game Over</h3>
-                <div className={`accuracy-badge ${accuracy >= 70 ? 'accuracy-high' : accuracy >= 40 ? 'accuracy-medium' : 'accuracy-low'}`}>{accuracy}% Accuracy</div>
+                <div className="accuracy-badge" role="status">
+                    <span className={`accuracy-badge ${accuracy >= 70 ? 'accuracy-high' : accuracy >= 40 ? 'accuracy-medium' : 'accuracy-low'}`}>{accuracy}% Accuracy</span>
+                </div>
+                <p className="result-message" role="status">{accuracy >= 90 ? 'Certified lyricologist. The culture salutes you. 🏆' : accuracy >= 70 ? 'Heavy rotation knowledge — the streets respect it.' : accuracy >= 40 ? 'Solid foundation — keep digging in the crates.' : 'Time to study up — the vault stays locked for now.'}</p>
                 <div className="accuracy-grid">
                     <div className="stat-item">
                         <div className="stat-value">{score}</div>
@@ -1105,6 +1111,22 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
                 .round-indicator { font-size: 0.72rem; color: var(--color-grey-blue); font-family: var(--font-condensed); letter-spacing: 0.08em; }
 
+                /* Question progress */
+                .progress-row {
+                    height: 4px;
+                    background: rgba(255,255,255,0.06);
+                    border-radius: 4px;
+                    overflow: hidden;
+                    margin-bottom: 14px;
+                }
+
+                .progress-fill {
+                    height: 100%;
+                    border-radius: 4px;
+                    background: linear-gradient(90deg, var(--color-green), var(--color-purple));
+                    box-shadow: 0 0 10px rgba(139,92,246,0.4);
+                }
+
                 /* Timer — sleek pill with shine sweep */
                 .timer-row {
                     display: flex;
@@ -1515,19 +1537,6 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     100% { transform: scale(1); opacity: 1; }
                 }
 
-                .game-footer {
-                    margin-top: 40px;
-                    padding-top: 40px;
-                    border-top: 1px solid rgba(255,255,255,0.05);
-                    text-align: center;
-                }
-
-                .result-text {
-                    font-size: 1.2rem;
-                    color: rgba(255,255,255,0.8);
-                    margin-bottom: 24px;
-                }
-
                 .footer-actions {
                     display: flex;
                     justify-content: center;
@@ -1591,14 +1600,15 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 .accuracy-badge {
-                    display: inline-block;
-                    padding: 8px 24px;
-                    border-radius: 24px;
-                    font-family: var(--font-condensed);
-                    font-weight: 700;
-                    font-size: 1.2rem;
-                    margin-bottom: 24px;
-                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+                    margin-bottom: 16px;
+                }
+
+                .result-message {
+                    font-size: 1rem;
+                    color: var(--color-grey-blue);
+                    max-width: 420px;
+                    margin: 0 auto 28px;
+                    line-height: 1.6;
                 }
 
                 .accuracy-high { background: rgba(16,185,129,0.15); color: #10b981; box-shadow: 0 0 20px rgba(16,185,129,0.2); }
@@ -1613,17 +1623,6 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
                 .game-over strong {
                     color: white;
-                }
-
-                .game-over-stats {
-                    display: flex;
-                    justify-content: center;
-                    gap: 16px;
-                    margin-bottom: 24px;
-                }
-
-                .game-over-stats p {
-                    margin: 0;
                 }
 
                 .btn-share {
@@ -1660,29 +1659,6 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 /* Modal */
-                .modal-overlay {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(0,0,0,0.85);
-                    backdrop-filter: blur(12px);
-                    z-index: 2000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 24px;
-                    overscroll-behavior: contain;
-                }
-
-                .modal-content {
-                    background: radial-gradient(circle at top, rgba(139,92,246,0.15), transparent 70%), #050508;
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 32px;
-                    padding: 48px 40px;
-                    width: 100%;
-                    max-width: 480px;
-                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02);
-                }
-
                 .modal-header {
                     text-align: center;
                     margin-bottom: 32px;
