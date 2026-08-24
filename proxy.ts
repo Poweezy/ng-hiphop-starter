@@ -55,7 +55,12 @@ function generateNonce(): string {
   return btoa(String.fromCharCode(...bytes));
 }
 
-export function middleware(req: NextRequest) {
+// Next.js 16 renamed the "middleware" convention to "proxy". This module runs
+// on every matched request (see `config.matcher` below) and provides:
+//   1. Per-request Content-Security-Policy (strict nonce for /admin in prod)
+//   2. Defense-in-depth CSRF origin checks for mutating methods
+//   3. X-Request-Id correlation headers
+export default function proxy(req: NextRequest) {
   const requestId = crypto.randomUUID();
   const isProd = process.env.NODE_ENV === 'production';
   const path = req.nextUrl.pathname;
