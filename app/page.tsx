@@ -4,7 +4,6 @@ import Hero from '@/components/Hero';
 import LatestRelease from '@/components/LatestRelease';
 import CommunityQuote from '@/components/CommunityQuote';
 import GraffitiShowcase from '@/components/GraffitiShowcase';
-import LyricGame from '@/components/LyricGame';
 import CompetitionBanner from '@/components/CompetitionBanner';
 
 // Revalidate every 60 seconds
@@ -45,7 +44,6 @@ export default async function Home() {
   let activeSong: { id: string; title: string; description: string | null; file_url: string; cover_url: string; distribution_links: string | null; publisher_link: string | null } | null = null;
   let featuredQuote: { id: string; quote_text: string; submitted_by: string } | null = null;
   let graffitiItems: { id: string; image_url: string; artist_name: string }[] = [];
-  let lyrics: { id: string; lyric_text: string; correct_artist: string; competitionId?: string | null }[] = [];
   let activeCompetition: { id: string; title: string; type: string; endDate: string; is_active: boolean } | null = null;
   let winner: { lyric_text: string; correct_artist: string } | null = null;
 
@@ -62,7 +60,7 @@ export default async function Home() {
       };
     }
 
-    [sloganEntry, activeSong, featuredQuote, graffitiItems, lyrics] = await Promise.all([
+    [sloganEntry, activeSong, featuredQuote, graffitiItems] = await Promise.all([
       prisma.slogan.findUnique({ where: { id: 1 } }),
       prisma.song.findFirst({ where: { is_active: true }, orderBy: { updatedAt: 'desc' } }),
       prisma.quoteSubmission.findFirst({
@@ -79,11 +77,6 @@ export default async function Home() {
         },
         orderBy: { createdAt: 'desc' },
         take: 10,
-      }),
-      prisma.lyricGame.findMany({
-        where: { is_active: true },
-        orderBy: { createdAt: 'asc' },
-        take: 200,
       }),
     ]);
 
@@ -115,7 +108,6 @@ export default async function Home() {
       <CommunityQuote featuredQuote={featuredQuote} />
       <GraffitiShowcase graffiti={graffitiItems} />
       {activeCompetition && <CompetitionBanner competition={activeCompetition} winner={winner} />}
-      <LyricGame lyrics={lyrics} />
     </>
   );
 }

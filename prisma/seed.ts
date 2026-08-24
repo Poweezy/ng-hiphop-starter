@@ -41,38 +41,6 @@ async function main() {
     });
     console.log(`✅ Admin user seeded: ${adminEmail}`);
 
-    // Seed sample lyric game entries (only on first run)
-    const lyricCount = await prisma.lyricGame.count();
-    if (lyricCount === 0) {
-        await prisma.lyricGame.createMany({
-            data: [
-                {
-                    lyric_text: "I be the nearest, I be the furthest, I be the truest",
-                    correct_artist: 'Sarkodie',
-                    is_active: true,
-                },
-                {
-                    lyric_text: "Ye dbe3 s3 me nfa wo ho a, wo nso nfa wo ho",
-                    correct_artist: 'M.anifest',
-                    is_active: true,
-                },
-                {
-                    lyric_text: "Sho Madjozi in the building, John Cena",
-                    correct_artist: 'Sho Madjozi',
-                    is_active: true,
-                },
-                {
-                    lyric_text: "Gbese Gbese, I carry your load",
-                    correct_artist: 'Falz',
-                    is_active: true,
-                },
-            ],
-        });
-        console.log('✅ Lyric game entries seeded');
-    } else {
-        console.log('✅ Lyric game entries already present, skipping');
-    }
-
     // Create default song (idempotent upsert)
     await prisma.song.upsert({
         where: { id: 'seed-default-song' },

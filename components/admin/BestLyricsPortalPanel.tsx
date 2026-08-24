@@ -24,7 +24,7 @@ interface Competition {
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
-  _count?: { lyrics: number; subscribers: number; submissions: number };
+  _count?: { subscribers: number; submissions: number };
 }
 
 interface Props {

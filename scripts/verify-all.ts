@@ -77,7 +77,6 @@ async function main() {
     const apiFiles = [
       'app/api/songs/route.ts', 'app/api/songs/[id]/route.ts',
       'app/api/quotes/route.ts', 'app/api/quotes/[id]/route.ts',
-      'app/api/lyrics/route.ts', 'app/api/lyrics/[id]/route.ts',
       'app/api/graffiti/route.ts', 'app/api/graffiti/[id]/route.ts',
       'app/api/auth/[...nextauth]/route.ts', 'app/api/admin/users/route.ts',
       'app/api/uploads/presign/route.ts', 'app/api/uploads/optimize/route.ts',
@@ -94,7 +93,7 @@ async function main() {
     const panels = [
       'components/admin/OverviewPanel.tsx', 'components/admin/SongsPanel.tsx',
       'components/admin/QuotesPanel.tsx', 'components/admin/GraffitiPanel.tsx',
-      'components/admin/LyricsPanel.tsx', 'components/admin/UsersPanel.tsx',
+      'components/admin/GraffitiPanel.tsx', 'components/admin/UsersPanel.tsx',
       'components/admin/SecurityPanel.tsx', 'components/admin/AdminDashboard.tsx',
     ];
     const missing = panels.filter((f) => !existsSync(join(PROJECT_ROOT, f)));
@@ -110,7 +109,7 @@ async function main() {
       const mod = await import('../lib/validations');
       const required = [
         'quoteSubmissionSchema', 'quoteUpdateSchema', 'graffitiUpdateSchema',
-        'lyricCreateSchema', 'lyricUpdateSchema', 'songUpdateSchema',
+        'songUpdateSchema',
         'competitionCreateSchema', 'lyricSubmissionSchema', 'subscriberSchema',
         'emailCampaignSchema', 'resetPasswordSchema', 'changePasswordSchema',
       ];
@@ -184,7 +183,7 @@ async function main() {
     const schema = readFileSync(join(PROJECT_ROOT, 'prisma/schema.prisma'), 'utf-8');
     const requiredModels = [
       'User', 'Slogan', 'Song', 'QuoteSubmission', 'GraffitiSubmission',
-      'LyricGame', 'LyricCompetition', 'CompetitionRule', 'CompetitionPrize',
+      'LyricCompetition', 'CompetitionRule', 'CompetitionPrize',
       'LyricSubmission', 'SubmissionModeration', 'CompetitionParticipant',
       'Subscriber', 'Winner', 'CompetitionAnalytics', 'EmailCampaign', 'Job',
     ];

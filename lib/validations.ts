@@ -20,24 +20,6 @@ export const graffitiUpdateSchema = z.object({
   display_until: z.string().datetime().optional().nullable(),
 });
 
-// Lyric validation
-export const lyricCreateSchema = z.object({
-  lyric_text: z.string().min(5).max(300).trim(),
-  correct_artist: z.string().min(1).max(80).trim(),
-  is_active: z.boolean().optional(),
-});
-
-export const lyricUpdateSchema = z.object({
-  id: z.string().cuid(),
-  lyric_text: z.string().min(5).max(300).trim().optional(),
-  correct_artist: z.string().min(1).max(80).trim().optional(),
-  is_active: z.boolean().optional(),
-});
-
-export const lyricDeleteSchema = z.object({
-  id: z.string().cuid(),
-});
-
 // Song validation
 export const songUpdateSchema = z.object({
   id: z.string().cuid(),
@@ -181,10 +163,6 @@ export const competitionSubscribeSchema = z.object({
   name: z.string().max(100).optional().nullable(),
   source: z.string().max(200).default('Best Lyrics Portal'),
   consentStatus: z.enum(['granted', 'withdrawn']).default('granted'),
-});
-
-export const competitionAssignSchema = z.object({
-  lyricIds: z.array(z.string().cuid()).min(1, 'Select at least one lyric'),
 });
 
 // Admin: patch user role

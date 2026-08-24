@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { prisma } from '@/app/db';
-import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
+import type { SongSummary, QuoteSummary, GraffitiSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
 
 export default async function AdminPage() {
     const session = await auth();
@@ -12,12 +12,11 @@ export default async function AdminPage() {
         redirect('/admin/login');
     }
 
-    const [slogan, songs, quotes, graffiti, lyrics, users, competitions, submissions, winners, subscribers] = await Promise.all([
+    const [slogan, songs, quotes, graffiti, users, competitions, submissions, winners, subscribers] = await Promise.all([
         prisma.slogan.findUnique({ where: { id: 1 } }),
         prisma.song.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
         prisma.quoteSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
         prisma.graffitiSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
-        prisma.lyricGame.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
         prisma.user.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
         prisma.lyricCompetition.findMany({
             orderBy: { createdAt: 'desc' },
@@ -25,7 +24,6 @@ export default async function AdminPage() {
             include: {
                 _count: {
                     select: {
-                        lyrics: true,
                         subscribers: true,
                         submissions: true,
                     },
@@ -108,7 +106,6 @@ export default async function AdminPage() {
             initialSongs={songs.map(s => ({ ...s, distribution_links: s.distribution_links ?? null })) as SongSummary[]}
             initialQuotes={quotes.map(q => ({ ...q, display_until: serializeDate(q.display_until), createdAt: serializeDate(q.createdAt) })) as QuoteSummary[]}
             initialGraffiti={graffiti.map(g => ({ ...g, display_until: serializeDate(g.display_until), createdAt: serializeDate(g.createdAt) })) as GraffitiSummary[]}
-            initialLyrics={lyrics.map(l => ({ ...l, competitionId: (l as { competitionId?: string | null }).competitionId ?? null })) as LyricSummary[]}
             initialCompetitions={competitions.map(c => ({
                 ...c,
                 startDate: serializeDate(c.startDate) ?? new Date().toISOString(),
@@ -117,7 +114,6 @@ export default async function AdminPage() {
                 createdAt: serializeDate(c.createdAt) ?? new Date().toISOString(),
                 updatedAt: serializeDate(c.updatedAt) ?? new Date().toISOString(),
                 _count: c._count ? {
-                    lyrics: c._count.lyrics,
                     subscribers: c._count.subscribers,
                     submissions: c._count.submissions,
                 } : undefined,

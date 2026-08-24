@@ -78,23 +78,6 @@ model GraffitiSubmission {
   @@index([createdAt])
 }
 
-model LyricGame {
-  id             String   @id @default(cuid())
-  lyric_text     String
-  correct_artist String
-  is_active      Boolean  @default(false)
-  competitionId  String?
-  competition    LyricCompetition? @relation(fields: [competitionId], references: [id])
-  userId         String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@index([is_active])
-  @@index([createdAt])
-  @@index([competitionId])
-  @@index([userId])
-}
-
 model LyricCompetition {
   id                 String   @id @default(cuid())
   title              String
@@ -120,7 +103,6 @@ model LyricCompetition {
   subscribers        Subscriber[]
   analytics          CompetitionAnalytics?
   winners            Winner[]
-  lyrics             LyricGame[]
 
   @@index([status, is_active])
   @@index([slug])

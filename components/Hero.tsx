@@ -81,8 +81,8 @@ export default function Hero({ slogan }: HeroProps) {
           <a href="#latest-release" className="hero-btn-primary">
             <span aria-hidden="true">🎵</span> Listen Now
           </a>
-          <a href="#lyric-game" className="hero-btn-ghost">
-            <span aria-hidden="true">🎮</span> Play The Game
+          <a href="/game/best-lyrics" className="hero-btn-ghost">
+            <span aria-hidden="true">🏆</span> Join The Competition
           </a>
         </motion.div>
 
