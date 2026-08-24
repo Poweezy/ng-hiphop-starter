@@ -37,3 +37,10 @@ prisma/dev.db
 # OS
 .DS_Store
 Thumbs.db
+
+# AI coding tool configs (worktrees duplicate the whole app)
+.kilo/
+
+# Deployment artifacts & stale scratch files
+*.zip
+tmp_*.txt
