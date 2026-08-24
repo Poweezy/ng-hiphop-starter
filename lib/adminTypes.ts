@@ -5,7 +5,7 @@ export interface SongSummary {
   file_url: string;
   cover_url: string;
   is_active: boolean;
-  distribution_links: any;
+  distribution_links: string | null;
   publisher_link?: string | null;
 }
 

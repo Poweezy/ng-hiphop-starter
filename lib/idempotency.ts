@@ -59,7 +59,7 @@ export function getCachedIdempotentResponse(key: string): { response: unknown; s
   return { response: record.response, status: record.status };
 }
 
-export async function withIdempotency<T>(
+export async function withIdempotency(
   key: string,
   fn: () => Promise<{ response: unknown; status: number }>
 ): Promise<{ response: unknown; status: number }> {

@@ -3,7 +3,6 @@
 // global ambient module declaration, which REPLACES the real next-auth types
 // (including the NextAuth() default export), causing "no call signatures" errors.
 import { DefaultSession } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {

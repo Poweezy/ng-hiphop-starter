@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { registerTask, enqueue, type Task, calculateBackoffMs } from '@/lib/queue';
+import { registerTask, enqueue, type Task } from '@/lib/queue';
 
 export type ModerationTaskPayload = {
   submissionType: 'quote' | 'graffiti' | 'competition_winner' | 'lyric';

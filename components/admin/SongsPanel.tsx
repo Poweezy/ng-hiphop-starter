@@ -5,7 +5,7 @@ import Image from 'next/image';
 import ConfirmDialog from '../ConfirmDialog';
 import Modal from '../Modal';
 
-interface Song { id: string; title: string; description?: string | null; file_url: string; cover_url: string; is_active: boolean; distribution_links: any; publisher_link?: string | null; }
+interface Song { id: string; title: string; description?: string | null; file_url: string; cover_url: string; is_active: boolean; distribution_links: string | null; publisher_link?: string | null; }
 interface Props { initialSongs: Song[]; }
 
 export default function SongsPanel({ initialSongs }: Props) {

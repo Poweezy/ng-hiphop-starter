@@ -129,17 +129,6 @@ async function markJobDone(
   }
 }
 
-async function markJobProcessing(id: string) {
-  try {
-    await prisma.job.update({
-      where: { id },
-      data: { status: "processing", updatedAt: new Date() },
-    });
-  } catch (err) {
-    captureQueueError(err, { jobId: id, jobType: 'mark-processing', attempt: 0 });
-  }
-}
-
 async function incrementJobAttempt(
   id: string,
   attempts: number,
