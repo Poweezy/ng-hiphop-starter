@@ -58,13 +58,11 @@ const nextConfig = {
                     ...(isProd ? [
                         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
                     ] : []),
-                    {
-                        key: 'Content-Security-Policy',
-                        // NOTE: 'unsafe-inline' is required for Next.js + styled-jsx.
-                        // 'unsafe-eval' has been removed. For admin routes consider a
-                        // nonce-based CSP to further reduce XSS blast radius.
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; upgrade-insecure-requests;",
-                    },
+                    // NOTE: Content-Security-Policy is intentionally NOT set here.
+                    // It is generated per-request in middleware.ts: /admin routes get
+                    // a strict nonce-based policy; everything else gets the tightened
+                    // static policy. Keeping it in one place avoids duplicate headers
+                    // (browsers intersect multiple CSPs, which breaks pages).
                 ],
             },
         ];

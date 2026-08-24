@@ -78,7 +78,10 @@ The top priorities are: **(1)** patching high-severity dependency vulnerabilitie
 ## Recommended Action Plan (priority order)
 
 1. ✅ **DONE** (`4160d95`) — `sharp@^0.35.3` + npm override so Next's nested copy is patched too. Native binary smoke-tested (encode/resize OK). Audit: 3 high → 1 high.
-2. ⬜ Implement nonce-based CSP (start with `/admin` routes).
+2. ✅ **DONE** — CSP hardened via `middleware.ts` (single source, no duplicate headers):
+   - **`/admin` routes (production):** strict per-request nonce + `strict-dynamic` script-src — Next auto-nonces all bootstrap scripts; `/admin/login` forced dynamic so it can be nonced. Verified live: header carries nonce, HTML scripts carry matching nonce, page 200.
+   - **Site-wide:** wildcard `img-src https:` / `connect-src https:` replaced with explicit allowlists (Spotify/Apple/Unsplash/S3/Supabase media; Sentry/Vercel Analytics/Supabase connect); added `media-src`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
+   - Non-`/admin` pages keep `script-src 'unsafe-inline'` because they are statically generated (ISR) and cannot carry per-request nonces.
 3. ✅ **DONE** (`3243da3`) — Purged 256 stale files from the repo (deployment zip, tsbuildinfo, tmp scratch, build log, `.kilo` duplicates); removed 3 merged worktrees + branches. Uncommitted worktree experiments archived to `.kilo/backups/*.patch`.
 4. ✅ **DONE locally** (`ce34bb7`) — Prisma client now appends `connect_timeout=5&pool_timeout=10&socket_timeout=10` when not configured, so prerendering fails in seconds instead of hanging minutes. **Note:** full local build verification is blocked by the OneDrive-synced workspace path — webpack chunks vanish mid-build (`Cannot find module './6141.js'`, a known OneDrive sync race). Compile + lint phases pass; final build verification must run in CI/Vercel.
 5. ⬜ Refactor admin dashboard to paginated, panel-driven fetching.
