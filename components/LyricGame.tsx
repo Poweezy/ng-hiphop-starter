@@ -772,7 +772,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, margin: '-60px' }}
                         transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
-                        className="game-card-wrapper"
+                        className={`game-card-wrapper${gamePhase === 'playing' || gamePhase === 'interstitial' ? ' game-card-wrapper--active' : ''}`}
                     >
                         <AnimatePresence>
                             {gameContent}
@@ -820,17 +820,19 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .section-intro .intro-stat { display: flex; flex-direction: column; gap: 8px; }
                 .section-intro .intro-stat-value { font-family: var(--font-display); font-size: 2.5rem; color: white; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
                 .section-intro .intro-stat-label { font-family: var(--font-condensed); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.5); }
-                .game-card-wrapper { position: relative; z-index: 20; background: rgba(10, 10, 18, 0.6); border-radius: 28px; padding: 4px; box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25), 0 0 40px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+                .game-card-wrapper { position: relative; z-index: 20; background: rgba(10, 10, 18, 0.6); border-radius: 28px; padding: 4px; box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25), 0 0 40px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: box-shadow 0.6s ease, border-color 0.6s ease; }
+                .game-card-wrapper--active { box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08); animation: wrapperPulse 3s ease-in-out infinite; }
+                @keyframes wrapperPulse { 0%, 100% { box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08); } 50% { box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.55), 0 0 80px rgba(139, 92, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12); } }
 
                 /* ===================================
                    INTRO CARD
                 =================================== */
                 .game-intro {
-                    background: linear-gradient(160deg, rgba(20, 20, 35, 0.95) 0%, rgba(10, 10, 20, 0.98) 100%);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: linear-gradient(160deg, rgba(20, 20, 35, 0.96) 0%, rgba(10, 10, 20, 0.98) 100%);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
                     border-radius: 24px;
                     padding: 52px 44px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(139, 92, 246, 0.12);
                     position: relative;
                     overflow: hidden;
                 }
@@ -842,14 +844,14 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     left: 0;
                     right: 0;
                     height: 1px;
-                    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent);
                 }
 
                 .game-intro::after {
                     content: '';
                     position: absolute;
                     inset: 0;
-                    background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 50%);
+                    background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.14) 0%, transparent 50%);
                     pointer-events: none;
                 }
 
@@ -952,8 +954,8 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 .game-intro .intro-stat-card {
                     flex: 1;
                     max-width: 160px;
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 20px;
                     padding: 20px 16px;
                     text-align: center;
@@ -962,6 +964,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     overflow: hidden;
                     backdrop-filter: blur(8px);
                     -webkit-backdrop-filter: blur(8px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
                 }
 
                 .game-intro .intro-stat-card::before {
@@ -975,10 +978,10 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 .game-intro .intro-stat-card:hover {
-                    border-color: rgba(139, 92, 246, 0.4);
-                    background: rgba(139, 92, 246, 0.1);
+                    border-color: rgba(139, 92, 246, 0.5);
+                    background: linear-gradient(145deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
                     transform: translateY(-4px);
-                    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.1);
+                    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(139, 92, 246, 0.15);
                 }
 
                 .game-intro .intro-stat-value {
@@ -1168,37 +1171,37 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 /* ===================================
                    GAME CARD — deep dark glassmorphism
                 =================================== */
-                .game-card {
-                    position: relative;
-                    background: linear-gradient(170deg, rgba(18, 18, 30, 0.92) 0%, rgba(8, 8, 16, 0.96) 100%);
-                    -webkit-backdrop-filter: blur(20px);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 24px;
-                    padding: 28px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(139, 92, 246, 0.1);
-                    overflow: hidden;
-                    transition: box-shadow 0.4s ease, border-color 0.4s ease;
-                }
+                 .game-card {
+                     position: relative;
+                     background: linear-gradient(170deg, rgba(18, 18, 30, 0.95) 0%, rgba(8, 8, 18, 0.98) 100%);
+                     -webkit-backdrop-filter: blur(24px);
+                     backdrop-filter: blur(24px);
+                     border: 1px solid rgba(255, 255, 255, 0.09);
+                     border-radius: 24px;
+                     padding: 32px;
+                     box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(139, 92, 246, 0.12);
+                     overflow: hidden;
+                     transition: box-shadow 0.5s ease, border-color 0.5s ease;
+                 }
 
-                .game-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.5) 50%, transparent 100%);
-                }
+                 .game-card::before {
+                     content: '';
+                     position: absolute;
+                     top: 0;
+                     left: 0;
+                     right: 0;
+                     height: 1px;
+                     background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.6) 50%, transparent 100%);
+                 }
 
-                .game-card::after {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: radial-gradient(ellipse at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%);
-                    pointer-events: none;
-                    border-radius: 24px;
-                }
+                 .game-card::after {
+                     content: '';
+                     position: absolute;
+                     inset: 0;
+                     background: radial-gradient(ellipse at 50% 0%, rgba(139, 92, 246, 0.14) 0%, transparent 60%);
+                     pointer-events: none;
+                     border-radius: 24px;
+                 }
 
                 @media (max-width: 640px) {
                     .game-card {
@@ -1219,73 +1222,84 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 /* ===================================
                    STATS BAR — 4 tiles
                 =================================== */
-                .hud-grid {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 10px;
-                    margin-bottom: 24px;
-                }
+                 .hud-grid {
+                     display: grid;
+                     grid-template-columns: repeat(4, 1fr);
+                     gap: 10px;
+                     margin-bottom: 24px;
+                 }
 
-                .stat-tile {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 10px;
-                    padding: 12px 14px;
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    border-radius: 14px;
-                    min-width: 0;
-                }
+                 .stat-tile {
+                     display: flex;
+                     align-items: flex-start;
+                     gap: 10px;
+                     padding: 14px 14px;
+                     background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+                     border: 1px solid rgba(255, 255, 255, 0.08);
+                     border-radius: 14px;
+                     min-width: 0;
+                     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+                 }
 
-                .stat-tile-icon {
-                    font-size: 1.1rem;
-                    line-height: 1.4;
-                    flex-shrink: 0;
-                }
+                 .stat-tile:hover {
+                     border-color: rgba(255, 255, 255, 0.15);
+                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                 }
 
-                .stat-tile-icon--gold { filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5)); }
-                .stat-tile-icon--purple { filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5)); }
-                .stat-tile-icon--blue { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
-                .stat-tile-icon--hot { animation: hotFlicker 1s ease-in-out infinite; }
-                .stat-tile-value--hot {
-                    color: #fbbf24;
-                    text-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
-                }
-                @keyframes hotFlicker {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.12); }
-                }
+                 .stat-tile-icon {
+                     font-size: 1.15rem;
+                     line-height: 1.3;
+                     flex-shrink: 0;
+                     margin-top: 1px;
+                 }
 
-                .stat-tile-body {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                    min-width: 0;
-                }
+                 .stat-tile-icon--gold { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6)); }
+                 .stat-tile-icon--purple { filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6)); }
+                 .stat-tile-icon--blue { filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6)); }
+                 .stat-tile-icon--hot { animation: hotFlicker 1s ease-in-out infinite; }
+                 .stat-tile-value--hot {
+                     color: #fbbf24;
+                     text-shadow: 0 0 16px rgba(245, 158, 11, 0.6);
+                 }
+                 @keyframes hotFlicker {
+                     0%, 100% { transform: scale(1); }
+                     50% { transform: scale(1.15); }
+                 }
 
-                .stat-tile-label {
-                    font-family: var(--font-condensed);
-                    font-size: 0.6rem;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.12em;
-                    color: rgba(255, 255, 255, 0.45);
-                    white-space: nowrap;
-                }
+                 .stat-tile-body {
+                     display: flex;
+                     flex-direction: column;
+                     gap: 3px;
+                     min-width: 0;
+                 }
 
-                .stat-tile-value {
-                    font-size: 1.35rem;
-                    font-weight: 800;
-                    color: white;
-                    line-height: 1.1;
-                    font-variant-numeric: tabular-nums;
-                }
+                 .stat-tile-label {
+                     font-family: var(--font-condensed);
+                     font-size: 0.58rem;
+                     font-weight: 700;
+                     text-transform: uppercase;
+                     letter-spacing: 0.15em;
+                     color: rgba(255, 255, 255, 0.5);
+                     white-space: nowrap;
+                     line-height: 1;
+                 }
 
-                .stat-tile-sub {
-                    font-size: 0.65rem;
-                    color: rgba(255, 255, 255, 0.35);
-                    white-space: nowrap;
-                }
+                 .stat-tile-value {
+                     font-size: 1.45rem;
+                     font-weight: 800;
+                     color: white;
+                     line-height: 1.1;
+                     font-variant-numeric: tabular-nums;
+                     letter-spacing: -0.01em;
+                 }
+
+                 .stat-tile-sub {
+                     font-size: 0.65rem;
+                     color: rgba(255, 255, 255, 0.38);
+                     white-space: nowrap;
+                     line-height: 1.2;
+                 }
 
                 .stat-tile-timer-track {
                     display: block;
@@ -1351,30 +1365,48 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     margin-bottom: 24px;
                 }
 
-                .progress-track {
-                    flex: 1;
-                    height: 8px;
-                    border-radius: 4px;
-                    background: rgba(255, 255, 255, 0.07);
-                    overflow: hidden;
-                }
+                 .progress-track {
+                     flex: 1;
+                     height: 10px;
+                     border-radius: 5px;
+                     background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+                     overflow: hidden;
+                     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+                 }
 
-                .progress-fill {
-                    height: 100%;
-                    border-radius: 4px;
-                    background: linear-gradient(90deg, #8B5CF6, #A78BFA);
-                    box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
-                }
+                 .progress-fill {
+                     height: 100%;
+                     border-radius: 5px;
+                     background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+                     box-shadow: 0 0 16px rgba(139, 92, 246, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                     position: relative;
+                 }
 
-                .progress-pct {
-                    font-family: var(--font-condensed);
-                    font-size: 0.75rem;
-                    font-weight: 700;
-                    color: rgba(255, 255, 255, 0.55);
-                    min-width: 36px;
-                    text-align: right;
-                    font-variant-numeric: tabular-nums;
-                }
+                 .progress-fill::after {
+                     content: '';
+                     position: absolute;
+                     top: 0;
+                     left: 0;
+                     right: 0;
+                     bottom: 0;
+                     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+                     animation: progressShimmer 2s ease-in-out infinite;
+                 }
+
+                 @keyframes progressShimmer {
+                     0% { transform: translateX(-100%); }
+                     100% { transform: translateX(100%); }
+                 }
+
+                 .progress-pct {
+                     font-family: var(--font-condensed);
+                     font-size: 0.75rem;
+                     font-weight: 700;
+                     color: rgba(255, 255, 255, 0.55);
+                     min-width: 36px;
+                     text-align: right;
+                     font-variant-numeric: tabular-nums;
+                 }
 
                 /* ===================================
                    LYRIC QUOTE
@@ -1388,35 +1420,50 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     margin-bottom: 18px;
                 }
 
-                .lyric-quote {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 18px;
-                    margin-bottom: 28px;
-                }
+                 .lyric-quote {
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     gap: 20px;
+                     margin-bottom: 32px;
+                     padding: 8px 0;
+                 }
 
-                .lyric-wave {
-                    width: 64px;
-                    height: 24px;
-                    flex-shrink: 0;
-                    opacity: 0.55;
-                }
+                 .lyric-wave {
+                     width: 72px;
+                     height: 28px;
+                     flex-shrink: 0;
+                     opacity: 0.6;
+                 }
 
-                .lyric-wave rect { fill: var(--color-purple-light); }
-                .lyric-wave--flip { transform: scaleX(-1); }
+                 .lyric-wave rect { fill: var(--color-purple-light); }
+                 .lyric-wave--flip { transform: scaleX(-1); }
 
-                .lyric-quote-text {
-                    font-family: Georgia, 'Times New Roman', serif;
-                    font-style: italic;
-                    font-size: 1.45rem;
-                    line-height: 1.55;
-                    color: rgba(255, 255, 255, 0.92);
-                    text-align: center;
-                    max-width: 460px;
-                    margin: 0;
-                    text-wrap: balance;
-                }
+                 .lyric-quote-text {
+                     font-family: Georgia, 'Times New Roman', serif;
+                     font-style: italic;
+                     font-size: 1.6rem;
+                     line-height: 1.6;
+                     color: rgba(255, 255, 255, 0.95);
+                     text-align: center;
+                     max-width: 520px;
+                     margin: 0;
+                     text-wrap: balance;
+                     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+                     position: relative;
+                 }
+
+                  .lyric-quote-text::before {
+                      content: '"';
+                      position: absolute;
+                      top: -18px;
+                      left: -8px;
+                      font-size: 3.5rem;
+                      color: rgba(139, 92, 246, 0.25);
+                      font-style: normal;
+                      line-height: 1;
+                      pointer-events: none;
+                  }
 
                 @media (max-width: 640px) {
                     .lyric-wave { display: none; }
@@ -1443,38 +1490,46 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
                 }
 
-                .option-btn {
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                    width: 100%;
-                    padding: 14px 18px;
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.09);
-                    border-radius: 14px;
-                    color: rgba(255, 255, 255, 0.85);
-                    font-size: 1rem;
-                    font-weight: 500;
-                    text-align: left;
-                    cursor: pointer;
-                    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-                    touch-action: manipulation;
-                }
+                 .option-btn {
+                     display: flex;
+                     align-items: center;
+                     gap: 16px;
+                     width: 100%;
+                     padding: 16px 20px;
+                     background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+                     border: 1px solid rgba(255, 255, 255, 0.1);
+                     border-radius: 14px;
+                     color: rgba(255, 255, 255, 0.9);
+                     font-size: 1rem;
+                     font-weight: 500;
+                     text-align: left;
+                     cursor: pointer;
+                     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+                     touch-action: manipulation;
+                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+                 }
 
-                .option-btn:hover:not(:disabled) {
-                    background: rgba(139, 92, 246, 0.1);
-                    border-color: rgba(139, 92, 246, 0.5);
-                    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
-                }
+                 .option-btn:hover:not(:disabled) {
+                     background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
+                     border-color: rgba(139, 92, 246, 0.5);
+                     box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                     transform: translateY(-1px);
+                 }
 
-                .option-btn:focus-visible {
-                    outline: 2px solid var(--color-purple);
-                    outline-offset: 2px;
-                }
+                 .option-btn:focus-visible {
+                     outline: 2px solid var(--color-purple);
+                     outline-offset: 2px;
+                 }
 
-                .option-btn:disabled {
-                    cursor: default;
-                }
+                 .option-btn:active:not(:disabled) {
+                     transform: translateY(0) scale(0.985);
+                     transition: transform 0.1s ease;
+                 }
+
+                 .option-btn:disabled {
+                     cursor: default;
+                     opacity: 0.85;
+                 }
 
                 .option-letter {
                     display: inline-flex;
@@ -1497,30 +1552,47 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     min-width: 0;
                 }
 
-                .option-btn.correct,
-                .option-btn.reveal-correct {
-                    background: rgba(16, 185, 129, 0.12);
-                    border-color: rgba(16, 185, 129, 0.6);
-                    box-shadow: 0 0 24px rgba(16, 185, 129, 0.15);
-                }
+                 .option-btn.correct,
+                 .option-btn.reveal-correct {
+                     background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.06) 100%);
+                     border-color: rgba(16, 185, 129, 0.7);
+                     box-shadow: 0 0 32px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(52, 211, 153, 0.15);
+                     animation: correctPulse 2s ease-in-out infinite;
+                 }
 
-                .option-btn.correct .option-letter,
-                .option-btn.reveal-correct .option-letter {
-                    border-color: rgba(16, 185, 129, 0.7);
-                    background: rgba(16, 185, 129, 0.2);
-                    color: #34d399;
-                }
+                 .option-btn.correct .option-letter,
+                 .option-btn.reveal-correct .option-letter {
+                     border-color: rgba(16, 185, 129, 0.8);
+                     background: rgba(16, 185, 129, 0.25);
+                     color: #34d399;
+                     box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+                 }
 
-                .option-btn.wrong {
-                    background: rgba(239, 68, 68, 0.1);
-                    border-color: rgba(239, 68, 68, 0.6);
-                }
+                 @keyframes correctPulse {
+                     0%, 100% { box-shadow: 0 0 32px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(52, 211, 153, 0.15); }
+                     50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(52, 211, 153, 0.25); }
+                 }
 
-                .option-btn.wrong .option-letter {
-                    border-color: rgba(239, 68, 68, 0.7);
-                    background: rgba(239, 68, 68, 0.18);
-                    color: #fca5a5;
-                }
+                 .option-btn.wrong {
+                     background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.04) 100%);
+                     border-color: rgba(239, 68, 68, 0.7);
+                     box-shadow: 0 0 24px rgba(239, 68, 68, 0.15);
+                     animation: wrongShake 0.5s ease-in-out;
+                 }
+
+                 .option-btn.wrong .option-letter {
+                     border-color: rgba(239, 68, 68, 0.8);
+                     background: rgba(239, 68, 68, 0.22);
+                     color: #fca5a5;
+                 }
+
+                 @keyframes wrongShake {
+                     0%, 100% { transform: translateX(0); }
+                     20% { transform: translateX(-4px); }
+                     40% { transform: translateX(4px); }
+                     60% { transform: translateX(-3px); }
+                     80% { transform: translateX(2px); }
+                 }
 
                 .feedback-icon {
                     display: inline-flex;
@@ -1562,17 +1634,18 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    padding: 12px 16px;
-                    background: rgba(245, 158, 11, 0.06);
-                    border: 1px solid rgba(245, 158, 11, 0.2);
+                    padding: 14px 18px;
+                    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%);
+                    border: 1px solid rgba(245, 158, 11, 0.25);
                     border-radius: 12px;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(251, 191, 36, 0.06);
                 }
 
                 .tip-icon { font-size: 1rem; flex-shrink: 0; }
 
                 .tip-text {
-                    font-size: 0.82rem;
-                    color: rgba(255, 255, 255, 0.65);
+                    font-size: 0.85rem;
+                    color: rgba(255, 255, 255, 0.7);
                     line-height: 1.5;
                 }
 
@@ -1580,7 +1653,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     color: #fcd34d;
                     font-family: var(--font-condensed);
                     text-transform: uppercase;
-                    letter-spacing: 0.08em;
+                    letter-spacing: 0.1em;
                     font-size: 0.75rem;
                 }
 
@@ -1593,18 +1666,20 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     justify-content: space-between;
                     gap: 16px;
                     flex-wrap: wrap;
-                    padding: 16px 18px;
+                    padding: 18px 20px;
                     border-radius: 14px;
                 }
 
                 .result-correct-bg {
-                    background: rgba(16, 185, 129, 0.08);
-                    border: 1px solid rgba(16, 185, 129, 0.35);
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%);
+                    border: 1px solid rgba(16, 185, 129, 0.4);
+                    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(52, 211, 153, 0.1);
                 }
 
                 .result-wrong-bg {
-                    background: rgba(239, 68, 68, 0.07);
-                    border: 1px solid rgba(239, 68, 68, 0.35);
+                    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.03) 100%);
+                    border: 1px solid rgba(239, 68, 68, 0.4);
+                    box-shadow: 0 0 20px rgba(239, 68, 68, 0.08), inset 0 1px 0 rgba(252, 165, 165, 0.08);
                 }
 
                 .result-banner-main {
@@ -1616,8 +1691,9 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 }
 
                 .result-banner-text {
-                    font-size: 0.92rem;
+                    font-size: 0.95rem;
                     font-weight: 600;
+                    letter-spacing: 0.01em;
                 }
 
                 .result-correct { color: #34d399; }
@@ -1680,13 +1756,13 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                 =================================== */
                 .results-panel {
                     position: relative;
-                    background: linear-gradient(170deg, rgba(18, 18, 30, 0.92) 0%, rgba(8, 8, 16, 0.96) 100%);
-                    -webkit-backdrop-filter: blur(20px);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: linear-gradient(170deg, rgba(18, 18, 30, 0.96) 0%, rgba(8, 8, 18, 0.98) 100%);
+                    -webkit-backdrop-filter: blur(24px);
+                    backdrop-filter: blur(24px);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
                     border-radius: 24px;
                     padding: 36px 32px 28px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(139, 92, 246, 0.1);
+                    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(139, 92, 246, 0.12);
                     overflow: hidden;
                     text-align: center;
                 }
@@ -1698,7 +1774,7 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     left: 0;
                     right: 0;
                     height: 1px;
-                    background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.5) 50%, transparent 100%);
+                    background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.6) 50%, transparent 100%);
                 }
 
                 .confetti-layer {
@@ -1756,28 +1832,29 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
 
                 .score-ring-wrap {
                     position: relative;
-                    width: 190px;
-                    height: 190px;
-                    margin: 0 auto 26px;
+                    width: 210px;
+                    height: 210px;
+                    margin: 0 auto 28px;
                 }
 
                 .score-ring {
                     width: 100%;
                     height: 100%;
                     transform: rotate(-90deg);
+                    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.3));
                 }
 
                 .score-ring-bg {
                     fill: none;
-                    stroke: rgba(255, 255, 255, 0.07);
-                    stroke-width: 9;
+                    stroke: rgba(255, 255, 255, 0.06);
+                    stroke-width: 10;
                 }
 
                 .score-ring-fill {
                     fill: none;
-                    stroke-width: 9;
+                    stroke-width: 10;
                     stroke-linecap: round;
-                    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.45));
+                    filter: drop-shadow(0 0 14px rgba(139, 92, 246, 0.5));
                 }
 
                 .score-ring-center {
@@ -1817,35 +1894,42 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
                     gap: 10px;
-                    margin-bottom: 18px;
+                    margin-bottom: 20px;
                 }
 
                 .trio-stat {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 3px;
-                    padding: 16px 10px;
+                    gap: 4px;
+                    padding: 18px 12px;
                     border-radius: 14px;
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+                }
+
+                .trio-stat:hover {
+                    border-color: rgba(255, 255, 255, 0.18);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
                 }
 
                 .trio-icon {
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    width: 28px;
-                    height: 28px;
+                    width: 30px;
+                    height: 30px;
                     border-radius: 50%;
-                    font-size: 0.85rem;
+                    font-size: 0.9rem;
                     font-weight: 700;
                     margin-bottom: 4px;
                 }
 
-                .trio-stat--correct .trio-icon { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-                .trio-stat--wrong .trio-icon { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
-                .trio-stat--accuracy .trio-icon { background: rgba(59, 130, 246, 0.12); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+                .trio-stat--correct .trio-icon { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5); box-shadow: 0 0 12px rgba(16, 185, 129, 0.25); }
+                .trio-stat--wrong .trio-icon { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5); box-shadow: 0 0 12px rgba(239, 68, 68, 0.2); }
+                .trio-stat--accuracy .trio-icon { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 12px rgba(59, 130, 246, 0.2); }
 
                 .trio-label {
                     font-family: var(--font-condensed);
@@ -1868,23 +1952,31 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     align-items: center;
                     gap: 14px;
                     text-align: left;
-                    padding: 14px 18px;
-                    margin-bottom: 18px;
-                    background: rgba(245, 158, 11, 0.07);
-                    border: 1px solid rgba(245, 158, 11, 0.35);
+                    padding: 16px 20px;
+                    margin-bottom: 20px;
+                    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.04) 100%);
+                    border: 1px solid rgba(245, 158, 11, 0.4);
                     border-radius: 14px;
+                    box-shadow: 0 0 24px rgba(245, 158, 11, 0.1), inset 0 1px 0 rgba(251, 191, 36, 0.1);
+                    animation: bestBannerGlow 2s ease-in-out infinite;
+                }
+
+                @keyframes bestBannerGlow {
+                    0%, 100% { box-shadow: 0 0 24px rgba(245, 158, 11, 0.1), inset 0 1px 0 rgba(251, 191, 36, 0.1); }
+                    50% { box-shadow: 0 0 36px rgba(245, 158, 11, 0.2), inset 0 1px 0 rgba(251, 191, 36, 0.2); }
                 }
 
                 .best-banner-icon {
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    width: 38px;
-                    height: 38px;
+                    width: 40px;
+                    height: 40px;
                     flex-shrink: 0;
                     border-radius: 50%;
-                    background: rgba(245, 158, 11, 0.15);
-                    font-size: 1.1rem;
+                    background: rgba(245, 158, 11, 0.2);
+                    font-size: 1.2rem;
+                    box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
                 }
 
                 .best-banner-body {
@@ -1988,24 +2080,27 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     align-items: center;
                     gap: 10px;
                     padding: 14px 28px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+                    border: 1px solid rgba(255, 255, 255, 0.18);
                     border-radius: 12px;
-                    color: rgba(255, 255, 255, 0.8);
+                    color: rgba(255, 255, 255, 0.9);
                     font-family: var(--font-condensed);
                     font-size: 0.9rem;
                     font-weight: 700;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
                     cursor: pointer;
-                    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+                    transition: all 0.3s ease;
                     touch-action: manipulation;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
                 }
 
                 .btn-home:hover {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
                     color: white;
-                    border-color: rgba(255, 255, 255, 0.3);
+                    border-color: rgba(255, 255, 255, 0.35);
+                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    transform: translateY(-2px);
                 }
 
                 .btn-home:focus-visible {
@@ -2029,13 +2124,28 @@ export default function LyricGame({ lyrics }: LyricGameProps) {
                     text-transform: uppercase;
                     cursor: pointer;
                     transition: transform 0.25s ease, box-shadow 0.25s ease;
-                    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+                    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
                     touch-action: manipulation;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .btn-again::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 60%);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
                 }
 
                 .btn-again:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.55);
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 36px rgba(139, 92, 246, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+                }
+
+                .btn-again:hover::before {
+                    opacity: 1;
                 }
 
                 .btn-again:focus-visible {
