@@ -84,7 +84,7 @@ The top priorities are: **(1)** patching high-severity dependency vulnerabilitie
    - Non-`/admin` pages keep `script-src 'unsafe-inline'` because they are statically generated (ISR) and cannot carry per-request nonces.
 3. ✅ **DONE** (`3243da3`) — Purged 256 stale files from the repo (deployment zip, tsbuildinfo, tmp scratch, build log, `.kilo` duplicates); removed 3 merged worktrees + branches. Uncommitted worktree experiments archived to `.kilo/backups/*.patch`.
 4. ✅ **DONE locally** (`ce34bb7`) — Prisma client now appends `connect_timeout=5&pool_timeout=10&socket_timeout=10` when not configured, so prerendering fails in seconds instead of hanging minutes. **Note:** full local build verification is blocked by the OneDrive-synced workspace path — webpack chunks vanish mid-build (`Cannot find module './6141.js'`, a known OneDrive sync race). Compile + lint phases pass; final build verification must run in CI/Vercel.
-5. ⬜ Refactor admin dashboard to paginated, panel-driven fetching.
+5. 🔶 **PARTIALLY DONE** — N+1 query pattern eliminated (`groupBy` × 2 instead of 2×N per-user COUNTs), so admin page-load cost no longer scales linearly with users; also removed a masked `any` (Prisma `Decimal` now typed properly). **Deferred:** full panel-level pagination requires new list API endpoints + refactors across all ~14 panels — a dedicated task.
 6. ✅ **DONE** (`58d1453`) — Dead code removed, `any` casts replaced with precise types. Warnings 62 → 47 (remainder is intentional `no-console` in the console email provider / observability).
 7. ⬜ Plan Next 16 + next-auth stable upgrade (clears the remaining postcss/uuid advisories).
 
