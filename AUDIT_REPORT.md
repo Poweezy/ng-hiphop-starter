@@ -60,18 +60,18 @@ The top priorities are: **(1)** patching high-severity dependency vulnerabilitie
 - `.kilo/worktrees/*` contains near-complete duplicates of the app (reliability-sre, security-hardening, seo-infra…) — pollutes every search and risks edits landing in a stale copy. Archive or remove.
 
 **M3. Pinned beta auth dependency**
-- `next-auth ^5.0.0-beta.32` — pin exactly and plan the stable-v5 upgrade.
+- ✅ **RESOLVED**: `next-auth` now pinned exactly to `5.0.0-beta.32` (caret removed) so minor beta releases can't drift in silently. Stable-v5 upgrade still planned for later.
 
 **M4. Dead code / lint debt**
 - 62 warnings including genuinely dead exports (`lib/queue.ts: markJobProcessing`, `lib/moderation.ts: calculateBackoffMs`, unused `lib/storage.ts` helpers) and `any` casts in `lib/adminTypes.ts` / admin pages.
 
 ### 🟢 Low / Informational
 
-- `X-XSS-Protection` header is deprecated/no-op in modern browsers — harmless, can be dropped.
+- `X-XSS-Protection` header deprecated — **RESOLVED**: dropped from headers config.
 - `dangerouslySetInnerHTML` usage is JSON-LD only with `JSON.stringify` payloads — safe pattern.
 - Login rate limit keys on IP+email; IP rotation bypasses it — acceptable today, consider CAPTCHA if abused.
-- Sitemap hardcodes `https://ng-hiphop.com` — derive from `APP_URL` env for env parity.
-- Vitest warns about ESM/CJS mismatch in `vitest.config.ts` before Vite flips the `configLoader` default.
+- Sitemap hardcoded `https://ng-hiphop.com` — **RESOLVED**: now derives from `APP_URL` (canonical fallback), live-verified `/sitemap.xml`.
+- Vitest ESM/CJS mismatch warning — **RESOLVED**: renamed to `vitest.config.mts`.
 
 ---
 

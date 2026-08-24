@@ -1,39 +1,47 @@
 import { MetadataRoute } from 'next';
 
+// Base URL follows APP_URL so preview/staging environments generate correct
+// sitemaps; production keeps the canonical domain as fallback.
+const SITE_URL = (process.env.APP_URL ?? 'https://ng-hiphop.com').replace(/\/+$/, '');
+
+function url(path: string): string {
+  return `${SITE_URL}${path}`;
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: 'https://ng-hiphop.com',
+      url: url(''),
       lastModified: new Date(),
       changeFrequency: 'always',
       priority: 1,
     },
     {
-      url: 'https://ng-hiphop.com/library',
+      url: url('/library'),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: 'https://ng-hiphop.com/game/best-lyrics',
+      url: url('/game/best-lyrics'),
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: 'https://ng-hiphop.com/submissions/status',
+      url: url('/submissions/status'),
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.4,
     },
     {
-      url: 'https://ng-hiphop.com/terms',
+      url: url('/terms'),
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
-      url: 'https://ng-hiphop.com/privacy',
+      url: url('/privacy'),
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
