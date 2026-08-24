@@ -28,14 +28,6 @@ export interface GraffitiSummary {
   createdAt: string;
 }
 
-export interface LyricSummary {
-  id: string;
-  lyric_text: string;
-  correct_artist: string;
-  is_active: boolean;
-  competitionId?: string | null;
-}
-
 export interface CompetitionSummary {
   id: string;
   title: string;
@@ -53,7 +45,7 @@ export interface CompetitionSummary {
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
-  _count?: { lyrics: number; subscribers: number; submissions: number };
+  _count?: { subscribers: number; submissions: number };
 }
 
 export interface CompetitionRuleSummary {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
+import type { SongSummary, QuoteSummary, GraffitiSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
 
 // Panels
 import OverviewPanel from './OverviewPanel';
@@ -12,7 +12,6 @@ import SloganPanel from './SloganPanel';
 import SongsPanel from './SongsPanel';
 import QuotesPanel from './QuotesPanel';
 import GraffitiPanel from './GraffitiPanel';
-import LyricsPanel from './LyricsPanel';
 import BestLyricsPortalPanel from './BestLyricsPortalPanel';
 import SubmissionsPanel from './SubmissionsPanel';
 import WinnersPanel from './WinnersPanel';
@@ -23,14 +22,13 @@ import UsersPanel from './UsersPanel';
 import Image from 'next/image';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'lyrics' | 'best-lyrics' | 'submissions' | 'winners' | 'subscribers' | 'security';
+export type Tab = 'overview' | 'users' | 'slogan' | 'songs' | 'quotes' | 'graffiti' | 'best-lyrics' | 'submissions' | 'winners' | 'subscribers' | 'security';
 
 interface Props {
     initialSlogan: string;
     initialSongs: SongSummary[];
     initialQuotes: QuoteSummary[];
     initialGraffiti: GraffitiSummary[];
-    initialLyrics: LyricSummary[];
     initialCompetitions: CompetitionSummary[];
     initialSubmissions: LyricSubmissionSummary[];
     initialWinners: WinnerSummary[];
@@ -43,7 +41,6 @@ const TABS: { id: Tab; label: string; icon: string; group: string }[] = [
     { id: 'songs', label: 'Songs', icon: '🎵', group: 'content' },
     { id: 'quotes', label: 'Quotes', icon: '💬', group: 'content' },
     { id: 'graffiti', label: 'Graffiti', icon: '🎨', group: 'content' },
-    { id: 'lyrics', label: 'Lyrics', icon: '🎤', group: 'content' },
     { id: 'submissions', label: 'Submissions', icon: '📝', group: 'content' },
     { id: 'best-lyrics', label: 'Competitions', icon: '🏆', group: 'management' },
     { id: 'winners', label: 'Winners', icon: '👑', group: 'management' },
@@ -59,7 +56,7 @@ const GROUP_LABELS: Record<string, string> = {
     system: 'System',
 };
 
-export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialLyrics, initialCompetitions, initialSubmissions, initialWinners, initialSubscribers, initialUsers }: Props) {
+export default function AdminDashboard({ initialSlogan, initialSongs, initialQuotes, initialGraffiti, initialCompetitions, initialSubmissions, initialWinners, initialSubscribers, initialUsers }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,7 +65,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
 
     useEffect(() => {
         const tab = searchParams.get('tab') as Tab | null;
-        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'lyrics', 'best-lyrics', 'submissions', 'winners', 'subscribers', 'security'].includes(tab)) {
+        if (tab && ['overview', 'users', 'slogan', 'songs', 'quotes', 'graffiti', 'best-lyrics', 'submissions', 'winners', 'subscribers', 'security'].includes(tab)) {
             setActiveTab(tab);
         }
     }, [searchParams]);
@@ -96,9 +93,8 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                 '4': 'songs',
                 '5': 'quotes',
                 '6': 'graffiti',
-                '7': 'lyrics',
-                '8': 'best-lyrics',
-                '9': 'submissions',
+                '7': 'best-lyrics',
+                '8': 'submissions',
                 '0': 'winners',
                 'e': 'subscribers',
                 's': 'security',
@@ -224,7 +220,6 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                                         songs={initialSongs} 
                                         quotes={initialQuotes} 
                                         graffiti={initialGraffiti} 
-                                        lyrics={initialLyrics}
                                         userCount={initialUsers.length}
                                         onNavigate={setActiveTab} 
                                     />
@@ -236,7 +231,6 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                                 {activeTab === 'songs' && <SongsPanel initialSongs={initialSongs} />}
                                 {activeTab === 'quotes' && <QuotesPanel initialQuotes={initialQuotes} />}
                                 {activeTab === 'graffiti' && <GraffitiPanel initialGraffiti={initialGraffiti} />}
-                                {activeTab === 'lyrics' && <LyricsPanel initialLyrics={initialLyrics} />}
                                 {activeTab === 'best-lyrics' && (
                                     <BestLyricsPortalPanel
                                         initialCompetitions={initialCompetitions}

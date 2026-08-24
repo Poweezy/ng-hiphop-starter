@@ -1,18 +1,17 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { SongSummary, QuoteSummary, GraffitiSummary, LyricSummary } from '@/lib/adminTypes';
+import type { SongSummary, QuoteSummary, GraffitiSummary } from '@/lib/adminTypes';
 
 interface OverviewPanelProps {
     songs: SongSummary[];
     quotes: QuoteSummary[];
     graffiti: GraffitiSummary[];
-    lyrics: LyricSummary[];
     userCount?: number;
-    onNavigate: (tab: "slogan" | "songs" | "quotes" | "graffiti" | "lyrics" | "users") => void;
+    onNavigate: (tab: "slogan" | "songs" | "quotes" | "graffiti" | "users") => void;
 }
 
-export default function OverviewPanel({ songs, quotes, graffiti, lyrics, userCount = 0, onNavigate }: OverviewPanelProps) {
+export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, onNavigate }: OverviewPanelProps) {
     const activeSong = songs.find(s => s.is_active);
     const pendingQuotes = quotes.filter(q => !q.approved).length;
     const pendingGraffiti = graffiti.filter(g => !g.approved).length;
@@ -57,16 +56,6 @@ export default function OverviewPanel({ songs, quotes, graffiti, lyrics, userCou
             action: () => onNavigate('graffiti'),
             actionText: pendingGraffiti > 0 ? 'Review Artwork' : 'View Wall',
             color: pendingGraffiti > 0 ? '#F59E0B' : 'var(--color-green-light)'
-        },
-        {
-            title: 'Lyric Game',
-            value: lyrics.length,
-            label: 'Total Entries',
-            highlight: 'Interactive Challenge',
-            icon: '🎤',
-            action: () => onNavigate('lyrics'),
-            actionText: 'Manage Lyrics',
-            color: 'var(--color-yellow)'
         }
     ];
 

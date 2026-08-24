@@ -19,7 +19,6 @@ const NAV_LINKS: NavLinkItem[] = [
   { href: '/library',           label: 'Library',    route: '/library' },
   { href: '/#community-quotes', label: 'Community' },
   { href: '/#graffiti',         label: 'Gallery' },
-  { href: '/#lyric-game',       label: 'Game' },
   { href: '/game/best-lyrics',  label: 'Competitions', prefix: '/game/best-lyrics' },
   { href: '/admin/login',       label: 'Admin',        prefix: '/admin', admin: true },
 ];

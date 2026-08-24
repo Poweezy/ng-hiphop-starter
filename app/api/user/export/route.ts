@@ -41,9 +41,8 @@ export async function GET(req: NextRequest) {
       return errorResponse('User not found', 404, 'USER_NOT_FOUND');
     }
 
-    const [quotes, lyrics, graffiti] = await Promise.all([
+    const [quotes, graffiti] = await Promise.all([
       prisma.quoteSubmission.findMany({ where: { submitted_by: session.user.email } }),
-      prisma.lyricGame.findMany({ where: { userId: user.id } }),
       prisma.graffitiSubmission.findMany({ where: { artist_name: session.user.email } }),
     ]);
 
@@ -52,7 +51,6 @@ export async function GET(req: NextRequest) {
       account: user,
       submissions: {
         quotes,
-        lyrics,
         graffiti,
       },
     };
