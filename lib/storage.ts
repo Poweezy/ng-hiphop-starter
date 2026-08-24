@@ -1,4 +1,4 @@
-import { writeFile, mkdir, unlink, stat } from 'fs/promises';
+import { writeFile, mkdir, unlink } from 'fs/promises';
 import { createWriteStream } from 'fs';
 import { Readable } from 'stream';
 import path from 'path';
@@ -25,17 +25,6 @@ export type S3StorageOptions = {
 function required(name: string, value: string | undefined): string {
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
-}
-
-async function streamToBuffer(stream: ReadableStream): Promise<Buffer> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks);
 }
 
 function webStreamToNodeStream(stream: ReadableStream): Readable {
@@ -118,7 +107,7 @@ export class LocalStorageProvider implements StorageProvider {
 
     try {
       await unlink(absolutePath);
-    } catch (err) {
+    } catch {
       // ignore missing
       return;
     }

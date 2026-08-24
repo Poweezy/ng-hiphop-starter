@@ -1,24 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { withIdempotency, getCachedIdempotentResponse, extractIdempotencyKey } from '../idempotency';
+import { describe, it, expect } from 'vitest';
+import { withIdempotency, extractIdempotencyKey } from '../idempotency';
+import type { NextRequest } from 'next/server';
+
+type FakeRequest = { headers: { get: (name: string) => string | null } };
+const asRequest = (fake: FakeRequest) => fake as unknown as NextRequest;
 
 describe('idempotency', () => {
-  beforeEach(() => {
-    // Clear the internal store by importing fresh - we can't directly clear the Map
-    // but we can test with different keys to avoid collisions
-  });
-
   it('extractIdempotencyKey returns null when header missing', () => {
-    const req = { headers: { get: () => null } } as any;
+    const req = asRequest({ headers: { get: () => null } });
     expect(extractIdempotencyKey(req)).toBeNull();
   });
 
   it('extractIdempotencyKey returns trimmed key when present', () => {
-    const req = { headers: { get: (name: string) => name === 'idempotency-key' ? '  key-123  ' : null } } as any;
+    const req = asRequest({ headers: { get: (name: string) => name === 'idempotency-key' ? '  key-123  ' : null } });
     expect(extractIdempotencyKey(req)).toBe('key-123');
   });
 
   it('extractIdempotencyKey returns null for empty key', () => {
-    const req = { headers: { get: (name: string) => name === 'idempotency-key' ? '   ' : null } } as any;
+    const req = asRequest({ headers: { get: (name: string) => name === 'idempotency-key' ? '   ' : null } });
     expect(extractIdempotencyKey(req)).toBeNull();
   });
 

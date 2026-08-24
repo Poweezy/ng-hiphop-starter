@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { successResponse, errorResponse, getRequestId } from '../api';
+import type { NextRequest } from 'next/server';
+
+type FakeRequest = { headers: { get: (name: string) => string | null } };
+const asRequest = (fake: FakeRequest) => fake as unknown as NextRequest;
 
 describe('api helpers', () => {
   it('successResponse returns JSON with success flag', async () => {
@@ -17,12 +21,12 @@ describe('api helpers', () => {
   });
 
   it('getRequestId returns existing x-request-id', () => {
-    const req = { headers: { get: (name: string) => name === 'x-request-id' ? 'abc-123' : null } } as any;
+    const req = asRequest({ headers: { get: (name: string) => name === 'x-request-id' ? 'abc-123' : null } });
     expect(getRequestId(req)).toBe('abc-123');
   });
 
   it('getRequestId generates UUID when missing', () => {
-    const req = { headers: { get: () => null } } as any;
+    const req = asRequest({ headers: { get: () => null } });
     const id = getRequestId(req);
     expect(id).toBeTruthy();
     expect(id.length).toBeGreaterThan(20);
