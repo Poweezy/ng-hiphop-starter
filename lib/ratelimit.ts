@@ -11,16 +11,16 @@ function validateUpstashEnv(): { url: string; token: string } {
   if (!url) missing.push('UPSTASH_REDIS_REST_URL');
   if (!token) missing.push('UPSTASH_REDIS_REST_TOKEN');
 
-  if (missing.length > 0) {
-    if (process.env.NODE_ENV === 'production') {
-      // Hard failure in production — rate limiting must never be silently bypassed.
-      throw new Error(
-        `Upstash rate-limit env vars missing: ${missing.join(', ')}. ` +
-        'Rate limiting is a security control and must be configured in production.',
-      );
-    }
-    // Dev/local: allow graceful degradation (fail-closed handled below).
-    console.warn(`[ratelimit] Missing env vars: ${missing.join(', ')} — rate limiting disabled in non-production.`);
+  if (missing.length > 0 && process.env.NODE_ENV === 'production') {
+    // Warn loudly but do NOT throw at module load: throwing here crashes
+    // production builds (route modules are evaluated during `next build`),
+    // including CI/preview environments that intentionally have no Redis.
+    // Security is preserved because checkRateLimit() -> failClosed() denies
+    // every rate-limited request in production until this is configured.
+    console.error(
+      `[ratelimit] Missing env vars: ${missing.join(', ')}. ` +
+      'ALL rate-limited endpoints will reject requests (fail-closed) in production.',
+    );
   }
 
   return { url: url ?? '', token: token ?? '' };
