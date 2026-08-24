@@ -73,24 +73,34 @@ export default async function AdminPage() {
         return value;
     };
 
-    const serializeDecimal = (value: number | null | undefined | any) => value != null ? Number(value) : null;
+    const serializeDecimal = (value: number | { toNumber(): number } | null | undefined) =>
+        value != null ? (typeof value === 'number' ? value : value.toNumber()) : null;
 
-    const usersWithData = await Promise.all(
-        users.map(async (u) => {
-            const [quoteCount, graffitiCount] = await Promise.all([
-                prisma.quoteSubmission.count({ where: { submitted_by: u.email } }),
-                prisma.graffitiSubmission.count({ where: { artist_name: u.email } }),
-            ]);
-            return {
-                id: u.id,
-                email: u.email,
-                role: u.role,
-                createdAt: serializeDate(u.createdAt) ?? new Date().toISOString(),
-                updatedAt: serializeDate(u.updatedAt) ?? new Date().toISOString(),
-                submissionCount: quoteCount + graffitiCount,
-            };
-        })
-    );
+    // Two grouped queries instead of 2×N per-user COUNT queries (N+1 fix):
+    // admin page load cost no longer grows linearly with user count.
+    const [quoteCountGroups, graffitiCountGroups] = await Promise.all([
+        prisma.quoteSubmission.groupBy({
+            by: ['submitted_by'],
+            _count: { _all: true },
+        }),
+        prisma.graffitiSubmission.groupBy({
+            by: ['artist_name'],
+            _count: { _all: true },
+        }),
+    ]);
+    const quoteCountByEmail = new Map(quoteCountGroups.map((g) => [g.submitted_by, g._count._all]));
+    const graffitiCountByName = new Map(graffitiCountGroups.map((g) => [g.artist_name, g._count._all]));
+
+    const usersWithData = users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        role: u.role,
+        createdAt: serializeDate(u.createdAt) ?? new Date().toISOString(),
+        updatedAt: serializeDate(u.updatedAt) ?? new Date().toISOString(),
+        submissionCount:
+            (quoteCountByEmail.get(u.email) ?? 0) +
+            (graffitiCountByName.get(u.email) ?? 0),
+    }));
 
     return (
         <AdminDashboard
