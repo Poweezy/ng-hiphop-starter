@@ -19,26 +19,6 @@ export default function NotFound() {
                     <Link href="/library" className="btn-badge glass-button link-btn">🎵 Music Library</Link>
                 </div>
             </div>
-            <style jsx>{`
-                .notfound-title {
-                    font-family: var(--font-display);
-                    font-size: clamp(2rem, 6vw, 3.5rem);
-                    color: white;
-                    margin: 16px 0;
-                }
-                .notfound-copy {
-                    color: rgba(255, 255, 255, 0.65);
-                    max-width: 460px;
-                    margin: 0 auto 32px;
-                    line-height: 1.6;
-                }
-                .notfound-actions {
-                    display: flex;
-                    gap: 12px;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                }
-            `}</style>
         </section>
     );
 }
