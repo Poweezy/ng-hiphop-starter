@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmptyState from './EmptyState';
 import { useAudio } from '@/lib/audioContext';
@@ -22,18 +22,7 @@ interface MusicLibraryProps {
 
 export default function MusicLibrary({ songs }: MusicLibraryProps) {
     const { currentSong, isPlaying, play, pause, syncPlaying } = useAudio();
-    const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
     const [searchQuery, setSearchQuery] = useState('');
-
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (isPlaying && currentSong) {
-            interval = setInterval(() => {
-                setBars(prev => prev.map(() => Math.random() * 0.8 + 0.2));
-            }, 100);
-        }
-        return () => clearInterval(interval);
-    }, [isPlaying, currentSong?.id]);
 
     const playSong = (song: Song, el?: HTMLAudioElement) => {
         if (!el && currentSong?.id === song.id && isPlaying) {
@@ -156,18 +145,19 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
                                         {/* Play State Indicator */}
                                         <AnimatePresence>
                                             {isCurrentPlaying && (
-                                                <motion.div 
-                                                    initial={{ opacity: 0 }} 
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
                                                     animate={{ opacity: 1 }}
                                                     exit={{ opacity: 0 }}
                                                     className="now-playing-indicator"
+                                                    aria-hidden="true"
                                                 >
                                                     <div className="bars">
-                                                        {bars.map((h, i) => (
-                                                            <motion.div
+                                                        {[0, 1, 2, 3].map((i) => (
+                                                            <div
                                                                 key={i}
-                                                                animate={{ height: `${h * 16}px` }}
                                                                 className="bar"
+                                                                style={{ animationDelay: `${i * 0.15}s` }}
                                                             />
                                                         ))}
                                                     </div>
@@ -433,7 +423,10 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
 
                 .bar {
                     width: 4px;
+                    height: 100%;
                     background: var(--color-green-light);
+                    transform-origin: bottom;
+                    animation: eqBounce 0.9s ease-in-out infinite;
                     border-radius: 2px;
                 }
 

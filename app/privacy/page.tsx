@@ -3,7 +3,10 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Privacy policy for NG Hip Hop platform.',
+  description: 'Privacy policy for the Nerd Gauge platform.',
+  alternates: {
+    canonical: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {
@@ -29,7 +32,7 @@ export default function PrivacyPage() {
         <section id="introduction">
           <h2>1. Introduction</h2>
           <p>
-            This Privacy Policy describes how NG Hip Hop (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects,
+            This Privacy Policy describes how Nerd Gauge (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects,
             uses, and protects your personal information when you use our platform. By using our services, you agree
             to the collection and use of information in accordance with this policy.
           </p>

@@ -124,7 +124,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                     >
                         <div className="section-badge">Community Voice</div>
                         <h2 className="section-title">The Culture <br /><span>Speaks</span></h2>
-                        <p className="section-subtitle">Real talk from the NG Hip Hop community.</p>
+                        <p className="section-subtitle">Real talk from the Nerd Gauge community.</p>
 
                         <motion.div 
                             className="vinyl-quote-card"
@@ -248,7 +248,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                 .quotes-bg-blur {
                     position: absolute;
                     inset: -60px;
-                    background-image: url('/images/community%20voice%20section.png');
+                    background-image: url('/images/community voice section.webp');
                     background-size: cover;
                     background-position: center;
                     filter: blur(4px) saturate(1.2) brightness(0.9);

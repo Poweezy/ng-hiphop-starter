@@ -1,23 +1,26 @@
-# NG Hip Hop Platform
+# Nerd Gauge (NG Hip Hop Platform)
 
-> Built From Bars. Raised By Beats. The official platform for NG Hip Hop — authentic music, community quotes, graffiti art, and lyric challenges from Eswatini.
+> Built From Bars. Raised By Beats. The official platform for Nerd Gauge — authentic music, community quotes, graffiti art, and lyric competitions from Eswatini.
 
 ## Key Pages
 
-- [Home](https://ng-hiphop.com): Hero, latest release, featured quote, graffiti showcase, lyric game, competition banner
-- [Music Library](https://ng-hiphop.com/library): Full discography of active releases
+- [Home](https://ng-hiphop.com): Hero, latest release with audio player, featured quote, graffiti showcase, competition banner
+- [Music Library](https://ng-hiphop.com/library): Full discography of active releases with inline streaming
+- [Best Lyrics Competition](https://ng-hiphop.com/game/best-lyrics): Active lyric competition, prizes, winners, and submission portal
+- [Submission Status](https://ng-hiphop.com/submissions/status): Check the review status of a competition submission
 - [Terms of Service](https://ng-hiphop.com/terms): Platform terms and conditions
 - [Privacy Policy](https://ng-hiphop.com/privacy): Data handling and consent policy
 
 ## Content by Topic
 
 ### Music
-- [Music Library](/library): Stream all active releases, from classics to latest drops — 100 songs max per page
+- [Music Library](/library): Stream all active releases, from classics to latest drops
+- Latest release is featured on the homepage with direct streaming and distribution links (Spotify, Apple Music)
 
 ### Community
-- Featured quotes appear on the homepage via `/api/quotes` (server-side fetched)
-- Graffiti showcase on the homepage via `/api/graffiti`
-- Lyric game challenge on the homepage via `/api/lyrics`
+- Featured community quotes on the homepage (moderated before display)
+- Graffiti/fan-art showcase on the homepage (moderated before display)
+- Lyric competition with public submission, moderation queue, and winner announcements at [Best Lyrics](/game/best-lyrics)
 
 ### Legal
 - [Terms of Service](/terms): Acceptance, IP, user content, disclaimer

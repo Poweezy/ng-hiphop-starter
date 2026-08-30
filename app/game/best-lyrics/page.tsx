@@ -5,19 +5,22 @@ import BestLyricsPortalClient from '@/components/BestLyricsPortalClient';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Best Lyrics — NG Hip Hop',
+  title: 'Best Lyrics Competition',
   description: 'Drop your hardest bars. Let the community decide. Join the Best Lyrics competition, submit your lyrics, and compete for the prize pool.',
+  alternates: {
+    canonical: '/game/best-lyrics',
+  },
   openGraph: {
-    title: 'Best Lyrics — NG Hip Hop',
+    title: 'Best Lyrics — Nerd Gauge',
     description: 'Drop your hardest bars. Let the community decide.',
     url: 'https://ng-hiphop.com/game/best-lyrics',
-    siteName: 'NG Hip Hop',
+    siteName: 'Nerd Gauge',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Best Lyrics Competition — NG Hip Hop',
+        alt: 'Best Lyrics Competition — Nerd Gauge',
       },
     ],
     locale: 'en_US',
@@ -25,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Best Lyrics — NG Hip Hop',
+    title: 'Best Lyrics — Nerd Gauge',
     description: 'Drop your hardest bars. Let the community decide.',
     images: ['/twitter-image.jpg'],
   },

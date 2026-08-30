@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmptyState from './EmptyState';
 import { useAudio } from '@/lib/audioContext';
@@ -22,18 +21,7 @@ interface LatestReleaseProps {
 
 export default function LatestRelease({ song }: LatestReleaseProps) {
     const { currentSong, isPlaying, play, syncPlaying } = useAudio();
-    const [bars, setBars] = useState([0.3, 0.5, 0.7, 0.4, 0.6]);
     const isCurrentPlaying = song ? currentSong?.id === song.id && isPlaying : false;
-
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (isPlaying && currentSong?.id === song?.id) {
-            interval = setInterval(() => {
-                setBars(prev => prev.map(() => Math.random() * 0.8 + 0.2));
-            }, 100);
-        }
-        return () => clearInterval(interval);
-    }, [isPlaying, currentSong?.id, song?.id]);
 
     if (!song) {
         return (
@@ -91,7 +79,7 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                             {/* Overlay shimmer */}
                             <div className="cover-shimmer" aria-hidden="true" />
                             
-                            {/* Visualizer bars overlay */}
+                            {/* Visualizer bars overlay (pure CSS animation — no re-renders) */}
                             <AnimatePresence>
                                 {isPlaying && (
                                     <motion.div
@@ -99,12 +87,13 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         className="visualizer-overlay"
+                                        aria-hidden="true"
                                     >
-                                        {bars.map((h, i) => (
-                                            <motion.div
+                                        {[0, 1, 2, 3, 4].map((i) => (
+                                            <div
                                                 key={i}
-                                                animate={{ height: `${h * 100}%` }}
                                                 className="visualizer-bar"
+                                                style={{ animationDelay: `${i * 0.12}s` }}
                                             />
                                         ))}
                                     </motion.div>
@@ -185,7 +174,7 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 .release-bg-section {
                     position: absolute;
                     inset: -60px;
-                    background-image: url('/images/latestdrop%20section.png');
+                    background-image: url('/images/latestdrop section.webp');
                     background-size: cover;
                     background-position: center;
                     filter: blur(4px) saturate(1.2) brightness(0.9);
@@ -276,7 +265,10 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
                 .visualizer-bar {
                     width: 5px;
+                    height: 100%;
                     background: linear-gradient(to top, var(--color-purple), var(--color-green-light));
+                    transform-origin: bottom;
+                    animation: eqBounce 0.9s ease-in-out infinite;
                     border-radius: 3px;
                 }
 

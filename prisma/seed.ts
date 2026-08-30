@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Seeding NG Hip Hop Platform...');
+    console.log('🌱 Seeding Nerd Gauge Platform...');
 
     // Create default slogan
     await prisma.slogan.upsert({

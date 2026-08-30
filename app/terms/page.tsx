@@ -3,7 +3,10 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'Terms of service for NG Hip Hop platform.',
+  description: 'Terms of service for the Nerd Gauge platform.',
+  alternates: {
+    canonical: '/terms',
+  },
 };
 
 export default function TermsPage() {
@@ -29,7 +32,7 @@ export default function TermsPage() {
         <section id="acceptance">
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing or using the NG Hip Hop platform, you agree to be bound by these Terms of Service. If you
+            By accessing or using the Nerd Gauge platform, you agree to be bound by these Terms of Service. If you
             do not agree with any part of these terms, you may not use our services.
           </p>
         </section>

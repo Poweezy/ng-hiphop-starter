@@ -45,7 +45,7 @@ export default function SplashScreen() {
   return (
     <>
       <span className="sr-only" role="status" aria-live="polite">
-        Loading NG Hip Hop
+        Loading Nerd Gauge
       </span>
       <AnimatePresence>
         {isVisible && (

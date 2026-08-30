@@ -860,6 +860,44 @@ select:focus-visible {
 }
 
 /* ===================================
+   EQUALIZER BARS (shared keyframes)
+   Referenced by scoped styled-jsx in LatestRelease/MusicLibrary.
+   Defined globally so the name is not re-scoped per component.
+   =================================== */
+@keyframes eqBounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1); }
+}
+
+/* ===================================
+   FOOTER
+   =================================== */
+.footer-nav,
+.footer-social {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-nav a,
+.footer-social a {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-nav a:hover,
+.footer-social a:hover {
+  color: var(--color-purple);
+}
+
+.footer-disclaimer {
+  margin: 0;
+}
+
+/* ===================================
    REDUCED MOTION
    =================================== */
 @media (prefers-reduced-motion: reduce) {
@@ -932,7 +970,7 @@ select:focus-visible {
   inset: 0;
   pointer-events: none;
   opacity: 0.15;
-  background-image: url('/images/texture.png');
+  background-image: url('/images/texture.webp');
   background-repeat: repeat;
   background-size: 300px 300px;
   mix-blend-mode: overlay;

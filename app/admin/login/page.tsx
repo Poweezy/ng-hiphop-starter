@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
     title: 'Admin Login',
-    description: 'Admin portal login for NG Hip Hop platform.',
+    description: 'Admin portal login for the Nerd Gauge platform.',
     robots: { index: false, follow: false },
 };
 
