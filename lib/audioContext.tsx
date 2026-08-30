@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useRef, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
 
 interface Song {
   id: string;
@@ -36,6 +36,42 @@ function pauseOtherAudio(except: HTMLAudioElement | null) {
   });
 }
 
+const MEDIA_SESSION_SUPPORTED =
+  typeof navigator !== 'undefined' && 'mediaSession' in navigator;
+
+function artworkType(url: string): string {
+  if (/\.png(\?|$)/i.test(url)) return 'image/png';
+  if (/\.webp(\?|$)/i.test(url)) return 'image/webp';
+  if (/\.gif(\?|$)/i.test(url)) return 'image/gif';
+  return 'image/jpeg';
+}
+
+/** Expose the current track to the OS so mobile lock screens / notification
+ *  trays show artwork and working play/pause controls. */
+function updateMediaSession(song: Song) {
+  if (!MEDIA_SESSION_SUPPORTED) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title,
+      artist: 'Nerd Gauge',
+      album: 'Nerd Gauge',
+      artwork: [{ src: song.cover_url, sizes: '512x512', type: artworkType(song.cover_url) }],
+    });
+    navigator.mediaSession.playbackState = 'playing';
+  } catch {
+    // MediaSession is best-effort; never break playback over it.
+  }
+}
+
+function setMediaSessionState(state: 'playing' | 'paused' | 'none') {
+  if (!MEDIA_SESSION_SUPPORTED) return;
+  try {
+    navigator.mediaSession.playbackState = state;
+  } catch {
+    // ignore
+  }
+}
+
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -57,15 +93,18 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const syncPlaying = useCallback((playing: boolean) => {
     setIsPlaying(playing);
+    setMediaSessionState(playing ? 'playing' : 'paused');
   }, []);
 
   const pause = useCallback(() => {
     activeElRef.current?.pause();
     remoteRef.current?.pause();
     setIsPlaying(false);
+    setMediaSessionState('paused');
   }, []);
 
   const play = useCallback((song: Song, el?: HTMLAudioElement) => {
+    updateMediaSession(song);
     if (el) {
       // The inline element is already playing natively — take ownership of it,
       // mute everything else, and mirror state for the MiniPlayer.
@@ -106,7 +145,30 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     currentIdRef.current = null;
     setCurrentSong(null);
     setIsPlaying(false);
+    setMediaSessionState('none');
   }, []);
+
+  // Wire OS media keys / lock-screen controls once.
+  useEffect(() => {
+    if (!MEDIA_SESSION_SUPPORTED) return;
+    const ms = navigator.mediaSession;
+    try {
+      ms.setActionHandler('play', () => toggle());
+      ms.setActionHandler('pause', () => pause());
+      ms.setActionHandler('stop', () => close());
+    } catch {
+      // Action handlers are optional per spec.
+    }
+    return () => {
+      try {
+        ms.setActionHandler('play', null);
+        ms.setActionHandler('pause', null);
+        ms.setActionHandler('stop', null);
+      } catch {
+        // ignore
+      }
+    };
+  }, [toggle, pause, close]);
 
   return (
     <AudioContext.Provider value={{ currentSong, isPlaying, play, pause, toggle, close, syncPlaying }}>
@@ -120,3 +182,4 @@ export function useAudio() {
   if (!ctx) throw new Error('useAudio must be used within AudioProvider');
   return ctx;
 }
+

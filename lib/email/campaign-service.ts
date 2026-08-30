@@ -24,7 +24,7 @@ function buildMarketingFooter(subscriberId: string): string {
   return `
     <hr style="margin: 32px 0 16px; border: none; border-top: 1px solid #e5e7eb;" />
     <p style="font-size: 12px; color: #6b7280; text-align: center; line-height: 1.6;">
-      You are receiving this email because you subscribed to NG Hip Hop updates.
+      You are receiving this email because you subscribed to Nerd Gauge updates.
       <br />
       <a href="${unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">
         Unsubscribe
@@ -182,7 +182,7 @@ export async function sendWelcomeEmail(subscriberId: string): Promise<{ success:
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1f2937;">
       <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">
-        Welcome to NG Hip Hop, ${firstName}!
+        Welcome to Nerd Gauge, ${firstName}!
       </h1>
       <p style="font-size: 16px; line-height: 1.6; color: #374151;">
         Thanks for subscribing to updates for <strong>${subscriber.competition.title}</strong>.
@@ -199,7 +199,7 @@ export async function sendWelcomeEmail(subscriberId: string): Promise<{ success:
 
   const result = await provider.send({
     to: subscriber.email,
-    subject: `Welcome to NG Hip Hop - ${subscriber.competition.title}`,
+    subject: `Welcome to Nerd Gauge - ${subscriber.competition.title}`,
     html,
     from: DEFAULT_FROM,
     replyTo: DEFAULT_REPLY_TO,

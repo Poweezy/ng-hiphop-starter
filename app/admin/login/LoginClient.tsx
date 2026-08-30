@@ -295,7 +295,7 @@ export default function LoginClient() {
         </div>
 
         <p className="admin-login-footer">
-          Authorized access only · NG Platform {new Date().getFullYear()}
+          Authorized access only · Nerd Gauge {new Date().getFullYear()}
         </p>
       </div>
     </div>

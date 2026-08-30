@@ -64,7 +64,7 @@ export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, 
             <div className="overview-header">
                 <div>
                     <h2 className="panel-title">PLATFORM OVERVIEW</h2>
-                    <p className="panel-desc">Quick insights and pending actions for NG Hip Hop.</p>
+                    <p className="panel-desc">Quick insights and pending actions for Nerd Gauge.</p>
                 </div>
             </div>
 

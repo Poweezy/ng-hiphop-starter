@@ -158,7 +158,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     <div>
                         <div className="section-badge">Gallery</div>
                         <h2 className="section-title">Graffiti Wall</h2>
-                        <p className="section-subtitle">Urban art from the NG community.</p>
+                        <p className="section-subtitle">Urban art from the Nerd Gauge community.</p>
                     </div>
                     <button onClick={() => setShowSubmit(true)} className="btn btn-primary submit-btn">
                         <span>✍️</span> Tag the Wall
@@ -263,7 +263,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                 .graffiti-bg-blur {
                     position: absolute;
                     inset: -60px;
-                    background-image: url('/images/gallery%20section.png');
+                    background-image: url('/images/gallery section.webp');
                     background-size: cover;
                     background-position: center;
                     filter: blur(4px) saturate(1.2) brightness(0.9);

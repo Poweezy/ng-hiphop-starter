@@ -1,19 +1,19 @@
-# NG Hip-Hop Platform
+# Nerd Gauge Platform (NG Hip-Hop)
 
 A modern, full-stack hip-hop music platform built with Next.js 15, featuring music streaming, community engagement, and admin content management.
 
 ## 🎵 Features
 
-- **Music Streaming**: Latest releases with distribution links (Spotify, Apple Music)
+- **Music Streaming**: Latest releases with an inline player and distribution links (Spotify, Apple Music)
 - **Community Quotes**: User-submitted hip-hop quotes with admin approval
 - **Graffiti Showcase**: Fan art submissions with carousel display
-- **Lyric Game**: Interactive "guess the artist" game
+- **Best Lyrics Competition**: Public lyric submissions, moderation queue, and winner announcements
 - **Admin Dashboard**: Complete content management system
 - **Responsive Design**: Mobile-first, accessible UI
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router, Turbopack)
 - **Database**: Prisma ORM with PostgreSQL via Vercel Postgres
 - **Authentication**: NextAuth.js
 - **Styling**: CSS Custom Properties
@@ -79,10 +79,11 @@ A modern, full-stack hip-hop music platform built with Next.js 15, featuring mus
 ├── components/
 │   ├── admin/            # Admin dashboard components
 │   ├── Hero.tsx          # Hero section
-│   ├── LatestRelease.tsx # Music player
+│   ├── LatestRelease.tsx # Latest release + audio player
+│   ├── MusicLibrary.tsx  # Library page with search + players
+│   ├── MiniPlayer.tsx    # Persistent player (MediaSession-backed)
 │   ├── CommunityQuote.tsx
-│   ├── GraffitiShowcase.tsx
-│   └── LyricGame.tsx
+│   └── GraffitiShowcase.tsx
 ├── prisma/
 │   ├── schema.prisma     # Database schema
 │   └── seed.ts           # Seed data
@@ -219,7 +220,7 @@ This is a private project. Contact the owner for contribution guidelines.
 
 ## 📧 Support
 
-For issues or questions, contact: [your-email@domain.com]
+For issues or questions, open an issue in this repository or use the contact link in the site footer (set `NEXT_PUBLIC_CONTACT_EMAIL` to enable it).
 
 ---
 

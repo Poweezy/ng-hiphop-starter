@@ -10,19 +10,22 @@ import CompetitionBanner from '@/components/CompetitionBanner';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-    title: 'NG Hip Hop — Built From Bars. Raised By Beats.',
-    description: 'The official platform for NG Hip Hop. Stream the latest releases, explore community quotes, graffiti art, and join the lyric game movement from Eswatini.',
+    title: 'Nerd Gauge — Built From Bars. Raised By Beats.',
+    description: 'The official platform for Nerd Gauge. Stream the latest releases, explore community quotes, graffiti art, and join the lyric competition movement from Eswatini.',
+    alternates: {
+        canonical: '/',
+    },
     openGraph: {
-        title: 'NG Hip Hop — Built From Bars. Raised By Beats.',
-        description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric game movement.',
+        title: 'Nerd Gauge — Built From Bars. Raised By Beats.',
+        description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric competition movement.',
         url: 'https://ng-hiphop.com',
-        siteName: 'NG Hip Hop',
+        siteName: 'Nerd Gauge',
         images: [
             {
                 url: '/og-image.jpg',
                 width: 1200,
                 height: 630,
-                alt: 'NG Hip Hop Platform — Built From Bars. Raised By Beats.',
+                alt: 'Nerd Gauge Platform — Built From Bars. Raised By Beats.',
             },
         ],
         locale: 'en_US',
@@ -30,8 +33,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'NG Hip Hop — Built From Bars. Raised By Beats.',
-        description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric game movement.',
+        title: 'Nerd Gauge — Built From Bars. Raised By Beats.',
+        description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric competition movement.',
         creator: '@nghiphop',
         images: ['/twitter-image.jpg'],
     },
