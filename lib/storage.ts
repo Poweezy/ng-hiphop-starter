@@ -359,8 +359,22 @@ function makeStorage(): StorageProvider {
   return new LocalStorageProvider();
 }
 
-// Factory + global instance
+// Factory + lazily-created global instance.
+//
+// The provider is created on FIRST USE, not at module evaluation: `next build`
+// evaluates route modules with NODE_ENV=production and without storage
+// credentials (e.g. CI), and an eager throw there breaks page-data collection
+// even though storage is never touched during a build. Production
+// misconfiguration still fails loudly — the first storage call throws.
 let storageInstance: StorageProvider | undefined;
 
-export const storage: StorageProvider = storageInstance ?? (storageInstance = makeStorage());
+export const storage: StorageProvider = new Proxy({} as StorageProvider, {
+  get(_target, prop) {
+    storageInstance ??= makeStorage();
+    const value = Reflect.get(storageInstance, prop, storageInstance);
+    return typeof value === 'function'
+      ? (value as (...args: unknown[]) => unknown).bind(storageInstance)
+      : value;
+  },
+});
 
