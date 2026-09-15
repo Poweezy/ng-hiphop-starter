@@ -37,12 +37,20 @@ export async function POST(req: NextRequest) {
 
         if (!ALLOWED_TYPES.includes(file.type)) {
             recordRequest('POST', '/api/uploads/optimize', 400, performance.now() - start, requestId);
-            return errorResponse('Only JPG, PNG, WEBP allowed', 400, 'INVALID_IMAGE_FORMAT');
+            return errorResponse(
+                `Only JPG, PNG, WEBP allowed (received "${file.type || 'unknown type'}" for "${file.name}")`,
+                400,
+                'INVALID_IMAGE_FORMAT',
+            );
         }
 
         if (file.size > MAX_IMAGE_BYTES) {
             recordRequest('POST', '/api/uploads/optimize', 400, performance.now() - start, requestId);
-            return errorResponse('Image must be under 5MB', 400, 'IMAGE_TOO_LARGE');
+            return errorResponse(
+                `Image must be under 5MB (received ${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+                400,
+                'IMAGE_TOO_LARGE',
+            );
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
