@@ -30,7 +30,7 @@ prisma/dev.db
 *.swp
 *.swo
 
-# AI coding tool configs
+# Local editor configs
 .claude/
 .kilo/kilo.json
 
@@ -38,14 +38,14 @@ prisma/dev.db
 .DS_Store
 Thumbs.db
 
-# AI coding tool configs (worktrees duplicate the whole app)
+# Local tooling workspace
 .kilo/
 
 # Deployment artifacts & stale scratch files
 *.zip
 tmp_*.txt
 
-# Internal project notes & dev tooling — never publish
+# Internal notes & local tooling — never publish
 _private/
 .agents/
 agency-agents/
