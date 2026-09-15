@@ -44,3 +44,15 @@ Thumbs.db
 # Deployment artifacts & stale scratch files
 *.zip
 tmp_*.txt
+
+# Internal project notes & dev tooling — never publish
+_private/
+.agents/
+agency-agents/
+skills-lock.json
+AUDIT_REPORT.md
+NERD-GAUGE-AUDIT-*.md
+review.md
+reality-checker-report.md
+backend-architecture-report.md
+docs/
