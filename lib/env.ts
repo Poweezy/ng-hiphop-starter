@@ -37,7 +37,7 @@ let cachedEnv: Env | null = null;
 export function validateEnv(): Env {
   if (cachedEnv) return cachedEnv;
 
-  const raw = {
+  const raw: Record<string, string | undefined> = {
     NODE_ENV: process.env.NODE_ENV,
     DATABASE_URL: process.env.DATABASE_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
@@ -66,6 +66,15 @@ export function validateEnv(): Env {
     SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE,
     TRUSTED_PROXIES: process.env.TRUSTED_PROXIES,
   };
+
+  // An env var that exists but is set to "" must be treated as unset:
+  // zod's `.url()` rejects "" and would otherwise crash every build in
+  // environments where optional integration vars are defined-but-empty.
+  for (const key of Object.keys(raw) as (keyof typeof raw)[]) {
+    if (raw[key] === '') {
+      raw[key] = undefined;
+    }
+  }
 
   const result = envSchema.safeParse(raw);
 
