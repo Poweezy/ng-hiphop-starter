@@ -119,7 +119,11 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${bebasNeue.variable} ${inter.variable} ${barlowCondensed.variable} ${dancingScript.variable}`}>
+        <html
+            lang="en"
+            data-scroll-behavior="smooth"
+            className={`${bebasNeue.variable} ${inter.variable} ${barlowCondensed.variable} ${dancingScript.variable}`}
+        >
             <head>
                 <link rel="icon" href="/favicon.ico" sizes="any" />
                 <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
