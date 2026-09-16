@@ -47,6 +47,7 @@ tmp_*.txt
 
 # Internal notes & local tooling — never publish
 _private/
+.vercel/
 .agents/
 agency-agents/
 skills-lock.json
@@ -57,3 +58,5 @@ reality-checker-report.md
 backend-architecture-report.md
 TODO.md
 docs/
+.vercel
+.env*
