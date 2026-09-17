@@ -2949,9 +2949,15 @@ body.has-mini-player {
   color: var(--color-green-light);
 }
 
-.bottom-nav-emoji {
-  font-size: 1.25rem;
+.bottom-nav-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+.bottom-nav-icon-wrap svg {
+  display: block;
 }
 
 .bottom-nav-icon {

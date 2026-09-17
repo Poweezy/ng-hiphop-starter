@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { SongSummary, QuoteSummary, GraffitiSummary } from '@/lib/adminTypes';
+import { ChatIcon, MusicNoteIcon, PaletteIcon, UsersIcon } from '../icons';
 
 interface OverviewPanelProps {
     songs: SongSummary[];
@@ -22,7 +23,7 @@ export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, 
             value: songs.length,
             label: 'Total Tracks',
             highlight: activeSong ? `Active: ${activeSong.title}` : 'No active track',
-            icon: '🎵',
+            icon: MusicNoteIcon,
             action: () => onNavigate('songs'),
             actionText: 'Manage Songs',
             color: 'var(--color-purple)'
@@ -32,7 +33,7 @@ export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, 
             value: userCount,
             label: 'Total Users',
             highlight: 'Active community',
-            icon: '👥',
+            icon: UsersIcon,
             action: () => onNavigate('users'),
             actionText: 'Manage Users',
             color: 'var(--color-blue)'
@@ -42,7 +43,7 @@ export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, 
             value: pendingQuotes,
             label: 'Pending Approval',
             highlight: `${quotes.filter(q => q.approved).length} Approved`,
-            icon: '💬',
+            icon: ChatIcon,
             action: () => onNavigate('quotes'),
             actionText: pendingQuotes > 0 ? 'Review Quotes' : 'Manage Quotes',
             color: pendingQuotes > 0 ? '#F59E0B' : 'var(--color-green-light)'
@@ -52,7 +53,7 @@ export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, 
             value: pendingGraffiti,
             label: 'Pending Approval',
             highlight: `${graffiti.filter(g => g.approved).length} Live`,
-            icon: '🎨',
+            icon: PaletteIcon,
             action: () => onNavigate('graffiti'),
             actionText: pendingGraffiti > 0 ? 'Review Artwork' : 'View Wall',
             color: pendingGraffiti > 0 ? '#F59E0B' : 'var(--color-green-light)'
@@ -78,7 +79,7 @@ export default function OverviewPanel({ songs, quotes, graffiti, userCount = 0, 
                         className="stat-card"
                     >
                         <div className="card-header">
-                            <span className="card-icon" style={{ color: card.color }}>{card.icon}</span>
+                            <span className="card-icon" style={{ color: card.color }}><card.icon size={26} /></span>
                             <h3 className="card-title">{card.title}</h3>
                         </div>
                         <div className="card-body">

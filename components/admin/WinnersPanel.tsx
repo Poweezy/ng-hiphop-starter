@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
-import Pagination from '@/components/Pagination';
 import { useToast } from '@/components/ToastProvider';
+import { MedalIcon, TrophyIcon } from '../icons';
 
 interface WinnerSummary {
   id: string;
@@ -33,7 +33,7 @@ interface Props {
 
 export default function WinnersPanel({ initialWinners }: Props) {
   const [winners, setWinners] = useState<WinnerSummary[]>(initialWinners);
-  const [filter, setFilter] = useState('');
+  const [filter] = useState('');
   const toast = useToast();
 
   const [selectOpen, setSelectOpen] = useState(false);
@@ -172,11 +172,10 @@ export default function WinnersPanel({ initialWinners }: Props) {
     setDeleteId(null);
   };
 
-  const getPositionEmoji = (pos: number) => {
-    if (pos === 1) return '🥇';
-    if (pos === 2) return '🥈';
-    if (pos === 3) return '🥉';
-    return `#${pos}`;
+  const getPositionIcon = (pos: number) => {
+    const color = pos === 1 ? '#FBBF24' : pos === 2 ? '#CBD5E1' : '#D97706';
+    if (pos <= 3) return <MedalIcon size={30} style={{ color }} />;
+    return <span style={{ fontFamily: 'var(--font-condensed)', fontWeight: 700 }}>#{pos}</span>;
   };
 
   const getStatusBadge = (status: string) => {
@@ -192,14 +191,14 @@ export default function WinnersPanel({ initialWinners }: Props) {
           <h2 className="panel-title">WINNERS</h2>
           <p className="panel-desc">Historical winners and prize records across all competitions.</p>
         </div>
-        <button onClick={openSelect} className="btn btn-primary$1">
+        <button onClick={openSelect} className="btn btn-primary">
           + Select Winner
         </button>
       </div>
 
       {Object.keys(grouped).length === 0 ? (
         <EmptyState
-          icon="🏆"
+          icon={<TrophyIcon size={56} />}
           title="No winners yet"
           description="Select winners from approved submissions to see them here."
           action={{
@@ -220,7 +219,7 @@ export default function WinnersPanel({ initialWinners }: Props) {
                     <div className="admin-card-header">
                       <div className="admin-card-body">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                          <span style={{ fontSize: '1.5rem' }}>{getPositionEmoji(winner.position)}</span>
+                          <span style={{ fontSize: '1.5rem', display: 'inline-flex', alignItems: 'center' }}>{getPositionIcon(winner.position)}</span>
                           <div>
                             <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>
                               {winner.submission?.artistAlias || 'Unknown Artist'}
@@ -317,10 +316,10 @@ export default function WinnersPanel({ initialWinners }: Props) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button type="submit" className="btn btn-primary$1" disabled={submitting || !selectedCompetitionId || !selectedSubmissionId}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || !selectedCompetitionId || !selectedSubmissionId}>
               {submitting ? 'Selecting...' : 'Select Winner'}
             </button>
-            <button type="button" onClick={() => setSelectOpen(false)} className="btn btn-secondary$1">Cancel</button>
+            <button type="button" onClick={() => setSelectOpen(false)} className="btn btn-secondary">Cancel</button>
           </div>
         </form>
       </Modal>

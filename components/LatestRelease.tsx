@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmptyState from './EmptyState';
 import { useAudio } from '@/lib/audioContext';
+import { FileTextIcon, GlobeIcon, MusicNoteIcon, PauseIcon, PlayIcon } from './icons';
 
 interface Song {
     id: string;
@@ -29,9 +30,9 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                 <div className="container">
                     <div className="section-badge">Latest Drop</div>
                     <EmptyState
-                        icon="🎵"
-                        title="No Music Yet"
-                        description="New music coming soon. Check back later for the latest releases."
+                        icon={<MusicNoteIcon size={56} />}
+                        title="Nothing here yet"
+                        description="The first track hasn't gone live. Check back soon."
                     />
                 </div>
             </section>
@@ -119,7 +120,16 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
 
                         {/* Audio Player */}
                         <div className="player-container">
-                            <p className="player-label">{isCurrentPlaying ? '▶ Now Playing' : '⏸ Stream Preview'}</p>
+                            <p className="player-label">
+                                <span
+                                    className="player-state-icon"
+                                    aria-hidden="true"
+                                    style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 6 }}
+                                >
+                                    {isCurrentPlaying ? <PlayIcon size={12} /> : <PauseIcon size={12} />}
+                                </span>{' '}
+                                {isCurrentPlaying ? 'Now Playing' : 'Stream Preview'}
+                            </p>
                             <div className="audio-wrapper">
                                 <audio
                                     controls
@@ -150,12 +160,12 @@ export default function LatestRelease({ song }: LatestReleaseProps) {
                                 )}
                                 {links.distro && (
                                     <a href={links.distro} target="_blank" rel="noopener noreferrer" className="btn-badge glass-button link-btn">
-                                        🌐 Distribution
+                                        <GlobeIcon size={20} style={{ marginRight: '8px' }} /> Distribution
                                     </a>
                                 )}
                                 {(links.publisher || song.publisher_link) && (
                                     <a href={links.publisher || song.publisher_link || '#'} target="_blank" rel="noopener noreferrer" className="btn-badge glass-button link-btn">
-                                        📜 Publisher
+                                        <FileTextIcon size={20} style={{ marginRight: '8px' }} /> Publisher
                                     </a>
                                 )}
                             </div>

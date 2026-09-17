@@ -6,6 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import EmptyState from '@/components/EmptyState';
 import { useToast } from '@/components/ToastProvider';
+import { MailIcon } from '../icons';
 
 const PAGE_SIZE = 20;
 
@@ -43,7 +44,6 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
   const [competitionFilter, setCompetitionFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
 
   const [viewSubscriber, setViewSubscriber] = useState<SubscriberSummary | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -263,10 +263,10 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
             <button onClick={handleExportCSV} className="btn-badge">
               Export CSV
             </button>
-            <button onClick={() => setShowCampaignModal(true)} className="btn btn-primary$1">
+            <button onClick={() => setShowCampaignModal(true)} className="btn btn-primary">
               Send Email
             </button>
-            <button onClick={() => setSelectedIds(new Set())} className="btn btn-secondary$1">
+            <button onClick={() => setSelectedIds(new Set())} className="btn btn-secondary">
               Clear Selection
             </button>
           </div>
@@ -277,7 +277,7 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
         <h3 className="admin-section-title">All Subscribers ({filtered.length})</h3>
         {filtered.length === 0 ? (
           <EmptyState
-            icon="📧"
+            icon={<MailIcon size={56} />}
             title="No Subscribers"
             description="There are no subscribers matching your current filters."
           />
@@ -416,7 +416,7 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
               </div>
             )}
             <div className="modal-actions">
-              <button type="button" onClick={() => setViewSubscriber(null)} className="btn btn-secondary$1">Close</button>
+              <button type="button" onClick={() => setViewSubscriber(null)} className="btn btn-secondary">Close</button>
             </div>
           </div>
         )}
@@ -441,8 +441,8 @@ export default function EmailSubscribersPanel({ initialSubscribers }: Props) {
             <textarea id="campaign-body" className="admin-input admin-textarea" value={campaignBody} onChange={(e) => setCampaignBody(e.target.value)} required maxLength={10000} placeholder="Write your email content..." rows={6} />
           </div>
           <div className="modal-actions">
-            <button type="button" onClick={() => setShowCampaignModal(false)} className="btn btn-secondary$1">Cancel</button>
-            <button type="submit" className="btn btn-primary$1" disabled={campaignLoading}>
+            <button type="button" onClick={() => setShowCampaignModal(false)} className="btn btn-secondary">Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={campaignLoading}>
               {campaignLoading ? 'Creating...' : 'Create Campaign'}
             </button>
           </div>

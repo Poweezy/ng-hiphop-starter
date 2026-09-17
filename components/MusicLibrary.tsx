@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmptyState from './EmptyState';
 import { useAudio } from '@/lib/audioContext';
+import { HeadphonesIcon, PlayIcon, ShuffleIcon } from './icons';
 
 interface Song {
     id: string;
@@ -45,9 +46,9 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
             <section className="section library-section" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}>
                 <div className="container">
                     <EmptyState
-                        icon="🎧"
-                        title="Library Empty"
-                        description="No music has been uploaded to the platform yet."
+                        icon={<HeadphonesIcon size={56} />}
+                        title="The shelf is bare"
+                        description="No tracks have been added to the library yet."
                     />
                 </div>
             </section>
@@ -88,10 +89,10 @@ export default function MusicLibrary({ songs }: MusicLibraryProps) {
 
                 <div className="library-controls">
                     <button onClick={handlePlayAll} className="library-control-btn" aria-label="Play all songs">
-                        ▶ Play All
+                        <PlayIcon size={14} /> Play All
                     </button>
                     <button onClick={handleShuffle} className="library-control-btn library-control-btn--accent" aria-label="Shuffle and play">
-                        🔀 Shuffle
+                        <ShuffleIcon size={14} /> Shuffle
                     </button>
                     <div className="library-search">
                         <input

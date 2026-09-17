@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import ConfirmDialog from '../ConfirmDialog';
 import Modal from '../Modal';
+import { HourglassIcon, MusicNoteIcon } from '../icons';
 
 interface Song { id: string; title: string; description?: string | null; file_url: string; cover_url: string; is_active: boolean; distribution_links: string | null; publisher_link?: string | null; }
 interface Props { initialSongs: Song[]; }
@@ -163,7 +164,7 @@ export default function SongsPanel({ initialSongs }: Props) {
                         </div>
 
                         <button type="submit" className="btn-admin mt-1" disabled={uploading}>
-                            {uploading ? '⏳ Uploading...' : '🎵 Upload & Set Active'}
+                            {uploading ? <><HourglassIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Uploading...</> : <><MusicNoteIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Upload & Set Active</>}
                         </button>
                         {status !== 'idle' && (
                             <div className={`status-message status-message--${status}`}>{msg}</div>
@@ -249,8 +250,8 @@ export default function SongsPanel({ initialSongs }: Props) {
                             <input id="edit-song-pub" className="admin-input" value={editPubLink} onChange={e => setEditPubLink(e.target.value)} placeholder="https://..." />
                         </div>
                         <div className="modal-actions">
-                            <button type="button" onClick={() => setEditingId(null)} className="btn btn-secondary$1">Cancel</button>
-                            <button type="submit" className="btn btn-primary$1" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
+                            <button type="button" onClick={() => setEditingId(null)} className="btn btn-secondary">Cancel</button>
+                            <button type="submit" className="btn btn-primary" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</button>
                         </div>
                     </form>
                 </Modal>

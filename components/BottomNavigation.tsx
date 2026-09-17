@@ -2,15 +2,16 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { DiscIcon, HomeIcon, TrophyIcon, UsersIcon } from './icons';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
 
   const items = [
-    { href: '/', label: 'Home', emoji: '🏠', active: pathname === '/' },
-    { href: '/library', label: 'Library', active: pathname === '/library' },
-    { href: '/#community-quotes', label: 'Community', active: false },
-    { href: '/game/best-lyrics', label: 'Competitions', active: pathname?.startsWith('/game/best-lyrics') ?? false },
+    { href: '/', label: 'Home', Icon: HomeIcon, active: pathname === '/' },
+    { href: '/library', label: 'Library', Icon: DiscIcon, active: pathname === '/library' },
+    { href: '/#community-quotes', label: 'Community', Icon: UsersIcon, active: false },
+    { href: '/game/best-lyrics', label: 'Competitions', Icon: TrophyIcon, active: pathname?.startsWith('/game/best-lyrics') ?? false },
   ];
 
   return (
@@ -22,7 +23,9 @@ export default function BottomNavigation() {
           className={`bottom-nav-item ${item.active ? 'bottom-nav-item--active' : ''}`}
           aria-current={item.active ? 'page' : undefined}
         >
-          <span className="bottom-nav-emoji" aria-hidden="true">{item.emoji}</span>
+          <span className="bottom-nav-icon-wrap" aria-hidden="true">
+            <item.Icon size={22} />
+          </span>
           <span className="bottom-nav-label">{item.label}</span>
         </Link>
       ))}

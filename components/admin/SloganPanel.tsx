@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CheckIcon, HourglassIcon } from '../icons';
 
 interface Props { initialSlogan: string; }
 
@@ -55,8 +56,8 @@ export default function SloganPanel({ initialSlogan }: Props) {
                         <span className="admin-char-count">{slogan.length}/200</span>
                     </div>
 
-                    <button type="submit" className="btn btn-primary$1" disabled={status === 'loading' || slogan.trim() === saved}>
-                        {status === 'loading' ? '⏳ Saving...' : '✅ Update Live Slogan'}
+                    <button type="submit" className="btn btn-primary" disabled={status === 'loading' || slogan.trim() === saved}>
+                        {status === 'loading' ? <><HourglassIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Saving...</> : <><CheckIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Update Live Slogan</>}
                     </button>
 
                     {(status === 'success' || status === 'error') && (

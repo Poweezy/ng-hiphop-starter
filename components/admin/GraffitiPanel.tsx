@@ -5,6 +5,7 @@ import Image from 'next/image';
 import ConfirmDialog from '../ConfirmDialog';
 import { patchDisplayUntil } from '@/lib/adminHooks';
 import Pagination from '@/components/Pagination';
+import { CheckIcon, HourglassIcon, PaletteIcon, XIcon } from '../icons';
 
 const PAGE_SIZE = 20;
 
@@ -153,32 +154,6 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
         setTimeout(() => setStatus('idle'), 3000);
     };
 
-    const batchRemove = async () => {
-        setBatchLoading(true);
-        try {
-            const results = await Promise.allSettled(Array.from(selectedIds).map(id =>
-                fetch('/api/graffiti', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, approved: false }),
-                })
-            ));
-            const succeeded = results.filter(r => r.status === 'fulfilled').length;
-            const failed = results.filter(r => r.status === 'rejected').length;
-            setItems(items.map(g => selectedIds.has(g.id) ? { ...g, approved: false } : g));
-            setSelectedIds(new Set());
-            if (failed === 0) {
-                setStatus('success'); setMsg(`${succeeded} items removed`);
-            } else {
-                setStatus('error'); setMsg(`${succeeded} removed, ${failed} failed`);
-            }
-        } catch {
-            setStatus('error'); setMsg('Batch remove failed');
-        }
-        setBatchLoading(false);
-        setTimeout(() => setStatus('idle'), 3000);
-    };
-
     const pending = items.filter(g => !g.approved);
     const approved = items.filter(g => g.approved);
 
@@ -213,8 +188,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                     <p className="admin-artist-name" style={{ margin: 0 }}>{g.artist_name}</p>
                 </label>
                 <div className="admin-card-actions">
-                    {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn btn-primary$1">✓ Approve</button>}
-                    {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger btn-sm">✗ Remove</button>}
+                    {showApprove && <button onClick={() => handlePatch(g.id, { approved: true })} className="btn btn-primary"><CheckIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Approve</button>}
+                    {g.approved && <button onClick={() => handlePatch(g.id, { approved: false })} className="btn-danger btn-sm"><XIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Remove</button>}
                     <button onClick={() => setDeleteId(g.id)} className="btn-danger btn-sm">Delete</button>
                 </div>
                 <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -300,8 +275,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                             />
                         </div>
-                        <button type="submit" className="btn btn-primary$1" disabled={uploading || !file || !artistName.trim()}>
-                            {uploading ? '⏳ Uploading...' : '🎨 Submit Artwork'}
+                        <button type="submit" className="btn btn-primary" disabled={uploading || !file || !artistName.trim()}>
+                            {uploading ? <><HourglassIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Uploading...</> : <><PaletteIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Submit Artwork</>}
                         </button>
                         {status !== 'idle' && (
                             <div role="status" aria-live="polite" className={`status-message status-message--${status}`}>{msg}</div>
@@ -315,8 +290,8 @@ export default function GraffitiPanel({ initialGraffiti }: Props) {
                         <div className="batch-actions" style={{ marginBottom: 16 }}>
                             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>{selectedIds.size} selected</span>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={batchApprove} className="btn btn-primary$1" disabled={batchLoading}>✓ Approve Selected</button>
-                                <button onClick={() => { setSelectedIds(new Set()); }} className="btn btn-secondary$1">Cancel</button>
+                                <button onClick={batchApprove} className="btn btn-primary" disabled={batchLoading}><CheckIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Approve Selected</button>
+                                <button onClick={() => { setSelectedIds(new Set()); }} className="btn btn-secondary">Cancel</button>
                             </div>
                         </div>
                     )}

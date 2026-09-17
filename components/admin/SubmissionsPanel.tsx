@@ -6,6 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import Pagination from '@/components/Pagination';
 import { useToast } from '@/components/ToastProvider';
+import { FileTextIcon } from '../icons';
 
 const PAGE_SIZE = 20;
 
@@ -189,7 +190,7 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
 
       {filtered.length === 0 ? (
         <EmptyState
-          icon="📝"
+          icon={<FileTextIcon size={56} />}
           title="No submissions found"
           description="There are no submissions matching your filters."
         />
@@ -350,10 +351,10 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
                       />
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={handleModerate} className="btn btn-primary$1" disabled={moderating}>
+                      <button type="button" onClick={handleModerate} className="btn btn-primary" disabled={moderating}>
                         {moderating ? 'Saving...' : 'Submit Moderation'}
                       </button>
-                      <button type="button" onClick={() => { setModAction(''); setModReason(''); setModNotes(''); }} className="btn btn-secondary$1">Cancel</button>
+                      <button type="button" onClick={() => { setModAction(''); setModReason(''); setModNotes(''); }} className="btn btn-secondary">Cancel</button>
                     </div>
                   </div>
                 )}

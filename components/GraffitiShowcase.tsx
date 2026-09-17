@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import Modal from './Modal';
+import { SprayCanIcon, XIcon } from './icons';
 
 interface Graffiti {
     id: string;
@@ -161,7 +162,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                         <p className="section-subtitle">Urban art from the Nerd Gauge community.</p>
                     </div>
                     <button onClick={() => setShowSubmit(true)} className="btn btn-primary submit-btn">
-                        <span>✍️</span> Tag the Wall
+                        <span><SprayCanIcon size={18} /></span> Tag the Wall
                     </button>
                 </div>
 
@@ -204,7 +205,7 @@ export default function GraffitiShowcase({ graffiti = [] }: GraffitiShowcaseProp
                     height={800}
                     style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                 />
-                <button className="close-btn" onClick={() => setSelectedImage(null)} aria-label="Close image preview">✕</button>
+                <button className="close-btn" onClick={() => setSelectedImage(null)} aria-label="Close image preview"><XIcon size={18} /></button>
             </Modal>
 
             {showSubmit && (

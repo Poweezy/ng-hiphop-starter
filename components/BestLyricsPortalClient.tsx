@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
+import { FlagIcon, MedalIcon, MicIcon, TrophyIcon } from './icons';
 
 interface Prize {
   id: string;
@@ -61,7 +62,7 @@ interface Props {
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function BestLyricsPortalClient({ competition, winners, recentSubmissions, subscriberCount }: Props) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const isLoggedIn = status === 'authenticated';
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -74,7 +75,6 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
   const [subName, setSubName] = useState('');
   const [subEmail, setSubEmail] = useState('');
   const [subConsent, setSubConsent] = useState(false);
-  const [submittingSub, setSubmittingSub] = useState(false);
   const [subStatus, setSubStatus] = useState<SubmitStatus>('idle');
   const [subMessage, setSubMessage] = useState('');
 
@@ -142,7 +142,7 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
       const data = await res.json();
       if (res.ok) {
         setSubmitStatus('success');
-        setSubmitMessage('Your bars have been submitted for moderation. Stay tuned!');
+        setSubmitMessage('Got it. Your submission is in the review queue.');
         setSubmissionForm({ artistAlias: '', lyrics: '', songTitle: '', audioUrl: '', socialLinks: '', copyrightAccepted: false });
       } else {
         setSubmitStatus('error');
@@ -160,7 +160,6 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
     e.preventDefault();
     if (!competition || !subConsent || !subEmail.trim()) return;
 
-    setSubmittingSub(true);
     setSubStatus('idle');
     setSubMessage('');
 
@@ -192,8 +191,6 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
     } catch {
       setSubStatus('error');
       setSubMessage('Network error. Please try again.');
-    } finally {
-      setSubmittingSub(false);
     }
   };
 
@@ -212,9 +209,9 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
         <section className="section">
           <div className="container">
             <div className="empty-state">
-              <div className="empty-state-icon">🏆</div>
-              <h2 className="empty-state-title">No Active Competition</h2>
-              <p className="empty-state-desc">Check back soon for the next Best Lyrics competition.</p>
+              <div className="empty-state-icon"><TrophyIcon size={64} /></div>
+              <h2 className="empty-state-title">Nothing running right now</h2>
+              <p className="empty-state-desc">The next Best Lyrics competition hasn&apos;t opened yet. Check back soon.</p>
             </div>
           </div>
         </section>
@@ -344,7 +341,7 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
 
             {competitionHasEnded && (
               <div className="competition-ended-banner">
-                <span className="competition-ended-icon">🏁</span>
+                <span className="competition-ended-icon"><FlagIcon size={20} /></span>
                 <span>This competition has ended</span>
               </div>
             )}
@@ -539,10 +536,14 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
                     className={`card winner-card winner-card--${winner.position}`}
                   >
                     <div className="winner-position">
-                      {winner.position === 1 && '🥇'}
-                      {winner.position === 2 && '🥈'}
-                      {winner.position === 3 && '🥉'}
-                      {winner.position > 3 && `#${winner.position}`}
+                      {winner.position <= 3 ? (
+                        <MedalIcon
+                          size={34}
+                          style={{ color: winner.position === 1 ? '#FBBF24' : winner.position === 2 ? '#CBD5E1' : '#D97706' }}
+                        />
+                      ) : (
+                        `#${winner.position}`
+                      )}
                     </div>
                     <div className="winner-body">
                       <div className="winner-artist">{winner.submission.artistAlias}</div>
@@ -584,7 +585,7 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
 
             {recentSubmissions.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🎤</div>
+                <div className="empty-state-icon"><MicIcon size={64} /></div>
                 <h3 className="empty-state-title">No submissions yet</h3>
                 <p className="empty-state-desc">Be the first to drop your bars in this competition.</p>
               </div>

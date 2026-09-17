@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { MusicNoteIcon, TrophyIcon } from './icons';
 
 interface HeroProps {
   slogan: string;
@@ -79,10 +80,10 @@ export default function Hero({ slogan }: HeroProps) {
           className="cta-container"
         >
           <a href="#latest-release" className="hero-btn-primary">
-            <span aria-hidden="true">🎵</span> Listen Now
+            <MusicNoteIcon size={18} aria-hidden="true" /> Listen Now
           </a>
           <a href="/game/best-lyrics" className="hero-btn-ghost">
-            <span aria-hidden="true">🏆</span> Join The Competition
+            <TrophyIcon size={18} aria-hidden="true" /> Join The Competition
           </a>
         </motion.div>
 
@@ -92,7 +93,7 @@ export default function Hero({ slogan }: HeroProps) {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="hero-value-prop"
         >
-          Stream the latest Eswatini hip-hop, join the community, and test your knowledge.
+          Stream the latest Eswatini hip-hop, catch the community's bars and art, and put your ear to the test.
         </motion.p>
       </div>
 

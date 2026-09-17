@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
+import { MenuIcon, XIcon } from './icons';
 
 interface NavLinkItem {
   href: string;
@@ -107,7 +108,7 @@ export default function Navigation() {
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-menu"
         >
-          {mobileMenuOpen ? '✕' : '☰'}
+          {mobileMenuOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}
         </button>
       </div>
 

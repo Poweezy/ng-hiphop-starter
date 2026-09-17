@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { CrownIcon, MicIcon } from './icons';
 
 interface Competition {
   id: string;
@@ -70,11 +71,11 @@ export default function CompetitionBanner({ competition, winner }: Props) {
       <div className="competition-bg-overlay" aria-hidden="true" />
       <div className="container">
         <div className="competition-banner">
-          <div className="competition-badge">🎤 Lyric Competition</div>
+          <div className="competition-badge"><MicIcon size={14} /> Lyric Competition</div>
 
           {winner ? (
             <div className="winner-announcement">
-              <div className="winner-crown">👑</div>
+              <div className="winner-crown"><CrownIcon size={40} /></div>
               <h2 className="competition-title">Winner: {competition.title}</h2>
               <div className="winner-lyric">
                 <p className="winner-text">"{winner.lyric_text}"</p>
@@ -132,7 +133,7 @@ export default function CompetitionBanner({ competition, winner }: Props) {
           )}
 
           {isEnded && !winner && (
-            <p className="competition-ended-text">Results coming soon. Stay tuned!</p>
+            <p className="competition-ended-text">Results will be posted here shortly.</p>
           )}
         </div>
       </div>

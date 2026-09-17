@@ -4,7 +4,23 @@ import { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { ComponentType } from 'react';
 import type { SongSummary, QuoteSummary, GraffitiSummary, CompetitionSummary, LyricSubmissionSummary, WinnerSummary, SubscriberSummary } from '@/lib/adminTypes';
+import {
+    ChartIcon,
+    ChatIcon,
+    CrownIcon,
+    FileTextIcon,
+    LockIcon,
+    MailIcon,
+    MenuIcon,
+    MusicNoteIcon,
+    PaletteIcon,
+    PenIcon,
+    TrophyIcon,
+    UsersIcon,
+    XIcon,
+} from '../icons';
 
 // Panels
 import OverviewPanel from './OverviewPanel';
@@ -36,18 +52,18 @@ interface Props {
     initialUsers: { id: string; email: string; role: string; createdAt: string; updatedAt: string; submissionCount: number }[];
 }
 
-const TABS: { id: Tab; label: string; icon: string; group: string }[] = [
-    { id: 'overview', label: 'Overview', icon: '📊', group: 'content' },
-    { id: 'songs', label: 'Songs', icon: '🎵', group: 'content' },
-    { id: 'quotes', label: 'Quotes', icon: '💬', group: 'content' },
-    { id: 'graffiti', label: 'Graffiti', icon: '🎨', group: 'content' },
-    { id: 'submissions', label: 'Submissions', icon: '📝', group: 'content' },
-    { id: 'best-lyrics', label: 'Competitions', icon: '🏆', group: 'management' },
-    { id: 'winners', label: 'Winners', icon: '👑', group: 'management' },
-    { id: 'subscribers', label: 'Subscribers', icon: '📧', group: 'management' },
-    { id: 'users', label: 'Users', icon: '👥', group: 'management' },
-    { id: 'slogan', label: 'Slogan', icon: '✏️', group: 'system' },
-    { id: 'security', label: 'Security', icon: '🔐', group: 'system' },
+const TABS: { id: Tab; label: string; icon: ComponentType<{ size?: number | string }>; group: string }[] = [
+    { id: 'overview', label: 'Overview', icon: ChartIcon, group: 'content' },
+    { id: 'songs', label: 'Songs', icon: MusicNoteIcon, group: 'content' },
+    { id: 'quotes', label: 'Quotes', icon: ChatIcon, group: 'content' },
+    { id: 'graffiti', label: 'Graffiti', icon: PaletteIcon, group: 'content' },
+    { id: 'submissions', label: 'Submissions', icon: FileTextIcon, group: 'content' },
+    { id: 'best-lyrics', label: 'Competitions', icon: TrophyIcon, group: 'management' },
+    { id: 'winners', label: 'Winners', icon: CrownIcon, group: 'management' },
+    { id: 'subscribers', label: 'Subscribers', icon: MailIcon, group: 'management' },
+    { id: 'users', label: 'Users', icon: UsersIcon, group: 'management' },
+    { id: 'slogan', label: 'Slogan', icon: PenIcon, group: 'system' },
+    { id: 'security', label: 'Security', icon: LockIcon, group: 'system' },
 ];
 
 const GROUP_LABELS: Record<string, string> = {
@@ -136,7 +152,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                         aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
                         aria-expanded={sidebarOpen}
                     >
-                        {sidebarOpen ? '✕' : '☰'}
+                        {sidebarOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
                     </button>
                     <Image
                         src="/images/logo.png"
@@ -147,7 +163,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                     />
                     <div className="header-text">
                         <div className="title">ADMIN DASHBOARD</div>
-                        <div className="subtitle">Content Management Portal</div>
+                        <div className="subtitle">nerd gauge — content admin</div>
                     </div>
                 </div>
 
@@ -190,7 +206,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                                         animate={activeTab === tab.id ? { scale: 1.2 } : { scale: 1 }}
                                         className="nav-icon"
                                     >
-                                        {tab.icon}
+                                        <tab.icon size={18} />
                                     </motion.span>
                                     {tab.label}
                                     {activeTab === tab.id && (

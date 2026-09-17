@@ -6,6 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import Pagination from '@/components/Pagination';
 import { useToast } from '@/components/ToastProvider';
+import { TrophyIcon } from '../icons';
 
 interface Competition {
   id: string;
@@ -43,29 +44,13 @@ interface Prize {
   description: string | null;
 }
 
-interface Rule {
-  id: string;
-  competitionId: string;
-  minLength: number | null;
-  maxLength: number | null;
-  originalityRequired: boolean;
-  copyrightRequirements: string | null;
-  maxSubmissionsPerUser: number;
-  eligibilityRequirements: string | null;
-  ageRestriction: string | null;
-  moderationRequired: boolean;
-}
-
 const PAGE_SIZE = 10;
 
-export default function BestLyricsPortalPanel({ initialCompetitions, initialSubmissions, initialWinners, initialSubscribers }: Props) {
+export default function BestLyricsPortalPanel({ initialCompetitions, initialWinners }: Props) {
   const [competitions, setCompetitions] = useState<Competition[]>(initialCompetitions);
-  const [submissions] = useState(initialSubmissions);
   const [winners] = useState(initialWinners);
-  const [subscribers] = useState(initialSubscribers);
   const toast = useToast();
 
-  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('all');
   const [page, setPage] = useState(1);
 
@@ -88,7 +73,6 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
   const [endDate, setEndDate] = useState('');
   const [submissionDeadline, setSubmissionDeadline] = useState('');
 
-  const [rules, setRules] = useState<Rule | null>(null);
   const [minLength, setMinLength] = useState('');
   const [maxLength, setMaxLength] = useState('');
   const [originalityRequired, setOriginalityRequired] = useState(true);
@@ -134,7 +118,6 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
     setStartDate('');
     setEndDate('');
     setSubmissionDeadline('');
-    setRules(null);
     setMinLength('');
     setMaxLength('');
     setOriginalityRequired(true);
@@ -185,7 +168,6 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
       if (rulesRes.ok) {
         const rulesData = await rulesRes.json();
         const r = rulesData.data || rulesData;
-        setRules(r);
         setMinLength(r.minLength?.toString() || '');
         setMaxLength(r.maxLength?.toString() || '');
         setOriginalityRequired(r.originalityRequired ?? true);
@@ -275,7 +257,6 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
       const data = await res.json();
       if (res.ok) {
         toast.success('Rules saved');
-        setRules(data.data || data);
       } else {
         toast.error(data.data?.error?.message || data.data?.message || 'Failed to save rules');
       }
@@ -395,7 +376,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
           <h2 className="panel-title">BEST LYRICS PORTAL</h2>
           <p className="panel-desc">Create and manage monthly and yearly competitions to find the best lyrics in the game.</p>
         </div>
-        <button onClick={openCreate} className="btn btn-primary$1">
+        <button onClick={openCreate} className="btn btn-primary">
           + Create New Competition
         </button>
       </div>
@@ -434,7 +415,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
 
       {paginated.length === 0 ? (
         <EmptyState
-          icon="🏆"
+          icon={<TrophyIcon size={56} />}
           title="No competitions found"
           description="Get started by creating your first competition."
           action={{ label: '+ Create New Competition', onClick: openCreate }}
@@ -458,8 +439,8 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
                   </div>
                 </div>
                 <div className="admin-card-actions">
-                  <button onClick={() => openEdit(competition)} className="btn btn-primary$1">Edit</button>
-                  <button onClick={() => setViewCompetition(competition)} className="btn btn-primary$1">View</button>
+                  <button onClick={() => openEdit(competition)} className="btn btn-primary">Edit</button>
+                  <button onClick={() => setViewCompetition(competition)} className="btn btn-primary">View</button>
                   <button onClick={() => setDeleteId(competition.id)} className="btn-danger btn-xs">Delete</button>
                 </div>
               </div>
@@ -621,7 +602,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
                           Moderation Required
                         </label>
                       </div>
-                      <button type="button" onClick={handleSaveRules} className="btn btn-primary$1" disabled={formLoading}>
+                      <button type="button" onClick={handleSaveRules} className="btn btn-primary" disabled={formLoading}>
                         {formLoading ? 'Saving...' : 'Save Rules'}
                       </button>
                     </>
@@ -672,7 +653,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
                         <label className="form-label admin-label--green">Description</label>
                         <input className="admin-input" value={prizeDescription} onChange={e => setPrizeDescription(e.target.value)} maxLength={500} />
                       </div>
-                      <button type="button" onClick={handleAddPrize} className="btn btn-primary$1" disabled={formLoading || !prizeName.trim()}>
+                      <button type="button" onClick={handleAddPrize} className="btn btn-primary" disabled={formLoading || !prizeName.trim()}>
                         Add Prize
                       </button>
                     </>
@@ -681,10 +662,10 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
               )}
 
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                <button type="submit" className="btn btn-primary$1" disabled={formLoading}>
+                <button type="submit" className="btn btn-primary" disabled={formLoading}>
                   {formLoading ? 'Saving...' : editingId ? 'Save Changes' : 'Create Competition'}
                 </button>
-                <button type="button" onClick={resetForm} className="btn btn-secondary$1">Cancel</button>
+                <button type="button" onClick={resetForm} className="btn btn-secondary">Cancel</button>
               </div>
             </form>
           )}
@@ -739,7 +720,7 @@ export default function BestLyricsPortalPanel({ initialCompetitions, initialSubm
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-            <button onClick={() => setViewCompetition(null)} className="btn btn-secondary$1">Close</button>
+            <button onClick={() => setViewCompetition(null)} className="btn btn-secondary">Close</button>
           </div>
         </Modal>
       )}

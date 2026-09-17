@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView, useMotionValue, useTransform } from 'framer-motion';
+import { MicIcon } from './icons';
 
 interface Quote {
     id: string;
@@ -92,7 +93,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
             const data = await res.json();
             if (res.ok) {
                 setStatus('success');
-                setMessage("Quote submitted! It's pending admin approval. 🎤");
+                setMessage("Sent. It'll go live once it clears review.");
                 setName(''); setQuote('');
                 setNameError(''); setQuoteError('');
             } else {
@@ -151,7 +152,7 @@ export default function CommunityQuote({ featuredQuote }: CommunityQuoteProps) {
                                 </div>
                             ) : (
                                 <div className="empty-quote" style={{ transform: "translateZ(50px)" }}>
-                                    <span className="mic-icon">🎤</span>
+                                    <span className="mic-icon"><MicIcon size={22} /></span>
                                     <p>The stage is yours. Drop the first piece of wisdom.</p>
                                 </div>
                             )}

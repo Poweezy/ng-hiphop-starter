@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import PasswordStrength from '@/components/PasswordStrength';
+import { EyeIcon, EyeOffIcon } from '../icons';
 
 function PasswordInput({ id, label, value, onChange, placeholder, required = true }: { id: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
     const [visible, setVisible] = useState(false);
@@ -29,7 +30,7 @@ function PasswordInput({ id, label, value, onChange, placeholder, required = tru
                         cursor: 'pointer', fontSize: '0.8rem', padding: '4px 8px'
                     }}
                 >
-                    {visible ? '🙈' : '👁️'}
+                    {visible ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
                 </button>
             </div>
         </div>

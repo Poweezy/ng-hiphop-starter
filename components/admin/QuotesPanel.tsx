@@ -5,6 +5,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { useToast } from '@/components/ToastProvider';
 import { patchDisplayUntil } from '@/lib/adminHooks';
 import Pagination from '@/components/Pagination';
+import { CheckIcon, StarIcon, TrashIcon, XIcon } from '../icons';
 
 const PAGE_SIZE = 20;
 
@@ -220,15 +221,15 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                 </div>
                 <div className="admin-card-actions">
                     {!q.approved && (
-                        <button onClick={() => handlePatch(q.id, { approved: true })} className="btn btn-primary$1">✓ Approve</button>
+                        <button onClick={() => handlePatch(q.id, { approved: true })} className="btn btn-primary"><CheckIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Approve</button>
                     )}
                     {q.approved && !q.is_featured && (
-                        <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn btn-primary$1">⭐ Feature</button>
+                        <button onClick={() => handlePatch(q.id, { is_featured: true })} className="btn btn-primary"><StarIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Feature</button>
                     )}
                     {q.approved && (
                         <>
-                            <button onClick={() => handlePatch(q.id, { approved: false, is_featured: false })} className="btn-danger btn-md">✗ Reject</button>
-                            <button onClick={() => confirmDelete(q.id, q.submitted_by)} className="btn-danger btn-md">🗑️ Delete</button>
+                            <button onClick={() => handlePatch(q.id, { approved: false, is_featured: false })} className="btn-danger btn-md"><XIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Reject</button>
+                            <button onClick={() => confirmDelete(q.id, q.submitted_by)} className="btn-danger btn-md"><TrashIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Delete</button>
                         </>
                     )}
                 </div>
@@ -292,10 +293,10 @@ export default function QuotesPanel({ initialQuotes }: Props) {
                         <div className="batch-actions" style={{ marginBottom: 16 }}>
                             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>{selectedIds.size} selected</span>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={batchApprove} className="btn btn-primary$1" disabled={batchLoading}>✓ Approve Selected</button>
-                                <button onClick={batchReject} className="btn-danger btn-sm" disabled={batchLoading}>✗ Reject Selected</button>
-                                <button onClick={batchDelete} className="btn-danger btn-sm" disabled={batchLoading}>🗑️ Delete Selected</button>
-                                <button onClick={() => setSelectedIds(new Set())} className="btn btn-secondary$1">Cancel</button>
+                                <button onClick={batchApprove} className="btn btn-primary" disabled={batchLoading}><CheckIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Approve Selected</button>
+                                <button onClick={batchReject} className="btn-danger btn-sm" disabled={batchLoading}><XIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Reject Selected</button>
+                                <button onClick={batchDelete} className="btn-danger btn-sm" disabled={batchLoading}><TrashIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Delete Selected</button>
+                                <button onClick={() => setSelectedIds(new Set())} className="btn btn-secondary">Cancel</button>
                             </div>
                         </div>
                     )}
