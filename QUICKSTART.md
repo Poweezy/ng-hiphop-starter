@@ -2,7 +2,7 @@
 
 Get the NG Hip-Hop Platform running in 5 minutes.
 
-## ⚡ Fast Setup
+## Quick setup
 
 ```bash
 # 1. Clone and install
@@ -23,15 +23,19 @@ npm run db:seed
 npm run dev
 ```
 
+> ℹ️ **Demo data is opt-in:** `npm run db:seed` creates only the slogan and the
+> admin user. To also load demo fixtures (placeholder song, lyric competitions,
+> community quotes/graffiti), run `SEED_DEMO_DATA=true npm run db:seed`.
+
 Open [http://localhost:3000](http://localhost:3000)
 
-## 🔑 Default Credentials
+## Admin login
 
 **Admin Login:** `/admin/login`
 - Email: From `.env` (`ADMIN_EMAIL`)
 - Password: From `.env` (`ADMIN_PASSWORD`)
 
-## 📋 Essential Commands
+## Commands you'll actually use
 
 ```bash
 # Development
@@ -47,7 +51,7 @@ npm run db:seed          # Seed initial data
 npm run db:studio        # Open database GUI
 ```
 
-## 🎯 First Steps
+## First steps
 
 ### 1. Change Admin Password
 1. Go to `/admin/login`
@@ -72,7 +76,7 @@ npm run db:studio        # Open database GUI
 3. Upload graffiti art
 4. Play lyric guessing game
 
-## 🔧 Environment Variables
+## Environment variables
 
 See `.env.example` for the full list. Key vars:
 
@@ -94,7 +98,7 @@ See `.env.example` for the full list. Key vars:
 | `CLAMAV_HOST` / `CLAMAV_PORT` | No | ClamAV adapter |
 | `SCAN_WEBHOOK_URL` | No | Webhook scanner adapter |
 
-## 🚀 Upload Architecture
+## Uploads
 
 ### Local Development
 - Uploads go to `/public/uploads/...`
@@ -105,7 +109,7 @@ See `.env.example` for the full list. Key vars:
 - Large files can use presigned S3 uploads via `/api/uploads/presign`
 - Virus scanning is opt-in via `VIRUS_SCANNER_ENABLED=true`
 
-## 🔧 Common Issues
+## Common issues
 
 ### Database Connection Error
 ```bash
@@ -130,7 +134,7 @@ npm install
 npm run build
 ```
 
-## 📱 Testing
+## Testing
 
 ### Desktop
 - Chrome: ✅
@@ -150,7 +154,7 @@ npm run build
 - [ ] Admin login
 - [ ] Admin CRUD operations
 
-## 🚀 Next Steps
+## Where to go from here
 
 1. **Customize Design**
     - Edit `app/globals.css`
@@ -167,20 +171,20 @@ npm run build
     - Recommended: Vercel
     - Database: Vercel Postgres or Neon
 
-## 📚 Documentation
+## Documentation
 
 - [README.md](./README.md) - Full documentation
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Development guidelines
 
-## 💡 Tips
+## Tips
 
 - Use `npm run db:studio` to view/edit database
 - Check browser console for errors
 - Test on mobile devices early
 - Keep `.env` file secure
 
-## 🆘 Need Help?
+## Still stuck?
 
 1. Check documentation
 2. Review error messages
@@ -188,4 +192,4 @@ npm run build
 4. Verify environment variables
 
 ---
-**Built From Bars. Raised By Beats.** 🎤
+**Built From Bars. Raised By Beats.**

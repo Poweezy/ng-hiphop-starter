@@ -2,7 +2,7 @@
 
 This guide walks you through deploying the NG Hip-Hop Platform to production.
 
-## 🚀 Pre-Deployment Checklist
+## Pre-deployment checklist
 
 ### 1. Environment Variables
 
@@ -87,6 +87,12 @@ npm run db:seed
 
 **Note:** Use `npm run db:migrate` in production instead of `db:push` to preserve migration history.
 
+**Note:** `npm run db:seed` only creates the slogan and the admin user. Demo fixtures (placeholder song, lyric competitions, community quotes/graffiti) are **excluded by default** so they never reach a production database. To load them locally, run:
+
+```bash
+SEED_DEMO_DATA=true npm run db:seed
+```
+
 ### 3. Security Hardening
 
 - [ ] Remove `.env` from git history
@@ -102,7 +108,7 @@ npm run db:seed
 - [ ] Enable Sentry error tracking (`SENTRY_DSN`)
 - [ ] Review CORS policies if exposing API to external frontends
 
-## 📦 Deployment Options
+## Deployment options
 
 ### Option 1: Vercel (Recommended)
 
@@ -152,7 +158,7 @@ Vercel Postgres is the recommended database for this project. It provides:
 1. In the Vercel dashboard, go to your project → Storage → Postgres → Create Database
 2. Vercel automatically injects `DATABASE_URL` as an environment variable
 3. Run migrations: `npm run db:migrate`
-4. Seed the database: `npm run db:seed`
+4. Seed the database: `npm run db:seed` (creates the slogan + admin user only; demo fixtures require `SEED_DEMO_DATA=true`)
 
 **Connection String Format:**
 ```
@@ -239,7 +245,7 @@ railway up
    - Click "Deploy"
    - Monitor build logs
 
-## 🗄️ Database Setup
+## Database setup
 
 ### PostgreSQL Configuration
 
@@ -267,7 +273,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-## 📁 File Storage
+## File storage
 
 ### Production: S3 / Supabase Storage / Cloud Storage
 
@@ -303,7 +309,7 @@ Otherwise, files are stored in `/public/uploads/` (dev only).
 - `POST /api/songs` — Accepts multipart/form-data or JSON with `fileUrl`/`coverUrl`
 - `POST /api/graffiti` — Accepts multipart/form-data or JSON with `imageUrl`
 
-## 🔒 Security Configuration
+## Security configuration
 
 ### 1. HTTPS/SSL
 
@@ -389,7 +395,7 @@ VIRUS_SCANNER=webhook
 SCAN_WEBHOOK_URL=https://scanner.example.com/scan
 ```
 
-## 🔍 Monitoring & Analytics
+## Monitoring and analytics
 
 ### Error Tracking
 
@@ -416,7 +422,7 @@ The application exposes `GET /api/slo` (admin-only) returning real-time SLO metr
 
 Configure alerting based on these metrics.
 
-## 🧪 Pre-Launch Testing
+## Pre-launch testing
 
 ### 1. Build Test
 ```bash
@@ -451,7 +457,7 @@ curl -X POST http://localhost:3000/api/graffiti \
   -F "artistName=Test"
 ```
 
-## 📊 Performance Optimization
+## Performance
 
 ### 1. Image Optimization
 
@@ -485,7 +491,7 @@ Key indexes:
 - `Song`: `(is_active)`
 - `LyricGame`: `(is_active)`
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Build Fails
 
@@ -531,7 +537,7 @@ Check firewall rules and IP whitelist
 - Ensure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set
 - Without these, rate limiting is disabled (allow-all)
 
-## 📝 Post-Deployment
+## Post-deployment
 
 ### 1. Verify Functionality
 - [ ] Admin login works
@@ -550,7 +556,7 @@ Check firewall rules and IP whitelist
 - Configure error alerts
 - Review analytics weekly
 
-## 🔄 Continuous Deployment
+## Continuous deployment
 
 ### GitHub Actions (Optional)
 
@@ -571,14 +577,14 @@ jobs:
       - run: npm test
 ```
 
-## 📞 Support Resources
+## Support resources
 
 - **Vercel Docs**: https://vercel.com/docs
 - **Prisma Docs**: https://www.prisma.io/docs
 - **Next.js Docs**: https://nextjs.org/docs
 - **Upstash Docs**: https://docs.upstash.com
 
-## 🏗️ Architecture Notes
+## Architecture notes
 
 ### Upload Flow
 

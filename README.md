@@ -1,175 +1,124 @@
 # Nerd Gauge Platform (NG Hip-Hop)
 
-A modern, full-stack hip-hop music platform built with Next.js 16, featuring music streaming, community engagement, and admin content management.
+Music platform for Nerd Gauge, a hip-hop artist from Eswatini. Built with Next.js 16: streaming, community submissions, a lyric competition, and an admin dashboard for all of it.
 
-## 🎵 Features
+## Features
 
-- **Music Streaming**: Latest releases with an inline player and distribution links (Spotify, Apple Music)
-- **Community Quotes**: User-submitted hip-hop quotes with admin approval
-- **Graffiti Showcase**: Fan art submissions with carousel display
-- **Best Lyrics Competition**: Public lyric submissions, moderation queue, and winner announcements
-- **Admin Dashboard**: Complete content management system
-- **Responsive Design**: Mobile-first, accessible UI
+- **Music streaming** — latest release with an inline player and distribution links (Spotify, Apple Music), plus a searchable library
+- **Community quotes** — user-submitted quotes, published after admin approval
+- **Graffiti showcase** — fan art submissions with a lightbox
+- **Best Lyrics competition** — public lyric submissions, moderation queue, winners, email subscribers
+- **Admin dashboard** — content management for everything above
+- **Responsive design** — mobile-first, keyboard accessible
 
-## 🚀 Tech Stack
+## Tech stack
 
-- **Framework**: Next.js 16 (App Router, Turbopack)
-- **Database**: Prisma ORM with PostgreSQL via Vercel Postgres
-- **Authentication**: NextAuth.js
-- **Styling**: CSS Custom Properties
-- **TypeScript**: Full type safety
-- **Image Optimization**: Sharp + Next.js Image component
-- **Storage**: Local filesystem (dev) / S3 (prod)
-- **Rate Limiting**: Upstash Redis
-- **Upload Scanning**: ClamAV / webhook adapter (opt-in)
+- Next.js 16 (App Router, Turbopack)
+- Prisma + PostgreSQL (Vercel Postgres in production, SQLite for local dev)
+- NextAuth.js
+- TypeScript (strict)
+- Sharp + next/image for image optimization
+- Local filesystem storage in dev, S3 or Supabase Storage in production
+- Upstash Redis for rate limiting
+- Vitest
 
-## 📋 Prerequisites
+## Requirements
 
-- Node.js 18+ 
-- npm or yarn
-- PostgreSQL (for production)
+- Node.js 18+
+- npm
+- PostgreSQL (production only; local dev falls back to SQLite)
 
-## 🛠️ Installation
+## Getting started
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd ng-hiphop-starter
-   ```
+```bash
+git clone <repository-url>
+cd ng-hiphop-starter
+npm install
+cp .env.example .env
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+Edit `.env` and set at minimum:
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` and update:
-   - `NEXTAUTH_SECRET`: Generate with `openssl rand -base64 32`
-   - `ADMIN_EMAIL` and `ADMIN_PASSWORD`: Your admin credentials
-   - `DATABASE_URL`: Your database connection string
+- `NEXTAUTH_SECRET` — generate with `openssl rand -base64 32`
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — the admin login
+- `DATABASE_URL` — database connection string
 
-4. **Initialize database**
-   ```bash
-   npm run db:generate
-   npm run db:push
-   npm run db:seed
-   ```
+Then:
 
-5. **Run development server**
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run db:generate
+npm run db:push
+npm run db:seed   # creates the slogan and admin user only
+npm run dev
+```
 
-   Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000). To also load demo fixtures (placeholder song, competitions, sample community content), run `SEED_DEMO_DATA=true npm run db:seed` — never against a production database.
 
-## 📁 Project Structure
+## Project structure
 
 ```
 ├── app/
 │   ├── api/              # API routes
 │   ├── admin/            # Admin pages
+│   ├── game/best-lyrics/ # Competition page
+│   ├── library/          # Music library
 │   ├── db.ts             # Prisma client
-│   ├── globals.css       # Global styles
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
-├── components/
-│   ├── admin/            # Admin dashboard components
-│   ├── Hero.tsx          # Hero section
-│   ├── LatestRelease.tsx # Latest release + audio player
-│   ├── MusicLibrary.tsx  # Library page with search + players
-│   ├── MiniPlayer.tsx    # Persistent player (MediaSession-backed)
-│   ├── CommunityQuote.tsx
-│   └── GraffitiShowcase.tsx
+│   └── layout.tsx        # Root layout
+├── components/           # UI components (components/admin for the dashboard)
+├── lib/                  # Shared utilities (audio, auth, storage, rate limiting)
 ├── prisma/
-│   ├── schema.prisma     # Database schema
-│   └── seed.ts           # Seed data
-├── public/
-│   └── images/           # Static images
-└── types/                # TypeScript definitions
+│   ├── schema.prisma
+│   └── seed.ts
+├── public/images/
+└── types/
 ```
 
-## 🔐 Security Notes
+## Scripts
 
-**CRITICAL - Before Production:**
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm start` | Run the production build |
+| `npm test` | Run the test suite |
+| `npm run lint` | Lint with ESLint |
+| `npm run db:generate` | Generate the Prisma client |
+| `npm run db:push` | Push the schema to the database |
+| `npm run db:migrate` | Create and run a migration |
+| `npm run db:seed` | Seed the database |
+| `npm run db:studio` | Open Prisma Studio |
 
-1. ✅ Never commit `.env` file
-2. ✅ Generate strong `NEXTAUTH_SECRET`
-3. ✅ Change default admin credentials
-4. ✅ Use PostgreSQL (not SQLite)
-5. ✅ Enable HTTPS
-6. ✅ Set up proper CORS policies
-7. ✅ Configure Upstash Redis for rate limiting
-8. ✅ Enable virus scanning for uploads (`VIRUS_SCANNER_ENABLED=true`)
-9. ✅ Use S3/Cloudinary for file storage
-10. ✅ Set `ADMIN_RESET_SECRET` to a strong random value
+## Admin access
 
-## 📝 Available Scripts
+Sign in at `/admin/login` with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` values from `.env`. There is no public registration.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push schema to database
-- `npm run db:migrate` - Create migration
-- `npm run db:seed` - Seed database
-- `npm run db:studio` - Open Prisma Studio
+## Security checklist before going live
 
-## 🎨 Admin Access
+1. Never commit `.env`
+2. Use a strong `NEXTAUTH_SECRET` and `ADMIN_RESET_SECRET`
+3. Change any default admin credentials
+4. Use PostgreSQL, not SQLite
+5. Serve over HTTPS (HSTS is already set in `next.config.js`)
+6. Configure Upstash Redis — rate limiting fails closed in production without it
+7. Enable upload scanning with `VIRUS_SCANNER_ENABLED=true`
+8. Use S3 or Supabase Storage instead of local uploads
 
-1. Navigate to `/admin/login`
-2. Use credentials from `.env`:
-   - Email: `ADMIN_EMAIL`
-   - Password: `ADMIN_PASSWORD`
+## Known limitations
 
-## 🌐 Deployment
+- Local file uploads are world-readable; use object storage in production
+- Virus scanning is opt-in; when disabled it fails closed in production (set `VIRUS_SCANNER_FAIL_OPEN=true` for local dev only)
+- The moderation queue is database-backed and survives restarts; notifications go to `MODERATION_WEBHOOK_URL` when set, console otherwise
+- Public graffiti uploads are scanned and optimized server-side at `/api/graffiti`; admin uploads use `/api/uploads/optimize`
 
-### Vercel (Recommended)
+## Deployment
 
-1. Push to GitHub
-2. Import project in Vercel
-3. Add environment variables
-4. Deploy
+Vercel is the recommended host — see [DEPLOYMENT.md](./DEPLOYMENT.md) for the full guide and [QUICKSTART.md](./QUICKSTART.md) for a short version. Any Node host with a PostgreSQL database works.
 
-### Environment Variables for Production
+## License
 
-```env
-DATABASE_URL=postgresql://...
-NEXTAUTH_SECRET=<strong-random-string>
-NEXTAUTH_URL=https://yourdomain.com
-ADMIN_EMAIL=admin@yourdomain.com
-ADMIN_PASSWORD=<strong-password>
-```
+Private — all rights reserved.
 
-## 🐛 Known Issues & Limitations
+## Support
 
-- SQLite not suitable for production (use PostgreSQL)
-- Local file uploads are public; use S3/Cloudinary in production
-- Rate limiting fails closed in production when Upstash Redis is not configured (allows in local dev)
-- Virus scanning is opt-in; when disabled it fails closed in production (set `VIRUS_SCANNER_FAIL_OPEN=true` for dev only)
-- Moderation queue is database-backed and survives restarts; notifications are sent via `MODERATION_WEBHOOK_URL` (console fallback)
-- Public graffiti submissions are scanned + optimized server-side at `/api/graffiti`; admin-only uploads use `/api/uploads/optimize`
-- No user registration (admin only)
+Open an issue in this repository, or use the contact link in the site footer (enable it by setting `NEXT_PUBLIC_CONTACT_EMAIL`).
 
-## 🔄 Changelog
-
-Recent releases added database indexes, strict TypeScript, hardened CSP with per-request nonces on admin routes, CSRF origin enforcement, fail-closed rate limiting, Zod request validation, presigned S3 uploads, and a pagination pass on the admin dashboard. See git history for details.
-
-## 📄 License
-
-Private - All rights reserved
-
-## 🤝 Contributing
-
-This is a private project. Contact the owner for contribution guidelines.
-
-## 📧 Support
-
-For issues or questions, open an issue in this repository or use the contact link in the site footer (set `NEXT_PUBLIC_CONTACT_EMAIL` to enable it).
-
----
-
-**Built From Bars. Raised By Beats.** 🎤

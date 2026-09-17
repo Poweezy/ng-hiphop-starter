@@ -1,8 +1,8 @@
-# Contributing to NG Hip-Hop Platform
+# Contributing
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
+Thanks for wanting to help out. Here's how we keep the codebase consistent.
 
-## 🎯 Code Standards
+## Code standards
 
 ### TypeScript
 - Use strict TypeScript (no `any` types)
@@ -28,7 +28,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 - Implement pagination for list endpoints
 - Check authentication/authorization
 
-## 📝 Commit Messages
+## Commit messages
 
 Follow conventional commits:
 
@@ -49,7 +49,7 @@ fix: Resolve carousel memory leak in GraffitiShowcase
 docs: Update deployment guide with Railway instructions
 ```
 
-## 🔧 Development Workflow
+## Development workflow
 
 1. **Create a branch**
 ```bash
@@ -78,7 +78,7 @@ git commit -m "feat: your feature description"
 git push origin feature/your-feature-name
 ```
 
-## 🧪 Testing Guidelines
+## Testing
 
 ### Manual Testing Checklist
 - [ ] Test on Chrome, Firefox, Safari
@@ -95,7 +95,7 @@ git push origin feature/your-feature-name
 - [ ] Responsive on all screen sizes
 - [ ] Accessible (WCAG AA)
 
-## 🎨 Design Guidelines
+## Design guidelines
 
 ### Colors
 Use CSS custom properties:
@@ -116,7 +116,7 @@ Use clamp() for responsive spacing:
 padding: clamp(16px, 4vw, 48px);
 ```
 
-## 🔒 Security Guidelines
+## Security
 
 ### Never Commit
 - `.env` files
@@ -131,7 +131,7 @@ padding: clamp(16px, 4vw, 48px);
 - Check authentication on protected routes
 - Rate limit public endpoints
 
-## 📚 Documentation
+## Documentation
 
 ### Code Comments
 - Explain "why", not "what"
@@ -145,7 +145,7 @@ Update README when:
 - Adding dependencies
 - Modifying configuration
 
-## 🐛 Bug Reports
+## Reporting bugs
 
 Include:
 - Clear description
@@ -155,7 +155,7 @@ Include:
 - Browser/device information
 - Error messages/logs
 
-## 💡 Feature Requests
+## Feature requests
 
 Include:
 - Clear use case
@@ -163,12 +163,10 @@ Include:
 - Mockups if applicable
 - Potential implementation approach
 
-## 📞 Questions?
+## Questions
 
-- Check existing documentation
-- Review closed issues
-- Ask in discussions
+Check the docs first, then look through closed issues before opening a new one.
 
 ---
 
-**Thank you for contributing to NG Hip-Hop Platform!** 🎤
+Thanks for helping out.
