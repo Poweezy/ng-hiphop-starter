@@ -41,6 +41,19 @@ async function main() {
     });
     console.log(`✅ Admin user seeded: ${adminEmail}`);
 
+    // ─────────────────────────────────────────────────────────────────────
+    // Everything below is DEMO FIXTURES: a placeholder song (with a stand-in
+    // audio file), competitions with fabricated view counts, fake lyric
+    // submissions, winners, and @example.com subscribers. They must never
+    // land in a production database by accident, so they are opt-in:
+    //
+    //   SEED_DEMO_DATA=true npm run db:seed
+    // ─────────────────────────────────────────────────────────────────────
+    if (process.env.SEED_DEMO_DATA !== 'true') {
+        console.log('⏭️  Demo fixtures skipped (set SEED_DEMO_DATA=true to include)');
+        return;
+    }
+
     // Create default song (idempotent upsert)
     await prisma.song.upsert({
         where: { id: 'seed-default-song' },
@@ -48,7 +61,7 @@ async function main() {
         create: {
             id: 'seed-default-song',
             title: 'First Light',
-            description: 'The opening chapter of the NG vault — where bars meet beats and the culture speaks first.',
+            description: 'First official release from the Nerd Gauge vault.',
             file_url: 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg',
             cover_url: '/images/cover.png',
             is_active: true,
@@ -342,7 +355,7 @@ async function main() {
         create: {
             id: 'seed-default-song',
             title: 'First Light',
-            description: 'The opening chapter of the NG vault — where bars meet beats and the culture speaks first.',
+            description: 'First official release from the Nerd Gauge vault.',
             file_url: 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg',
             cover_url: '/images/cover.png',
             is_active: true,

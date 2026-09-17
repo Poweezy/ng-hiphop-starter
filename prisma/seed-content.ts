@@ -11,6 +11,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding community content...');
 
+  // ─────────────────────────────────────────────────────────────────────
+  // Everything below is DEMO FIXTURES: placeholder community quotes and
+  // graffiti submissions. They must never land in a production database
+  // by accident, so they are opt-in:
+  //
+  //   SEED_DEMO_DATA=true npx tsx prisma/seed-content.ts
+  // ─────────────────────────────────────────────────────────────────────
+  if (process.env.SEED_DEMO_DATA !== 'true') {
+    console.log('⏭️  Demo fixtures skipped (set SEED_DEMO_DATA=true to include)');
+    return;
+  }
+
   // ── Deactivate the placeholder seed song ─────────────────────────────────
   await prisma.song.updateMany({
     where: { title: { contains: 'Placeholder' } },
