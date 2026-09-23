@@ -2,10 +2,8 @@ import NextAuth from "next-auth";
 import type { User, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/app/db";
-import { checkRateLimit } from "@/lib/ratelimit";
-import { getClientIp } from "@/lib/ip";
+import { verifyAdminCredentials } from "@/lib/credentials";
 
 if (process.env.NODE_ENV === "production") {
   const missing: string[] = [];
@@ -34,36 +32,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         ) {
           throw new Error("NEXTAUTH_SECRET must be set in production");
         }
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const email = String(credentials.email).toLowerCase().trim();
-        const password = String(credentials.password);
-
-        const ip = getClientIp(req);
-
-        const { allowed } = await checkRateLimit({
-          key: `login:${ip}:${email}`,
-          max: 5,
-          periodSeconds: 900,
-        });
-        if (!allowed) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
-        if (!user) return null;
-        if (user.role !== "ADMIN") return null;
-
-        const isValid = await bcrypt.compare(password, user.password_hash);
-        if (!isValid) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          tokenVersion: user.tokenVersion,
-        };
+        return verifyAdminCredentials(credentials, req);
       },
     }),
   ],

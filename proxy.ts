@@ -33,6 +33,7 @@ function buildCsp({ nonce, isProd }: { nonce?: string; isProd: boolean }): strin
   // honored only by pre-CSP3 browsers). All other routes include statically
   // generated ISR pages where a per-request nonce is impossible — they keep
   // 'unsafe-inline', which is required for Next.js + styled-jsx there.
+  // Dev additionally needs 'unsafe-eval' for React refresh/HMR tooling.
   const scriptSrc = nonce
     ? `'nonce-${nonce}' 'strict-dynamic' 'self' 'unsafe-inline'`
     : `'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`;
@@ -53,6 +54,9 @@ function buildCsp({ nonce, isProd }: { nonce?: string; isProd: boolean }): strin
   ].join('; ');
 }
 
+// Pure CSP construction logic, exported for unit testing.
+export { buildCsp };
+
 function generateNonce(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -64,6 +68,33 @@ function generateNonce(): string {
 //   1. Per-request Content-Security-Policy (strict nonce for /admin in prod)
 //   2. Defense-in-depth CSRF origin checks for mutating methods
 //   3. X-Request-Id correlation headers
+// Pure decision logic for the mutating-request origin check, exported so the
+// security behavior is unit-testable without the Next.js runtime.
+// Returns null when allowed, or a 403 reason string.
+export function validateMutationOrigin(
+  origin: string | null,
+  host: string | null,
+  isProd: boolean,
+): string | null {
+  if (origin) {
+    let originHost: string;
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return 'Invalid Origin';
+    }
+    if (originHost !== host) {
+      return 'Cross-origin request rejected';
+    }
+    return null;
+  }
+  // Origin absent: some same-origin native calls omit it, allow in dev to
+  // avoid breaking local tooling — NextAuth enforces its own CSRF token on
+  // auth routes. In production a missing Origin on a mutating request is
+  // treated as suspicious.
+  return isProd ? 'CSRF validation failed: Origin header missing' : null;
+}
+
 export default function proxy(req: NextRequest) {
   const requestId = crypto.randomUUID();
   const isProd = process.env.NODE_ENV === 'production';
@@ -83,18 +114,9 @@ export default function proxy(req: NextRequest) {
     const origin = req.headers.get('origin');
     const host = req.headers.get('host');
 
-    if (origin) {
-      let originHost: string;
-      try {
-        originHost = new URL(origin).host;
-      } catch {
-        return new NextResponse('Invalid Origin', { status: 403 });
-      }
-      if (originHost !== host) {
-        return new NextResponse('Cross-origin request rejected', { status: 403 });
-      }
-    } else if (isProd) {
-      return new NextResponse('CSRF validation failed: Origin header missing', { status: 403 });
+    const originError = validateMutationOrigin(origin, host, isProd);
+    if (originError) {
+      return new NextResponse(originError, { status: 403 });
     }
   }
 
