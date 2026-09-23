@@ -5,6 +5,10 @@ const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 // Hosts legitimately referenced by user-managed media and known embeds.
 // Mirrors images.remotePatterns in next.config.js plus Supabase Storage.
 // Replaces the previous wildcard `img-src https:` / `connect-src https:`.
+// NOTE: CSP host sources may only use a wildcard as the LEFTMOST label.
+// `https://*.s3.*.amazonaws.com` (wildcard mid-host) is invalid and browsers
+// ignore it, so regional S3 endpoints are covered by the broader-but-valid
+// `https://*.amazonaws.com` below.
 const MEDIA_HOSTS = [
   'https://open.spotify.com',
   'https://music.apple.com',
@@ -13,7 +17,7 @@ const MEDIA_HOSTS = [
   'https://picsum.photos',
   'https://s3.amazonaws.com',
   'https://*.s3.amazonaws.com',
-  'https://*.s3.*.amazonaws.com',
+  'https://*.amazonaws.com', // covers *.s3.<region>.amazonaws.com (CSP forbids mid-host wildcards)
   'https://*.supabase.co',
 ].join(' ');
 
@@ -31,11 +35,11 @@ function buildCsp({ nonce, isProd }: { nonce?: string; isProd: boolean }): strin
   // 'unsafe-inline', which is required for Next.js + styled-jsx there.
   const scriptSrc = nonce
     ? `'nonce-${nonce}' 'strict-dynamic' 'self' 'unsafe-inline'`
-    : `'self' 'unsafe-inline'`;
+    : `'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`;
 
   return [
     "default-src 'self'",
-    `script-src ${scriptSrc}`,
+    `script-src ${scriptSrc} https://va.vercel-scripts.com`, // Vercel Analytics debug script (dev)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     `img-src 'self' data: blob: ${MEDIA_HOSTS}`,

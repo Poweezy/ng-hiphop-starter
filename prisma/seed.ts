@@ -32,7 +32,9 @@ async function main() {
 
     await prisma.user.upsert({
         where: { email: adminEmail },
-        update: {},
+        // Keep the stored hash in sync with ADMIN_PASSWORD on re-seed, so a
+        // changed .env password is applied instead of silently ignored.
+        update: { password_hash },
         create: {
             email: adminEmail,
             password_hash,

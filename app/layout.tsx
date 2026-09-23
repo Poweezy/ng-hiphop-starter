@@ -122,6 +122,11 @@ export default function RootLayout({
         <html
             lang="en"
             data-scroll-behavior="smooth"
+            // Browser extensions (e.g. recorders/translators) inject attributes
+            // on <html> before React hydrates, causing benign hydration
+            // mismatch warnings. suppressHydrationWarning silences attribute
+            // diffs on this element only.
+            suppressHydrationWarning
             className={`${bebasNeue.variable} ${inter.variable} ${barlowCondensed.variable} ${dancingScript.variable}`}
         >
             <head>
