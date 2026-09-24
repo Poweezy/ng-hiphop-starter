@@ -61,7 +61,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       subscribersGenerated: subscribers,
       conversionRate,
       winners: winnersCount,
-      prizeValue: prizeValue._sum.cashAmount != null ? prizeValue._sum.cashAmount.toNumber() : 0,
+      prizeValue: Number(prizeValue._sum.cashAmount ?? 0),
     };
 
     recordRequest('GET', `/api/competitions/${id}/analytics`, 200, performance.now() - start, requestId);

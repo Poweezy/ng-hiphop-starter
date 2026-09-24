@@ -14,7 +14,7 @@ Music platform for Nerd Gauge, a hip-hop artist from Eswatini. Built with Next.j
 ## Tech stack
 
 - Next.js 16 (App Router, Turbopack)
-- Prisma + PostgreSQL (Vercel Postgres in production, SQLite for local dev)
+- Prisma + PostgreSQL (Vercel Postgres or any managed Postgres in production, local Postgres for development)
 - NextAuth.js
 - TypeScript (strict)
 - Sharp + next/image for image optimization
@@ -26,7 +26,7 @@ Music platform for Nerd Gauge, a hip-hop artist from Eswatini. Built with Next.j
 
 - Node.js 18+
 - npm
-- PostgreSQL (production only; local dev falls back to SQLite)
+- PostgreSQL (local or managed; the app does not support SQLite)
 
 ## Getting started
 
@@ -97,7 +97,7 @@ Sign in at `/admin/login` with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` values fro
 1. Never commit `.env`
 2. Use a strong `NEXTAUTH_SECRET` and `ADMIN_RESET_SECRET`
 3. Change any default admin credentials
-4. Use PostgreSQL, not SQLite
+4. Use PostgreSQL (already required — SQLite is not supported by the schema)
 5. Serve over HTTPS (HSTS is already set in `next.config.js`)
 6. Configure Upstash Redis — rate limiting fails closed in production without it
 7. Enable upload scanning with `VIRUS_SCANNER_ENABLED=true`

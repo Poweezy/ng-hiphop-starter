@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+﻿import { NextRequest } from 'next/server';
 import { prisma } from '@/app/db';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { winnerSelectionSchema } from '@/lib/validations';
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     const serialized = winners.map((w) => ({
       ...w,
-      cashAmount: w.cashAmount != null ? w.cashAmount.toNumber() : null,
+      cashAmount: Number(w.cashAmount ?? null),
     }));
 
     recordRequest('GET', '/api/winners', 200, performance.now() - start, requestId);
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
 
     const serialized = {
       ...winner,
-      cashAmount: winner.cashAmount != null ? winner.cashAmount.toNumber() : null,
+      cashAmount: Number(winner.cashAmount ?? null),
     };
 
     recordRequest('POST', '/api/winners', 201, performance.now() - start, requestId);

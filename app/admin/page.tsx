@@ -32,7 +32,10 @@ export default async function AdminPage() {
         }),
         prisma.lyricSubmission.findMany({
             orderBy: { createdAt: 'desc' },
-            take: 200,
+            // First page only — the Submissions panel fetches further pages,
+            // searches, and filter combinations on demand from
+            // /api/admin/submissions instead of shipping every row up front.
+            take: 20,
             include: {
                 competition: {
                     select: { id: true, title: true },

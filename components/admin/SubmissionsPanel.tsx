@@ -15,7 +15,7 @@ interface LyricSubmissionSummary {
   competitionId: string;
   artistAlias: string;
   userId?: string | null;
-  lyrics: string;
+  lyrics?: string;
   songTitle?: string | null;
   audioUrl?: string | null;
   socialLinks?: string | null;
@@ -34,22 +34,74 @@ interface Props {
   initialSubmissions: LyricSubmissionSummary[];
 }
 
+interface ModerationHistoryEntry {
+  id: string;
+  action: string;
+  reason?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  moderatorEmail?: string | null;
+}
+
 export default function SubmissionsPanel({ initialSubmissions }: Props) {
+  // First page is server-rendered for an instant first paint; subsequent
+  // pages/filters are fetched on demand from /api/admin/submissions.
   const [submissions, setSubmissions] = useState<LyricSubmissionSummary[]>(initialSubmissions);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [moderationFilter, setModerationFilter] = useState('');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const toast = useToast();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<LyricSubmissionSummary & { moderationHistory?: any[] } | null>(null);
+  const [detail, setDetail] = useState<LyricSubmissionSummary & { moderationHistory?: ModerationHistoryEntry[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [moderating, setModerating] = useState(false);
   const [modAction, setModAction] = useState('');
   const [modReason, setModReason] = useState('');
   const [modNotes, setModNotes] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Debounce the search box so typing doesn't fire a request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // Fetch the current view on demand. SSR provides page-1 data for an instant
+  // first paint; this effect keeps it fresh and loads every other page/filter
+  // combination from the server.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(PAGE_SIZE),
+    });
+    if (search) params.set('search', search);
+    if (statusFilter) params.set('status', statusFilter);
+    if (moderationFilter) params.set('moderationStatus', moderationFilter);
+    fetch(`/api/admin/submissions?${params.toString()}`)
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to load'))
+      .then(data => {
+        if (cancelled) return;
+        const payload = data.data || data;
+        setSubmissions(payload.submissions || []);
+        setTotalPages(Math.max(1, payload.pagination?.pages || 1));
+        setTotal(payload.pagination?.total ?? null);
+      })
+      .catch(() => { if (!cancelled) toast.error('Failed to load submissions'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [page, search, statusFilter, moderationFilter, refreshKey]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -87,6 +139,8 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
         setModAction('');
         setModReason('');
         setModNotes('');
+        // Status changes affect the server-side filters/pagination — refresh.
+        setRefreshKey(k => k + 1);
       } else {
         toast.error(data.data?.error?.message || data.message || 'Moderation failed');
       }
@@ -104,6 +158,7 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
         setSubmissions(prev => prev.filter(s => s.id !== deleteId));
         toast.success('Submission deleted');
         setDeleteId(null);
+        setRefreshKey(k => k + 1);
       } else {
         toast.error('Delete failed');
       }
@@ -112,16 +167,8 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
     }
   };
 
-  const filtered = submissions.filter(s => {
-    const matchesSearch = s.artistAlias.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !statusFilter || s.status === statusFilter;
-    const matchesModeration = !moderationFilter || s.moderationStatus === moderationFilter;
-    return matchesSearch && matchesStatus && matchesModeration;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
+  // Filtering and pagination happen server-side (see /api/admin/submissions);
+  // `submissions` is exactly the current page.
   const getStatusBadge = (status: string) => {
     if (status === 'approved' || status === 'winner') return <span className="badge-approved">{status.toUpperCase()}</span>;
     if (status === 'rejected' || status === 'disqualified') return <span className="badge-rejected">{status.toUpperCase()}</span>;
@@ -147,9 +194,9 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
               id="submission-search"
               type="text"
               className="admin-input"
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search by artist alias..."
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              placeholder="Search by artist alias or song title..."
             />
           </div>
           <div className="form-group">
@@ -186,9 +233,12 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
         </div>
       </div>
 
-      <h3 className="admin-section-title">All Submissions ({filtered.length})</h3>
+      <h3 className="admin-section-title">
+        All Submissions{total !== null ? ` (${total})` : ''}
+        {loading && <span className="admin-text-muted" style={{ marginLeft: 12, fontSize: '0.8rem' }}>Loading…</span>}
+      </h3>
 
-      {filtered.length === 0 ? (
+      {submissions.length === 0 ? (
         <EmptyState
           icon={<FileTextIcon size={56} />}
           title="No submissions found"
@@ -197,7 +247,7 @@ export default function SubmissionsPanel({ initialSubmissions }: Props) {
       ) : (
         <>
           <div className="admin-users-list">
-            {paginated.map(s => (
+            {submissions.map(s => (
               <div key={s.id} className="admin-card admin-card--compact" style={{ cursor: 'pointer' }} onClick={() => setSelectedId(s.id)}>
                 <div className="admin-card-body admin-card-body--no-shrink">
                   <div style={{ fontWeight: 600, color: 'white' }}>{s.artistAlias}</div>

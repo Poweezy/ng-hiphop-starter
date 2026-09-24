@@ -80,7 +80,7 @@ export default function WinnersPanel({ initialWinners }: Props) {
 
   const loadSubmissions = async (competitionId: string) => {
     try {
-      const res = await fetch(`/api/submissions?competitionId=${competitionId}&status=approved&limit=100`);
+      const res = await fetch(`/api/admin/submissions?competitionId=${competitionId}&status=approved&limit=100`);
       if (res.ok) {
         const data = await res.json();
         setSubmissions(data.data?.submissions || []);
@@ -295,7 +295,7 @@ export default function WinnersPanel({ initialWinners }: Props) {
               <option value="">Select a submission...</option>
               {submissions.map(s => (
                 <option key={s.id} value={s.id}>
-                  {s.artistAlias} — {s.songTitle || s.lyrics.substring(0, 50)}
+                  {s.artistAlias} — {s.songTitle || (s.lyrics ? s.lyrics.substring(0, 50) : 'No title')}
                 </option>
               ))}
             </select>

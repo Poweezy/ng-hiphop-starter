@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
 
     const serialized = {
       ...prize,
-      cashAmount: prize.cashAmount != null ? prize.cashAmount.toNumber() : null,
+      cashAmount: Number(prize.cashAmount ?? null),
     };
 
     recordRequest('PATCH', `/api/competitions/prizes/${prizeId}`, 200, performance.now() - start, requestId);

@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const serialized = prizes.map((p) => ({
       ...p,
-      cashAmount: p.cashAmount != null ? p.cashAmount.toNumber() : null,
+      cashAmount: Number(p.cashAmount ?? null),
     }));
 
     recordRequest('GET', `/api/competitions/${id}/prizes`, 200, performance.now() - start, requestId);
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const serialized = {
       ...prize,
-      cashAmount: prize.cashAmount != null ? prize.cashAmount.toNumber() : null,
+      cashAmount: Number(prize.cashAmount ?? null),
     };
 
     recordRequest('POST', `/api/competitions/${id}/prizes`, 201, performance.now() - start, requestId);

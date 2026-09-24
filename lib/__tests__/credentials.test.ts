@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+﻿import { describe, it, expect, vi } from 'vitest';
 import bcrypt from 'bcryptjs';
 import type { User } from 'next-auth';
 import { verifyAdminCredentials } from '@/lib/credentials';
@@ -8,11 +8,8 @@ const req = new Request('http://localhost:3000/api/auth/callback/credentials');
 function makeDeps(overrides: Partial<Parameters<typeof verifyAdminCredentials>[2]> = {}) {
   const findUser = vi.fn().mockResolvedValue(null);
   const checkLimit = vi.fn().mockResolvedValue({ allowed: true });
-  return {
-    deps: { findUser, checkLimit, clientIp: '127.0.0.1', ...overrides },
-    findUser,
-    checkLimit,
-  };
+  const deps = { findUser, checkLimit, clientIp: '127.0.0.1', ...overrides } as NonNullable<Parameters<typeof verifyAdminCredentials>[2]>;
+  return { deps, findUser, checkLimit };
 }
 
 const adminRow = {
@@ -25,8 +22,8 @@ const adminRow = {
 
 describe('verifyAdminCredentials', () => {
   it('authenticates a valid admin with correct password', async () => {
-    const { deps } = makeDeps();
-    deps.findUser.mockResolvedValue({
+    const { deps, findUser, checkLimit } = makeDeps();
+    findUser.mockResolvedValue({
       ...adminRow,
       password_hash: await bcrypt.hash('correct-password', 4),
     });
@@ -39,8 +36,8 @@ describe('verifyAdminCredentials', () => {
   });
 
   it('rejects a wrong password', async () => {
-    const { deps } = makeDeps();
-    deps.findUser.mockResolvedValue({
+    const { deps, findUser, checkLimit } = makeDeps();
+    findUser.mockResolvedValue({
       ...adminRow,
       password_hash: await bcrypt.hash('correct-password', 4),
     });
@@ -53,8 +50,8 @@ describe('verifyAdminCredentials', () => {
   });
 
   it('rejects users without the ADMIN role', async () => {
-    const { deps } = makeDeps();
-    deps.findUser.mockResolvedValue({
+    const { deps, findUser, checkLimit } = makeDeps();
+    findUser.mockResolvedValue({
       ...adminRow,
       role: 'USER',
       password_hash: await bcrypt.hash('correct-password', 4),
@@ -68,7 +65,7 @@ describe('verifyAdminCredentials', () => {
   });
 
   it('rejects unknown emails without leaking existence', async () => {
-    const { deps } = makeDeps();
+    const { deps, findUser, checkLimit } = makeDeps();
     const user = await verifyAdminCredentials(
       { email: 'nobody@ng.com', password: 'whatever' },
       req,
@@ -78,8 +75,8 @@ describe('verifyAdminCredentials', () => {
   });
 
   it('rejects when rate limited before touching the database', async () => {
-    const { deps } = makeDeps();
-    deps.checkLimit.mockResolvedValue({ allowed: false });
+    const { deps, findUser, checkLimit } = makeDeps();
+    checkLimit.mockResolvedValue({ allowed: false });
     const user = await verifyAdminCredentials(
       { email: 'admin@ng.com', password: 'correct-password' },
       req,
@@ -90,14 +87,14 @@ describe('verifyAdminCredentials', () => {
   });
 
   it('rejects missing credentials', async () => {
-    const { deps } = makeDeps();
+    const { deps, findUser, checkLimit } = makeDeps();
     expect(await verifyAdminCredentials(undefined, req, deps)).toBeNull();
     expect(await verifyAdminCredentials({ email: 'a@b.c' }, req, deps)).toBeNull();
     expect(await verifyAdminCredentials({ password: 'x' }, req, deps)).toBeNull();
   });
 
   it('normalizes the email before lookup', async () => {
-    const { deps } = makeDeps();
+    const { deps, findUser, checkLimit } = makeDeps();
     await verifyAdminCredentials(
       { email: '  ADMIN@NG.com ', password: 'x' },
       req,
@@ -107,7 +104,7 @@ describe('verifyAdminCredentials', () => {
   });
 
   it('rate-limit key includes ip and email', async () => {
-    const { deps } = makeDeps();
+    const { deps, findUser, checkLimit } = makeDeps();
     await verifyAdminCredentials(
       { email: 'admin@ng.com', password: 'x' },
       req,
