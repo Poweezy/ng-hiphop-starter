@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { DEFAULT_SLOGAN } from '../lib/slogan';
 
 const prisma = new PrismaClient();
 
@@ -12,7 +13,7 @@ async function main() {
         update: {},
         create: {
             id: 1,
-            text: 'Built From Bars. Raised By Beats.',
+            text: DEFAULT_SLOGAN,
         },
     });
     console.log('✅ Slogan seeded');

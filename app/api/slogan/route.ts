@@ -4,6 +4,7 @@ import { sloganUpdateSchema } from '@/lib/validations';
 import { requireAdmin } from '@/app/api/_lib/admin';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { DEFAULT_SLOGAN } from '@/lib/slogan';
 import { extractIdempotencyKey, getCachedIdempotentResponse, withIdempotency } from '@/lib/idempotency';
 
 export async function GET(req: NextRequest) {
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
     try {
         const slogan = await prisma.slogan.findUnique({ where: { id: 1 } });
         recordRequest('GET', '/api/slogan', 200, performance.now() - start, requestId);
-        return successResponse({ text: slogan?.text ?? 'Built From Bars. Raised By Beats.' });
+        return successResponse({ text: slogan?.text ?? DEFAULT_SLOGAN });
     } catch (error) {
         console.error('Slogan fetch error:', error);
         recordRequest('GET', '/api/slogan', 500, performance.now() - start, requestId);

@@ -83,7 +83,7 @@ export default function Hero({ slogan }: HeroProps) {
             <MusicNoteIcon size={18} aria-hidden="true" /> Listen Now
           </a>
           <a href="/game/best-lyrics" className="hero-btn-ghost">
-            <TrophyIcon size={18} aria-hidden="true" /> Join The Competition
+            <TrophyIcon size={18} aria-hidden="true" /> Test Your Ear
           </a>
         </motion.div>
 
@@ -93,7 +93,7 @@ export default function Hero({ slogan }: HeroProps) {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="hero-value-prop"
         >
-          Stream the latest Eswatini hip-hop, catch the community's bars and art, and put your ear to the test.
+          Fresh Eswatini hip-hop. Killer bars. Can you keep up?
         </motion.p>
       </div>
 
