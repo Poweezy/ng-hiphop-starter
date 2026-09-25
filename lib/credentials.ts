@@ -26,7 +26,10 @@ export async function verifyAdminCredentials(
     clientIp: '',
   },
 ): Promise<User | null> {
-  if (!credentials?.email || !credentials?.password) return null;
+  if (!credentials?.email || !credentials?.password) {
+    console.error('[auth] login denied: missing credentials fields');
+    return null;
+  }
 
   const email = String(credentials.email).toLowerCase().trim();
   const password = String(credentials.password);
@@ -38,15 +41,31 @@ export async function verifyAdminCredentials(
     max: 5,
     periodSeconds: 900,
   });
-  if (!allowed) return null;
+  if (!allowed) {
+    // Production function logs should show this line directly before the
+    // generic CredentialsSignin error — the most common cause of a bare
+    // CredentialsSignin is fail-closed rate limiting when Upstash env vars
+    // are missing on the deployment host.
+    console.error('[auth] login denied: rate limit exceeded', { email, ip });
+    return null;
+  }
 
   const user = await deps.findUser(email);
 
-  if (!user) return null;
-  if (user.role !== "ADMIN") return null;
+  if (!user) {
+    console.error('[auth] login failed: no user row for email', { email });
+    return null;
+  }
+  if (user.role !== "ADMIN") {
+    console.error('[auth] login failed: non-admin role', { email, role: user.role });
+    return null;
+  }
 
   const isValid = await bcrypt.compare(password, user.password_hash);
-  if (!isValid) return null;
+  if (!isValid) {
+    console.error('[auth] login failed: invalid password', { email });
+    return null;
+  }
 
   return {
     id: user.id,

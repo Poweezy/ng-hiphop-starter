@@ -42,6 +42,7 @@ Edit `.env` and set at minimum:
 - `NEXTAUTH_SECRET` — generate with `openssl rand -base64 32`
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — the admin login
 - `DATABASE_URL` — database connection string
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` — required in production; rate-limited endpoints (including admin login) **fail closed** without them
 
 Then:
 
