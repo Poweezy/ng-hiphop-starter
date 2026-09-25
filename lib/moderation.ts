@@ -10,7 +10,7 @@ export type ModerationTaskPayload = {
 /**
  * Computes exponential backoff delay: min(base * 2^attempt, maxDelayMs).
  * attempt is 0-indexed so attempt 0 → base, attempt 1 → 2×base, etc.
- * Implementation lives in lib/queue.ts to avoid circular imports.
+ * Implementation lives in lib/queue-timing.ts (re-exported from lib/queue).
  */
 export { calculateBackoffMs as moderationBackoffMs } from '@/lib/queue';
 

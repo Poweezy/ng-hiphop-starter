@@ -1,6 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { captureQueueError } from "./observability";
+import {
+  calculateBackoffMs,
+  MAX_POLL_INTERVAL,
+  MIN_POLL_INTERVAL,
+  nextPollDelayMs,
+} from "./queue-timing";
+
+// Re-exported for existing importers (lib/moderation.ts) — the implementation
+// lives in ./queue-timing so it stays unit-testable without the Prisma client.
+export { calculateBackoffMs };
 
 export type Task<T = unknown> = {
   id: string;
@@ -15,16 +25,6 @@ type Handler<T = unknown> = (task: Task<T>) => Promise<void>;
 
 const handlers = new Map<string, Handler>();
 let processing = false;
-
-/**
- * Exponential backoff: min(baseMs * 2^attempt, maxDelayMs).
- * Kept in queue.ts to avoid a circular import with lib/moderation.ts.
- */
-export function calculateBackoffMs(attempt: number): number {
-  const baseMs = 5_000;
-  const maxDelayMs = 300_000; // 5 minutes cap
-  return Math.min(baseMs * Math.pow(2, attempt), maxDelayMs);
-}
 
 // ─── Concurrency control ─────────────────────────────────────────────────────
 
@@ -108,6 +108,12 @@ export async function enqueue<T = unknown>(
       status: "pending",
       nextRetryAt: new Date(),
     },
+  });
+
+  // Kick the processor immediately so a new job doesn't sit until the next
+  // poll tick (which can be up to 30s away while the loop is backed off).
+  void processQueue().catch((err) => {
+    captureQueueError(err, { jobType: 'enqueue-kick' });
   });
 
   return task;
@@ -206,10 +212,7 @@ function deserializePayload<T>(raw: string): T {
 
 // ─── Main processing loop ────────────────────────────────────────────────────
 
-let pollIntervalMs = 1000;
-const MIN_POLL_INTERVAL = 1000;
-const MAX_POLL_INTERVAL = 30000;
-const POLL_BACKOFF_MULTIPLIER = 2;
+let pollIntervalMs = MIN_POLL_INTERVAL;
 
 export async function processQueue() {
   if (processing) return;
@@ -223,6 +226,9 @@ export async function processQueue() {
       const raw: { job: JobRow | null; index: number }[] = [];
       for (let i = 0; i < MAX_CONCURRENT_JOBS; i++) {
         const job = await claimNextJob();
+        // Nothing claimable right now — skip the remaining claim queries so an
+        // idle tick costs one DB round-trip instead of MAX_CONCURRENT_JOBS.
+        if (!job) break;
         raw.push({ job, index: i });
       }
 
@@ -269,11 +275,7 @@ export async function processQueue() {
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
     }
 
-    if (jobsProcessed === 0) {
-      pollIntervalMs = Math.min(pollIntervalMs * POLL_BACKOFF_MULTIPLIER, MAX_POLL_INTERVAL);
-    } else {
-      pollIntervalMs = MIN_POLL_INTERVAL;
-    }
+    pollIntervalMs = nextPollDelayMs({ currentMs: pollIntervalMs, jobsProcessed });
   } finally {
     processing = false;
   }
@@ -281,9 +283,20 @@ export async function processQueue() {
 
 // ─── Background tick ─────────────────────────────────────────────────────────
 
+declare global {
+  // Set once per server process before starting the background loop. Dev-HMR
+  // re-evaluates this module on every edit; without this guard each
+  // re-evaluation spawns another eternal tick loop while the previous one
+  // keeps polling — multiplying DB connections until the pool's client cap
+  // (e.g. Supabase session-mode pool_size: 15) is exhausted.
+  var __ngQueueLoopStarted: boolean | undefined;
+}
+
 if (typeof window === "undefined") {
   const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
-  if (!isBuildPhase) {
+  if (!isBuildPhase && !global.__ngQueueLoopStarted) {
+    global.__ngQueueLoopStarted = true;
+
     // Kick off the stale-job recovery sweep as soon as the module loads.
     startStaleRecoveryScheduler();
 
@@ -295,6 +308,13 @@ if (typeof window === "undefined") {
         .catch((err) => {
           console.error("processQueue background tick failed:", err);
           captureQueueError(err, { jobType: 'processQueue-tick' });
+          // Back off instead of retrying at the same interval — hammering an
+          // exhausted connection pool every second only prolongs the outage.
+          pollIntervalMs = nextPollDelayMs({
+            currentMs: pollIntervalMs,
+            jobsProcessed: 0,
+            failed: true,
+          });
           setTimeout(tick, pollIntervalMs);
         });
     };

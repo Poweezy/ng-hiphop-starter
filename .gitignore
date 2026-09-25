@@ -44,6 +44,7 @@ Thumbs.db
 # Deployment artifacts & stale scratch files
 *.zip
 tmp_*.txt
+/*.txt
 
 # Internal notes & local tooling — never publish
 _private/
