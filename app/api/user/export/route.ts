@@ -41,9 +41,27 @@ export async function GET(req: NextRequest) {
       return errorResponse('User not found', 404, 'USER_NOT_FOUND');
     }
 
-    const [quotes, graffiti] = await Promise.all([
+    // GDPR Art. 15 — a complete export includes lyric competition submissions.
+    // NOTE: only submissions made while signed in can be attributed (userId);
+    // anonymous submissions have no account linkage to export.
+    const [quotes, graffiti, lyricSubmissions] = await Promise.all([
       prisma.quoteSubmission.findMany({ where: { submitted_by: session.user.email } }),
       prisma.graffitiSubmission.findMany({ where: { artist_name: session.user.email } }),
+      prisma.lyricSubmission.findMany({
+        where: { userId: user.id, deletedAt: null },
+        select: {
+          id: true,
+          competitionId: true,
+          artistAlias: true,
+          lyrics: true,
+          songTitle: true,
+          audioUrl: true,
+          socialLinks: true,
+          status: true,
+          moderationStatus: true,
+          createdAt: true,
+        },
+      }),
     ]);
 
     const exportData = {
@@ -52,6 +70,7 @@ export async function GET(req: NextRequest) {
       submissions: {
         quotes,
         graffiti,
+        lyricSubmissions,
       },
     };
 

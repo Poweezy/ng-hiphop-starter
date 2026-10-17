@@ -35,6 +35,25 @@ export async function DELETE(req: NextRequest) {
       prisma.quoteSubmission.deleteMany({ where: { submitted_by: session.user.email } }),
       prisma.graffitiSubmission.deleteMany({ where: { artist_name: session.user.email } }),
       prisma.subscriber.deleteMany({ where: { email: session.user.email } }),
+      // GDPR erasure for lyric submissions: Winner→LyricSubmission is a
+      // required relation with Prisma's default onDelete: Restrict, so these
+      // rows cannot be hard-deleted without breaking competition records.
+      // Anonymize instead — all personal data is removed, referential
+      // integrity for winners and moderation history is preserved.
+      prisma.lyricSubmission.updateMany({
+        where: { userId: user.id },
+        data: {
+          artistAlias: 'Deleted User',
+          lyrics: '[Removed at account holder request]',
+          songTitle: null,
+          audioUrl: null,
+          socialLinks: null,
+          ipAddress: null,
+          userAgent: null,
+          userId: null,
+          deletedAt: new Date(),
+        },
+      }),
       prisma.user.delete({ where: { id: user.id } }),
     ]);
 

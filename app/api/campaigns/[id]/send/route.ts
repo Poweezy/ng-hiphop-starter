@@ -25,6 +25,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return errorResponse('Campaign not found', 404, 'NOT_FOUND');
     }
 
+    // Double-send guard: a campaign that already completed must not be queued
+    // again (the queue handler also refuses 'sent' campaigns, but failing
+    // fast here gives the admin a clear error instead of a silent no-op).
+    if (campaign.status === 'sent') {
+      recordRequest('POST', `/api/campaigns/${id}/send`, 409, performance.now() - start, requestId);
+      return errorResponse('Campaign has already been sent', 409, 'CAMPAIGN_ALREADY_SENT');
+    }
+
     let recipientIds: string[] = [];
     if (campaign.recipientIds) {
       try {
@@ -34,12 +42,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
+    // Consent guard: the base query only ever targets subscribers who are
+    // active AND have granted marketing consent. A missing or empty filter
+    // must never widen the audience to unsubscribed or consent-withdrawn
+    // subscribers. sendCampaignToSubscribers re-checks consent at send time.
     if (recipientIds.length === 0 && campaign.recipientFilter) {
-      const where: Record<string, unknown> = {};
+      const where: Record<string, unknown> = {
+        subscriptionStatus: 'active',
+        consentStatus: 'granted',
+      };
       try {
         const filter = JSON.parse(campaign.recipientFilter);
         if (filter.competitionId) where.competitionId = filter.competitionId;
-        if (filter.subscriptionStatus) where.subscriptionStatus = filter.subscriptionStatus;
         if (filter.source) where.source = filter.source;
       } catch {
         // ignore parse errors

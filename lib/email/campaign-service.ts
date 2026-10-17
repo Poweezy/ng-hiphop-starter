@@ -1,6 +1,7 @@
 import { prisma } from "@/app/db";
 import { getEmailProvider } from "./index";
 import type { EmailMessage } from "./provider";
+import { generateUnsubscribeToken } from "./unsubscribe";
 
 const provider = getEmailProvider();
 
@@ -8,12 +9,19 @@ const DEFAULT_FROM = process.env.EMAIL_FROM || "noreply@ng-hiphop.com";
 const DEFAULT_REPLY_TO = process.env.EMAIL_REPLY_TO || "noreply@ng-hiphop.com";
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
+// Unsubscribe links carry an HMAC-signed, expiring token (see lib/email/unsubscribe.ts)
+// instead of the raw subscriber ID, so they cannot be forged or reused to
+// unsubscribe someone else.
 function buildUnsubscribeLink(subscriberId: string): string {
-  return `${APP_URL}/api/unsubscribe?subscriberId=${subscriberId}`;
+  const token = generateUnsubscribeToken(subscriberId);
+  return `${APP_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
+// The public competition page is /game/best-lyrics — it renders the currently
+// active competition. /competitions/[id] does not exist as a route; the id is
+// kept as an anchor for future deep-linking.
 function buildCompetitionUrl(competitionId: string): string {
-  return `${APP_URL}/competitions/${competitionId}`;
+  return `${APP_URL}/game/best-lyrics#competition-${competitionId}`;
 }
 
 /**
@@ -99,6 +107,27 @@ export async function sendCampaign(campaignId: string): Promise<{ success: boole
     return { success: false, sentCount: 0, error: "Campaign not found" };
   }
 
+  const subscriberIds = await resolveRecipientIds(campaign);
+  return sendCampaignToSubscribers(campaignId, subscriberIds);
+}
+
+/**
+ * Sends a campaign to an explicit set of subscriber IDs. This is the single
+ * implementation used by direct callers and the campaign.send_email queue
+ * handler, so consent rules can never diverge between the two paths.
+ */
+export async function sendCampaignToSubscribers(
+  campaignId: string,
+  subscriberIds: string[],
+): Promise<{ success: boolean; sentCount: number; error?: string }> {
+  const campaign = await prisma.emailCampaign.findUnique({
+    where: { id: campaignId },
+  });
+
+  if (!campaign) {
+    return { success: false, sentCount: 0, error: "Campaign not found" };
+  }
+
   if (campaign.status === "sent") {
     return { success: false, sentCount: 0, error: "Campaign already sent" };
   }
@@ -108,19 +137,28 @@ export async function sendCampaign(campaignId: string): Promise<{ success: boole
     data: { status: "sending" },
   });
 
-  const subscriberIds = await resolveRecipientIds(campaign);
+  // Consent re-check at send time: recipients may have unsubscribed or
+  // withdrawn consent after the recipient list was resolved. This is the
+  // last line of defense — the send route applies the same defaults when
+  // resolving recipients.
+  const subscribers =
+    subscriberIds.length === 0
+      ? []
+      : await prisma.subscriber.findMany({
+          where: {
+            id: { in: subscriberIds },
+            subscriptionStatus: "active",
+            consentStatus: "granted",
+          },
+        });
 
-  if (subscriberIds.length === 0) {
+  if (subscribers.length === 0) {
     await prisma.emailCampaign.update({
       where: { id: campaignId },
       data: { status: "sent", sentAt: new Date() },
     });
     return { success: true, sentCount: 0 };
   }
-
-  const subscribers = await prisma.subscriber.findMany({
-    where: { id: { in: subscriberIds } },
-  });
 
   const messages: EmailMessage[] = subscribers.map((subscriber) => ({
     to: subscriber.email,

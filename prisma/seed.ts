@@ -297,10 +297,11 @@ async function main() {
         'Best Lyrics Portal - 2025',
     ];
 
+    const createdSubscriberIds: string[] = [];
     for (let i = 0; i < subscriberEmails.length; i++) {
         const comp = allCompetitions[i % allCompetitions.length];
         const status = i < 20 ? 'active' : 'unsubscribed';
-        await prisma.subscriber.create({
+        const created = await prisma.subscriber.create({
             data: {
                 email: subscriberEmails[i],
                 name: subscriberNames[i],
@@ -313,6 +314,7 @@ async function main() {
                 lastEmailSentAt: status === 'active' ? new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000) : null,
             },
         });
+        createdSubscriberIds.push(created.id);
     }
     console.log(`✅ ${subscriberEmails.length} subscribers seeded`);
 
@@ -344,7 +346,9 @@ async function main() {
             subject: 'The August Best Lyrics Competition is LIVE!',
             body: '<h1>Drop Your Bars!</h1><p>The August 2026 Best Lyrics Competition is now open. Enter now for your chance to win $500.</p><a href="https://ng-hiphop.com/game/best-lyrics">Enter Competition</a><hr><p><a href="https://ng-hiphop.com/unsubscribe">Unsubscribe</a></p>',
             recipientFilter: JSON.stringify({ competitionId: aug2026.id, subscriptionStatus: 'active' }),
-            recipientIds: JSON.stringify(subscriberEmails.slice(0, 5)),
+            // recipientIds must contain subscriber IDs (not emails) — the
+            // campaign pipeline resolves recipients by Subscriber.id.
+            recipientIds: JSON.stringify(createdSubscriberIds.slice(0, 5)),
             status: 'draft',
             createdBy: adminEmail,
         },
