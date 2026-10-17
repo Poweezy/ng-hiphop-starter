@@ -65,8 +65,21 @@ describe('unsubscribe tokens', () => {
   });
 
   it('fails closed when no secret is configured', () => {
-    delete process.env[SECRET_ENV];
-    expect(() => generateUnsubscribeToken('sub_123')).toThrow();
-    expect(verifyUnsubscribeToken('anything')).toBeNull();
+    // Pin every secret that getSecret() would fall back to, so this test stays
+    // hermetic even on machines or CI runs where NEXTAUTH_SECRET or
+    // ADMIN_RESET_SECRET happen to be set in the ambient environment.
+    const fallbackKeys = ['NEXTAUTH_SECRET', 'ADMIN_RESET_SECRET'];
+    const savedFallbacks = fallbackKeys.map((k) => process.env[k]);
+    fallbackKeys.forEach((k) => delete process.env[k]);
+    try {
+      delete process.env[SECRET_ENV];
+      expect(() => generateUnsubscribeToken('sub_123')).toThrow();
+      expect(verifyUnsubscribeToken('anything')).toBeNull();
+    } finally {
+      fallbackKeys.forEach((k, i) => {
+        if (savedFallbacks[i] === undefined) delete process.env[k];
+        else process.env[k] = savedFallbacks[i] as string;
+      });
+    }
   });
 });

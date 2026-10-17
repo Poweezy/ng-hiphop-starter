@@ -3,6 +3,19 @@ import bcrypt from 'bcryptjs';
 import type { User } from 'next-auth';
 import { verifyAdminCredentials } from '@/lib/credentials';
 
+// The real @/app/db constructs PrismaClient and runs validateEnv() at import
+// time, which requires DATABASE_URL / NEXTAUTH_SECRET / ADMIN_RESET_SECRET to
+// be present. This suite exercises verifyAdminCredentials exclusively through
+// injected deps, so stub the db module to keep it hermetic — otherwise the
+// suite crashes in CI, where no .env file exists. Plain arrows (not vi.fn())
+// keep the hoisted factory free of import-order pitfalls; the mock is never
+// invoked because every test passes explicit deps.
+vi.mock('@/app/db', () => ({
+  prisma: {
+    user: { findUnique: () => Promise.resolve(null) },
+  },
+}));
+
 const req = new Request('http://localhost:3000/api/auth/callback/credentials');
 
 function makeDeps(overrides: Partial<Parameters<typeof verifyAdminCredentials>[2]> = {}) {
