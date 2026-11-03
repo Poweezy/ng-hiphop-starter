@@ -5,6 +5,7 @@ import { getClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { requestSubscriberConsent } from '@/lib/subscriber-consent';
 
 export async function POST(req: NextRequest) {
   const requestId = getRequestId(req);
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
       return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
     }
 
-    const { competitionId, email } = validation.data;
+    const { competitionId, email, name, source } = validation.data;
 
     const competition = await prisma.lyricCompetition.findUnique({
       where: { id: competitionId },
@@ -36,23 +37,28 @@ export async function POST(req: NextRequest) {
       return errorResponse('Competition not found', 404, 'NOT_FOUND');
     }
 
-    await prisma.subscriber.upsert({
-      where: {
-        competitionId_email: {
-          competitionId,
-          email,
-        },
-      },
-      update: {},
-      create: {
-        competitionId,
-        email,
-        source: 'Best Lyrics Portal',
-      },
+    const subscription = await requestSubscriberConsent({
+      competitionId,
+      email,
+      name,
+      source,
     });
 
-    recordRequest('POST', '/api/competitions/subscribe', 201, performance.now() - start, requestId);
-    return successResponse({ message: "Subscribed! You'll be notified when the winner is announced." }, 201);
+    if (subscription.created) {
+      await prisma.competitionAnalytics.upsert({
+        where: { competitionId },
+        update: { subscribersGenerated: { increment: 1 } },
+        create: {
+          competitionId,
+          subscribersGenerated: 1,
+        },
+      });
+    }
+
+    recordRequest('POST', '/api/competitions/subscribe', 202, performance.now() - start, requestId);
+    return successResponse({
+      message: "If this address can be subscribed, you'll receive an email with next steps.",
+    }, 202);
   } catch (error) {
     console.error('Subscribe error:', error);
     recordRequest('POST', '/api/competitions/subscribe', 500, performance.now() - start, requestId);

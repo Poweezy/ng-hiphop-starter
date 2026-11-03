@@ -206,7 +206,7 @@ model Subscriber {
   name               String?
   competitionId      String
   source             String
-  consentStatus      String   @default("granted") // granted | withdrawn
+  consentStatus      String   @default("granted") // Legacy/default state; public signups require pending -> verified
   consentTimestamp   DateTime @default(now())
   subscriptionStatus String   @default("active") // active | unsubscribed | bounced
   unsubscribedAt     DateTime?

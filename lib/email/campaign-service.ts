@@ -61,7 +61,7 @@ function resolveRecipientIds(campaign: {
       const filter = JSON.parse(campaign.recipientFilter) as Record<string, unknown>;
       const where: Record<string, unknown> = {
         subscriptionStatus: "active",
-        consentStatus: "granted",
+        consentStatus: "verified",
       };
 
       if (filter.competitionId) {
@@ -89,7 +89,7 @@ function resolveRecipientIds(campaign: {
   return prisma.subscriber.findMany({
     where: {
       subscriptionStatus: "active",
-      consentStatus: "granted",
+      consentStatus: "verified",
     },
     select: { id: true },
   }).then((subscribers) => subscribers.map((s) => s.id));
@@ -148,7 +148,7 @@ export async function sendCampaignToSubscribers(
           where: {
             id: { in: subscriberIds },
             subscriptionStatus: "active",
-            consentStatus: "granted",
+            consentStatus: "verified",
           },
         });
 
@@ -210,8 +210,8 @@ export async function sendWelcomeEmail(subscriberId: string): Promise<{ success:
     return { success: false, error: "Subscriber not found" };
   }
 
-  if (subscriber.subscriptionStatus === "unsubscribed") {
-    return { success: false, error: "Subscriber is unsubscribed" };
+  if (subscriber.subscriptionStatus !== "active" || subscriber.consentStatus !== "verified") {
+    return { success: false, error: "Subscriber consent is not verified" };
   }
 
   const competitionUrl = buildCompetitionUrl(subscriber.competitionId);
@@ -288,7 +288,7 @@ export async function sendWinnerAnnouncement(
     where: {
       competitionId,
       subscriptionStatus: "active",
-      consentStatus: "granted",
+      consentStatus: "verified",
     },
   });
 

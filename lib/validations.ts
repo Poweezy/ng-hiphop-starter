@@ -124,11 +124,10 @@ export const winnerSelectionSchema = z.object({
 
 export const subscriberSchema = z.object({
   competitionId: z.string().cuid(),
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   name: z.string().max(100).optional().nullable(),
-  source: z.string().max(200).default(''),
-  consentStatus: z.enum(['granted', 'withdrawn']).default('granted'),
-  subscriptionStatus: z.enum(['active', 'unsubscribed', 'bounced']).default('active'),
+  source: z.string().max(200).trim().default(''),
+  consentGiven: z.literal(true),
 });
 
 export const emailCampaignSchema = z.object({
@@ -144,7 +143,7 @@ export const emailCampaignSchema = z.object({
 export const subscriberUpdateSchema = z.object({
   name: z.string().max(100).optional().nullable(),
   subscriptionStatus: z.enum(['active', 'unsubscribed', 'bounced']).optional(),
-  consentStatus: z.enum(['granted', 'withdrawn']).optional(),
+  consentStatus: z.enum(['verified', 'withdrawn']).optional(),
 });
 
 export const emailCampaignUpdateSchema = z.object({
@@ -159,10 +158,10 @@ export const emailCampaignUpdateSchema = z.object({
 
 export const competitionSubscribeSchema = z.object({
   competitionId: z.string().cuid(),
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   name: z.string().max(100).optional().nullable(),
-  source: z.string().max(200).default('Best Lyrics Portal'),
-  consentStatus: z.enum(['granted', 'withdrawn']).default('granted'),
+  source: z.string().max(200).trim().default('Best Lyrics Portal'),
+  consentGiven: z.literal(true),
 });
 
 // Admin: patch user role

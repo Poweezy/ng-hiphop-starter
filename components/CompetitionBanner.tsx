@@ -25,6 +25,7 @@ interface Props {
 
 export default function CompetitionBanner({ competition, winner }: Props) {
   const [email, setEmail] = useState('');
+  const [consentGiven, setConsentGiven] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
@@ -35,21 +36,22 @@ export default function CompetitionBanner({ competition, winner }: Props) {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !competition) return;
+    if (!email.trim() || !competition || !consentGiven) return;
 
     setStatus('loading');
     try {
       const res = await fetch('/api/competitions/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ competitionId: competition.id, email: email.trim() }),
+        body: JSON.stringify({ competitionId: competition.id, email: email.trim(), consentGiven: true }),
       });
 
       const data = await res.json();
       if (res.ok) {
         setStatus('success');
-        setMessage(data.data?.message || 'Subscribed!');
+        setMessage(data.data?.message || 'Check your inbox to confirm your subscription.');
         setEmail('');
+        setConsentGiven(false);
       } else {
         setStatus('error');
         setMessage(data.error?.message || data.data?.message || 'Subscription failed');
@@ -116,10 +118,20 @@ export default function CompetitionBanner({ competition, winner }: Props) {
                     required
                     disabled={status === 'loading'}
                   />
-                  <button type="submit" className="btn-subscribe" disabled={status === 'loading' || !email.trim()}>
+                  <button type="submit" className="btn-subscribe" disabled={status === 'loading' || !email.trim() || !consentGiven}>
                     {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
                   </button>
                 </div>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={consentGiven}
+                    onChange={(e) => setConsentGiven(e.target.checked)}
+                    required
+                    disabled={status === 'loading'}
+                  />
+                  <span>Send me updates about Nerd Gauge competitions, music drops and community events.</span>
+                </label>
                 {status !== 'idle' && (
                   <div className={`subscribe-message subscribe-message--${status}`}>{message}</div>
                 )}

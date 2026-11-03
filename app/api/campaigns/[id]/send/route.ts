@@ -42,14 +42,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    // Consent guard: the base query only ever targets subscribers who are
-    // active AND have granted marketing consent. A missing or empty filter
-    // must never widen the audience to unsubscribed or consent-withdrawn
-    // subscribers. sendCampaignToSubscribers re-checks consent at send time.
+    // Consent guard: only active subscribers with verified opt-in are eligible.
+    // A missing or empty filter must never widen the audience. The send service
+    // re-checks consent immediately before delivery.
     if (recipientIds.length === 0 && campaign.recipientFilter) {
       const where: Record<string, unknown> = {
         subscriptionStatus: 'active',
-        consentStatus: 'granted',
+        consentStatus: 'verified',
       };
       try {
         const filter = JSON.parse(campaign.recipientFilter);

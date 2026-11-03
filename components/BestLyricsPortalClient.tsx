@@ -160,7 +160,7 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
     e.preventDefault();
     if (!competition || !subConsent || !subEmail.trim()) return;
 
-    setSubStatus('idle');
+    setSubStatus('loading');
     setSubMessage('');
 
     try {
@@ -172,15 +172,14 @@ export default function BestLyricsPortalClient({ competition, winners, recentSub
           email: subEmail.trim(),
           name: subName.trim() || null,
           source: 'Best Lyrics Portal',
-          consentStatus: 'granted',
-          subscriptionStatus: 'active',
+          consentGiven: true,
         }),
       });
 
       const data = await res.json();
       if (res.ok) {
         setSubStatus('success');
-        setSubMessage('You\'re on the list. Watch your inbox.');
+        setSubMessage(data.data?.message || 'Check your inbox to confirm your subscription.');
         setSubName('');
         setSubEmail('');
         setSubConsent(false);

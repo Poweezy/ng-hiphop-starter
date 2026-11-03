@@ -4,6 +4,9 @@ import { requireAdmin } from '@/app/api/_lib/admin';
 import { subscriberSchema } from '@/lib/validations';
 import { getRequestId, errorResponse, successResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
+import { getClientIp } from '@/lib/ip';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { requestSubscriberConsent } from '@/lib/subscriber-consent';
 
 export async function GET(req: NextRequest) {
   const requestId = getRequestId(req);
@@ -59,6 +62,13 @@ export async function POST(req: NextRequest) {
   const requestId = getRequestId(req);
   const start = performance.now();
   try {
+    const ip = getClientIp(req);
+    const { allowed } = await checkRateLimit({ key: `subscribe:${ip}`, max: 3, periodSeconds: 60 });
+    if (!allowed) {
+      recordRequest('POST', '/api/subscribers', 429, performance.now() - start, requestId);
+      return errorResponse('Too many requests. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
+    }
+
     const body = await req.json();
     const validation = subscriberSchema.safeParse(body);
     if (!validation.success) {
@@ -66,7 +76,7 @@ export async function POST(req: NextRequest) {
       return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.issues);
     }
 
-    const { competitionId, email, name, source, consentStatus, subscriptionStatus } = validation.data;
+    const { competitionId, email, name, source } = validation.data;
 
     const competition = await prisma.lyricCompetition.findUnique({
       where: { id: competitionId },
@@ -77,35 +87,28 @@ export async function POST(req: NextRequest) {
       return errorResponse('Competition not found', 404, 'NOT_FOUND');
     }
 
-    const subscriber = await prisma.subscriber.upsert({
-      where: {
-        competitionId_email: {
+    const subscription = await requestSubscriberConsent({
+      competitionId,
+      email,
+      name,
+      source,
+    });
+
+    if (subscription.created) {
+      await prisma.competitionAnalytics.upsert({
+        where: { competitionId },
+        update: { subscribersGenerated: { increment: 1 } },
+        create: {
           competitionId,
-          email,
+          subscribersGenerated: 1,
         },
-      },
-      update: {},
-      create: {
-        competitionId,
-        email,
-        name,
-        source,
-        consentStatus,
-        subscriptionStatus,
-      },
-    });
+      });
+    }
 
-    await prisma.competitionAnalytics.upsert({
-      where: { competitionId },
-      update: { subscribersGenerated: { increment: 1 } },
-      create: {
-        competitionId,
-        subscribersGenerated: 1,
-      },
-    });
-
-    recordRequest('POST', '/api/subscribers', 201, performance.now() - start, requestId);
-    return successResponse(subscriber, 201);
+    recordRequest('POST', '/api/subscribers', 202, performance.now() - start, requestId);
+    return successResponse({
+      message: "If this address can be subscribed, you'll receive an email with next steps.",
+    }, 202);
   } catch (error) {
     console.error('Subscriber create error:', error);
     recordRequest('POST', '/api/subscribers', 500, performance.now() - start, requestId);
