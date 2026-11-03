@@ -32,6 +32,11 @@ jobs:
 
       - name: Run tests
         run: npm run test
+        env:
+          NEXTAUTH_SECRET: ci-test-secret-0123456789abcdef0123456789
+          NEXTAUTH_URL: http://localhost:3000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ng_hiphop?sslmode=require
+          ADMIN_RESET_SECRET: test-reset-secret
 
       - name: Build
         run: npm run build
