@@ -93,7 +93,7 @@ export default function Hero({ slogan }: HeroProps) {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="hero-value-prop"
         >
-          Fresh Eswatini hip-hop. Killer bars. Can you keep up?
+          Fresh hiphop, killer bars can you keep up?
         </motion.p>
       </div>
 
@@ -316,4 +316,3 @@ export default function Hero({ slogan }: HeroProps) {
     </section>
   );
 }
-
