@@ -11,13 +11,13 @@ import { DEFAULT_SLOGAN } from '@/lib/slogan';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-    title: 'Nerd Gauge — Built by Bars Raised by Beats',
+    title: 'Nerd Gauge — Real Bars. Real Beats. Real Eswatini.',
     description: 'The official platform for Nerd Gauge. Stream the latest releases, explore community quotes, graffiti art, and join the lyric competition movement from Eswatini.',
     alternates: {
         canonical: '/',
     },
     openGraph: {
-        title: 'Nerd Gauge — Built by Bars Raised by Beats',
+        title: 'Nerd Gauge — Real Bars. Real Beats. Real Eswatini.',
         description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric competition movement.',
         url: 'https://ng-hiphop.com',
         siteName: 'Nerd Gauge',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
                 url: '/og-image.jpg',
                 width: 1200,
                 height: 630,
-                alt: 'Nerd Gauge Platform — Built by Bars Raised by Beats',
+                alt: 'Nerd Gauge Platform — Real Bars. Real Beats. Real Eswatini.',
             },
         ],
         locale: 'en_US',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Nerd Gauge — Built by Bars Raised by Beats',
+        title: 'Nerd Gauge — Real Bars. Real Beats. Real Eswatini.',
         description: 'Stream the latest releases, explore community quotes, graffiti art, and join the lyric competition movement.',
         creator: '@nghiphop',
         images: ['/twitter-image.jpg'],
