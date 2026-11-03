@@ -1,5 +1,5 @@
 import { prisma } from '@/app/db';
-import { ConsoleProvider, getEmailProvider } from '@/lib/email';
+import { getEmailProvider } from '@/lib/email';
 import {
   generateSubscriberConsentToken,
   verifySubscriberConsentToken,
@@ -73,9 +73,6 @@ export async function requestSubscriberConsent(input: SubscriberConsentRequest):
   }
 
   const provider = getEmailProvider();
-  if (process.env.NODE_ENV === 'production' && provider instanceof ConsoleProvider) {
-    throw new Error('A real email provider is required for subscriber verification in production');
-  }
 
   const configuredUrl = process.env.APP_URL || process.env.NEXTAUTH_URL;
   if (!configuredUrl && process.env.NODE_ENV === 'production') {

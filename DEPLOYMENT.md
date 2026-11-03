@@ -34,17 +34,25 @@ UPSTASH_REDIS_REST_TOKEN="..."
 
 # S3 / Object Storage (Required for production file uploads)
 S3_BUCKET="your-bucket"
-S3_REGION="eu-west-1"
+S3_QUARANTINE_BUCKET="your-bucket-quarantine" # separate private bucket for unscanned uploads
+AWS_REGION="eu-west-1"
 AWS_ACCESS_KEY_ID="..."
 AWS_SECRET_ACCESS_KEY="..."
 S3_PUBLIC_BASE_URL="https://your-bucket.s3.amazonaws.com"
 S3_SIGNED_URL_TTL_SECONDS="3600"
+S3_UPLOAD_URL_TTL_SECONDS="600"
 
 # Supabase Storage (alternative to S3)
 # SUPABASE_URL="https://your-project.supabase.co"
 # SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 # SUPABASE_STORAGE_BUCKET="uploads"
 # SUPABASE_STORAGE_PUBLIC_URL="https://your-project.supabase.co/storage/v1/object/public/uploads"
+# SUPABASE_QUARANTINE_BUCKET="uploads-quarantine" # private bucket for unscanned uploads
+
+# Production email delivery
+EMAIL_PROVIDER="sendgrid"
+SENDGRID_API_KEY="..."
+EMAIL_FROM="verified-sender@yourdomain.com"
 
 # Upload Scanning (Optional but recommended)
 VIRUS_SCANNER_ENABLED="true"
@@ -141,8 +149,7 @@ git push origin main
     - Visit your live site
 
 **Important Vercel Notes:**
-- Serverless functions have a 4.5MB body limit — use presigned S3 uploads for large files
-- Body size limit is configured in `next.config.js` (`experimental.serverActions.bodySizeLimit: '50mb'`)
+- Serverless functions have a 4.5MB request-body limit. Admin song uploads use short-lived direct-to-storage URLs and a server-side finalize/scan step; do not send large media through a route handler.
 - Add S3 domains to `next.config.js` `remotePatterns` if using signed URLs
 - Set `S3_PUBLIC_BASE_URL` if serving public S3 objects
 
@@ -286,27 +293,33 @@ Otherwise, if `S3_BUCKET` and `AWS_REGION` are set, uploads go to S3.
 Otherwise, files are stored in `/public/uploads/` (dev only).
 
 **Supabase Storage Configuration:**
-1. Create a public bucket in Supabase (e.g., `uploads`)
+1. Create a public media bucket (e.g., `uploads`) and a separate **private** quarantine bucket (default: `uploads-quarantine`).
 2. Set environment variables:
     - `SUPABASE_URL`
     - `SUPABASE_SERVICE_ROLE_KEY`
     - `SUPABASE_STORAGE_BUCKET` (default: `uploads`)
+    - `SUPABASE_QUARANTINE_BUCKET` (default: `<media-bucket>-quarantine`)
     - `SUPABASE_STORAGE_PUBLIC_URL` (optional, for custom domain/CDN)
+3. Keep the quarantine bucket private. Directly uploaded media is scanned and moved to the public media bucket only during song finalization.
 
 **S3 Configuration:**
 1. Create an S3 bucket
-2. Set bucket policy for public read (if using public URLs) or configure signed URLs
-3. Set environment variables:
+2. Create a separate private quarantine bucket (default: `<S3_BUCKET>-quarantine`)
+3. Set public read only for the media bucket when required; keep quarantine private
+4. Set environment variables:
    - `S3_BUCKET`
-   - `S3_REGION`
+   - `S3_QUARANTINE_BUCKET`
+   - `AWS_REGION`
    - `AWS_ACCESS_KEY_ID`
    - `AWS_SECRET_ACCESS_KEY`
    - `S3_PUBLIC_BASE_URL` (optional, for public buckets)
+   - `S3_UPLOAD_URL_TTL_SECONDS` (optional; default 600 seconds)
 
 **Upload Endpoints:**
-- `POST /api/uploads/presign` — Get presigned S3 upload URL (admin only)
+- `POST /api/uploads/presign` — Get a short-lived URL for an admin upload into private quarantine storage
+- `DELETE /api/uploads/presign` — Remove failed temporary uploads (admin only)
 - `POST /api/uploads/optimize` — Server-side image optimization + upload (admin only)
-- `POST /api/songs` — Accepts multipart/form-data or JSON with `fileUrl`/`coverUrl`
+- `POST /api/songs` — Accepts multipart/form-data for local development or JSON upload keys for server-side scan/finalize
 - `POST /api/graffiti` — Accepts multipart/form-data or JSON with `imageUrl`
 
 ## Security configuration
@@ -594,16 +607,15 @@ jobs:
 3. Server returns local URL
 
 **Production (Supabase Storage):**
-1. Client uploads file to `/api/songs` or `/api/graffiti`
-2. Server optimizes with Sharp, scans for malware, uploads to Supabase Storage
-3. Server returns public Supabase URL
-4. Database record stores the URL
+1. Admin requests upload URLs and uploads audio/cover directly to the private quarantine bucket.
+2. Server downloads, size-checks, scans, and optimizes the media.
+3. Verified media is copied to the public media bucket, and the temporary objects are removed.
+4. The song record is created only after media verification and public storage succeeds.
 
 **Production (Direct S3):**
-1. Client requests presigned URL from `/api/uploads/presign`
-2. Client uploads directly to S3
-3. Client sends S3 URL to `/api/songs` or `/api/graffiti`
-4. Server creates database record
+1. Admin requests a signed URL from `/api/uploads/presign` and uploads into the private quarantine bucket.
+2. The song finalize request downloads and scans the object, then promotes verified media to the public bucket.
+3. The song record is created only after promotion succeeds.
 
 **Production (Server-side optimize):**
 1. Client uploads file to `/api/uploads/optimize`

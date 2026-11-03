@@ -36,44 +36,113 @@ export default function SongsPanel({ initialSongs }: Props) {
         const audioFile = (form.elements.namedItem('audio') as HTMLInputElement).files?.[0];
         const coverFile = (form.elements.namedItem('cover') as HTMLInputElement).files?.[0];
         if (!audioFile || !coverFile || !title.trim()) { setStatus('error'); setMsg('Title, audio, and cover are required'); return; }
+        if (audioFile.size > 50 * 1024 * 1024 || coverFile.size > 5 * 1024 * 1024) {
+            setStatus('error'); setMsg('Audio must be under 50MB and cover art under 5MB'); return;
+        }
 
         setUploading(true);
+        const uploadedKeys: string[] = [];
+        let finalized = false;
         try {
-            // Optimize cover image server-side
-            const coverForm = new FormData();
-            coverForm.append('image', coverFile);
-            coverForm.append('folder', 'covers');
+            const getPresignedUpload = async (file: File) => {
+                const response = await fetch('/api/uploads/presign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folder: 'quarantine', contentType: file.type, filename: file.name }),
+                });
+                if (response.status === 501) return null;
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error?.message || 'Could not prepare direct upload');
+                return result.data as { url: string; key: string };
+            };
 
-            const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: coverForm });
-            if (!optimizeRes.ok) {
-                const err = await optimizeRes.json();
-                setStatus('error'); setMsg(err.message || 'Cover optimization failed');
-                setUploading(false);
-                return;
+            const audioUpload = await getPresignedUpload(audioFile);
+            let song: Song;
+            if (!audioUpload) {
+                const coverForm = new FormData();
+                coverForm.append('image', coverFile);
+                coverForm.append('folder', 'covers');
+                const optimizeRes = await fetch('/api/uploads/optimize', { method: 'POST', body: coverForm });
+                const optimized = await optimizeRes.json();
+                if (!optimizeRes.ok) throw new Error(optimized.error?.message || 'Cover optimization failed');
+
+                const formData = new FormData();
+                formData.append('audio', audioFile);
+                formData.append('title', title.trim());
+                formData.append('description', desc.trim());
+                formData.append('distributionLinks', JSON.stringify({ spotify, apple, distro }));
+                formData.append('publisherLink', pubLink);
+                formData.append('coverUrl', optimized.data.url);
+                const response = await fetch('/api/songs', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error?.message || 'Song upload failed');
+                song = result.data;
+            } else {
+                uploadedKeys.push(audioUpload.key);
+                const audioPut = await fetch(audioUpload.url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': audioFile.type },
+                    body: audioFile,
+                });
+                if (!audioPut.ok) throw new Error(`Audio upload failed (HTTP ${audioPut.status})`);
+
+                const coverUpload = await getPresignedUpload(coverFile);
+                if (!coverUpload) throw new Error('Configured storage does not support direct cover uploads');
+                uploadedKeys.push(coverUpload.key);
+                const coverPut = await fetch(coverUpload.url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': coverFile.type },
+                    body: coverFile,
+                });
+                if (!coverPut.ok) throw new Error(`Cover upload failed (HTTP ${coverPut.status})`);
+
+                const response = await fetch('/api/songs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title.trim(),
+                        description: desc.trim(),
+                        distributionLinks: JSON.stringify({ spotify, apple, distro }),
+                        publisherLink: pubLink,
+                        audioKey: audioUpload.key,
+                        audioContentType: audioFile.type,
+                        audioFilename: audioFile.name,
+                        coverKey: coverUpload.key,
+                        coverContentType: coverFile.type,
+                        coverFilename: coverFile.name,
+                    }),
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error?.message || 'Song verification failed');
+                song = result.data;
+                finalized = true;
             }
-            const { url: coverUrl } = await optimizeRes.json();
 
-            const fd = new FormData();
-            fd.append('audio', audioFile);
-            fd.append('title', title.trim());
-            fd.append('description', desc.trim());
-            fd.append('distributionLinks', JSON.stringify({ spotify, apple, distro }));
-            fd.append('publisherLink', pubLink);
-            fd.append('coverUrl', coverUrl);
-
-            const res = await fetch('/api/songs', { method: 'POST', body: fd });
-            const data = await res.json();
-            if (res.ok) {
-                setStatus('success'); setMsg('Song uploaded and set as active!');
-                setSongs([data.data, ...songs.map(s => ({ ...s, is_active: false }))]);
-                setTitle(''); setDesc(''); setSpotify(''); setApple(''); setDistro(''); setPubLink('');
-                form.reset();
-            } else { setStatus('error'); setMsg(data.message); }
-        } catch {
-            setStatus('error'); setMsg('Upload failed');
+            setStatus('success'); setMsg('Song uploaded and set as active!');
+            setSongs([song, ...songs.map(s => ({ ...s, is_active: false }))]);
+            setTitle(''); setDesc(''); setSpotify(''); setApple(''); setDistro(''); setPubLink('');
+            form.reset();
+        } catch (error) {
+            if (uploadedKeys.length > 0 && !finalized) {
+                try {
+                    const cleanupResponse = await fetch('/api/uploads/presign', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ keys: uploadedKeys }),
+                    });
+                    if (!cleanupResponse.ok) {
+                        console.error('Temporary upload cleanup failed:', await cleanupResponse.text());
+                    }
+                } catch (cleanupError) {
+                    console.error('Failed to request temporary upload cleanup:', cleanupError);
+                }
+            }
+            setStatus('error');
+            setMsg(error instanceof Error ? error.message : 'Upload failed');
+        } finally {
+            setUploading(false);
+            setTimeout(() => setStatus('idle'), 4000);
         }
-        setUploading(false);
-        setTimeout(() => setStatus('idle'), 4000);
     };
 
     const toggleActive = async (id: string, current: boolean) => {

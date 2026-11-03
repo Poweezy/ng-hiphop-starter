@@ -1,10 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { DEFAULT_SLOGAN } from '../lib/slogan';
+import {
+    assertDemoSeedAllowed,
+    DEMO_COMPETITION_SLUGS,
+    getDemoCompetitionWhere,
+} from './demo-seed-scope';
 
 const prisma = new PrismaClient();
 
 async function main() {
+    assertDemoSeedAllowed(process.env);
     console.log('🌱 Seeding Nerd Gauge Platform...');
 
     // Create default slogan
@@ -79,7 +85,9 @@ async function main() {
 
     // Clean up existing seed data (idempotent)
     console.log('  Cleaning up existing seed data...');
-    const allComps = await prisma.lyricCompetition.findMany({ where: { slug: { not: null } } });
+    const allComps = await prisma.lyricCompetition.findMany({
+        where: getDemoCompetitionWhere(),
+    });
     for (const comp of allComps) {
         await prisma.winner.deleteMany({ where: { competitionId: comp.id } });
         await prisma.lyricSubmission.deleteMany({ where: { competitionId: comp.id } });
@@ -88,13 +96,12 @@ async function main() {
         await prisma.competitionPrize.deleteMany({ where: { competitionId: comp.id } });
         await prisma.competitionRule.deleteMany({ where: { competitionId: comp.id } });
         await prisma.competitionParticipant.deleteMany({ where: { competitionId: comp.id } });
-        await prisma.emailCampaign.deleteMany({ where: { createdBy: adminEmail } });
         await prisma.lyricCompetition.delete({ where: { id: comp.id } });
     }
     console.log('  Cleanup complete');
 
     // Competitions (idempotent)
-    const competitionSlugs = ['best-lyrics-august-2026', 'best-lyrics-2026', 'best-lyrics-may-2026', 'best-lyrics-june-2026', 'best-lyrics-2025'];
+    const competitionSlugs = DEMO_COMPETITION_SLUGS;
     for (const slug of competitionSlugs) {
         await prisma.lyricCompetition.upsert({
             where: { slug },
@@ -122,10 +129,21 @@ async function main() {
 
     // Get seeded competitions
     const allCompetitions = await prisma.lyricCompetition.findMany({
-        orderBy: { createdAt: 'asc' },
+        where: getDemoCompetitionWhere(),
     });
 
-    const [aug2026, year2026, may2026, june2026, year2025] = allCompetitions;
+    const competitionForSlug = (slug: string) => {
+        const competition = allCompetitions.find((item) => item.slug === slug);
+        if (!competition) {
+            throw new Error(`Demo competition was not created: ${slug}`);
+        }
+        return competition;
+    };
+    const aug2026 = competitionForSlug('best-lyrics-august-2026');
+    const year2026 = competitionForSlug('best-lyrics-2026');
+    const may2026 = competitionForSlug('best-lyrics-may-2026');
+    const june2026 = competitionForSlug('best-lyrics-june-2026');
+    const year2025 = competitionForSlug('best-lyrics-2025');
 
     // Rules
     const rulesData = [

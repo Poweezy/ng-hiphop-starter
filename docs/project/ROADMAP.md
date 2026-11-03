@@ -1,24 +1,38 @@
 # Controlled transformation roadmap
 
 **Prepared:** 2026-11-02  
-**Status:** Proposed for owner approval; no implementation phase is authorized by this report.
+**Status:** Phase 1 authorized on 2026-11-03 for implementation work. The owner prohibits staging/production migrations and deployments; no production configuration changes are authorized.
+
+## Owner decisions recorded (2026-11-03)
+
+- **Hosting target:** Vercel.
+- **Database provider:** Supabase (interpreting “superbase” in the owner response as Supabase).
+- **Object storage:** Supabase Storage.
+- **Migration authorization:** A migration test is authorized on a local disposable PostgreSQL database only. No staging or production migrations are authorized.
+- **Disposable migration test (2026-11-03):** `npx prisma migrate deploy` on local PostgreSQL 18.6 failed at `20260819_best_lyrics_portal` because relation `LyricCompetition` does not exist (`42P01`). The database directory and listener were removed after the test.
+- **Current production migration state, backup/restore readiness, and external worker:** Not confirmed.
+- **External worker:** Unknown / not confirmed.
+- **Entrant access, judging, and winner publication policy:** Unknown / owner decision pending.
+- **Phase approval:** Phase 1 implementation approved. This does not authorize staging/production migrations, deployments, or production configuration changes. Migration repair remains blocked pending deployed-state and recovery information.
+
+These decisions narrow the validation target but do not establish access to, or the state of, any live environment. Do not request or record production credentials in these documents.
 
 ## Planning assumptions
 
 - The application remains a Next.js monolith unless measured needs justify a service boundary.
 - Complexity estimates are rough engineering person-days for a small team: **S 1-3**, **M 4-8**, **L 9-15**, **XL 16+**. They exclude owner/legal decisions and unknown production remediation; re-estimate after Phase 0.
 - Database migration work must use an isolated PostgreSQL environment and an owner-approved recovery plan.
-- **Phase 1 must not begin until the owner approves the target hosting/runtime, current database state/recovery approach, entrant model, competition rules, and prioritized scope.**
+- Migration repair requires confirmed deployed-state and recovery evidence. Entrant-facing behavior changes require the pending product decisions; other approved safety work can proceed without those decisions.
 
 ## Phase 0 — Owner decisions and controlled discovery (S-M, 3-8 days)
 
 | Work item | Dependencies | Acceptance criteria |
 |---|---|---|
-| Confirm production host, Node runtime, function/body limits, background-worker lifecycle, staging environments, and deployment ownership. | None | A reviewed environment matrix identifies Development, CI, Staging, and Production configuration and documents any external worker. |
-| Establish database provider, migration history, current schema state, backup/PITR configuration, object storage and restore capability. | Database/operations owner access | No production data is changed; a sanitized staging copy and tested restore path are available before any migration proposal. |
-| Decide entrant identity/access model, judging method, public contest rules, winner approval/publication, subscriber promise, and consent policy. | Product owner; legal review for contest terms where required | Signed-off user journey and state transitions map to current API/schema; ambiguous promises are removed or scheduled. |
+| Confirmed: Vercel, Supabase PostgreSQL, and Supabase Storage. Still verify Node runtime, function/body limits, staging ownership, and whether an external worker exists. | Owner confirmation recorded; operator/environment evidence | A reviewed environment matrix identifies Development, CI, Staging, and Production configuration and documents any external worker. |
+| Establish the deployed Supabase PostgreSQL migration history, current schema state, backup/PITR configuration, and restore capability; resolve the confirmed clean-install migration failure. | Database/operations owner access; Phase 1 approval for any migration repair; production migrations remain unauthorized | No production data is changed; the applied migration state is recorded read-only; a sanitized staging copy and tested restore path are available before any repair proposal. |
+| Decide entrant identity/access model, judging method, public contest rules, and winner approval/publication. | Product owner; legal review for contest terms where required | Signed-off user journey and state transitions map to current API/schema; ambiguous promises are removed or scheduled. |
 | Confirm media visibility/rights, accepted audio formats/size, CDN domain, expected catalog/traffic, and whether advanced streaming is in scope. | Product/artist and operations | One supported media policy and hosting path are documented. |
-| Approve ranked risk list, scope, owners, rollback criteria, and complexity estimates. | Above decisions | Written owner approval recorded before Phase 1 work begins. |
+| Approve ranked risk list, scope, owners, rollback criteria, and complexity estimates. | Above decisions | Phase 1 implementation approved on 2026-11-03; open product and operational decisions remain tracked above. |
 
 ## Phase 1 — Safety and release correctness (XL, estimated 45-70 days)
 
@@ -27,10 +41,10 @@
 | Work item | Dependencies | Acceptance criteria |
 |---|---|---|
 | Reconcile Prisma migration history and create a safe production migration/deploy procedure. | Phase 0 database state, backup/restore, owner approval | `prisma migrate deploy` succeeds on an empty disposable PostgreSQL database and representative staging state; no unexplained schema drift; recovery procedure is rehearsed. |
-| Make demo seeding fixture-scoped and add production-target safeguards. | Migration state and owner approval | Tests prove non-fixture competitions/campaigns/submissions/subscribers/winners remain unchanged when demo data is enabled. |
+| **Completed locally:** Make demo seeding fixture-scoped and add production-target safeguards. | Phase 1 approval | Focused tests verify the fixed fixture scope and production rejection; admin campaigns are no longer targeted. No live/staging seed was run. |
 | Reconcile legacy subscriber records and verify consent evidence. | Phase 0 consent policy and data-retention decision | Legacy `granted` records remain excluded until consent is reverified or safely suppressed; unsubscribe/withdrawal prevents future sends; owner approves the treatment of historical records. |
-| Require real production email provider and truthful delivery status. | Hosting secret matrix; email owner | Misconfiguration prevents campaign execution; console logging is never a production fallback; provider success/failure, retries, and logs are tested without PII leakage. |
-| Complete resilient song upload path for the chosen host. | Phase 0 media policy and storage config | Direct upload or verified server path handles policy maximum size; type/size constraints and quarantine scanning occur before publication; failure cleanup and CSP playback are tested. |
+| **Implemented locally:** Require real production email provider and truthful delivery status. | Hosting secret matrix; email owner | Production requires SendGrid and an explicit sender; no console fallback. Configuration tests pass, but provider delivery/retries and production secrets are not verified. |
+| **Implemented locally:** Complete resilient song upload path for Vercel/Supabase Storage. | Phase 0 media policy and storage config | Direct uploads use a private quarantine bucket; server size checks, malware scanning, image optimization, and cleanup precede song publication. Storage and finalize-route tests pass; nonproduction bucket/CORS integration and playback CSP remain to verify. |
 | Select a supported job worker lifecycle and make queue outcomes observable. | Confirmed host and campaign contract | Staging jobs drain through cold starts/scale-to-zero; retries are idempotent; age/failure/dead-letter signals are visible. |
 | Address remaining high-severity security/release gaps approved by owner. | Security assessment; Phase 0 | Regression tests cover proxy trust, presigned upload restrictions, recovery flow, telemetry consent policy, and CSP as applicable. |
 
@@ -79,4 +93,4 @@ Candidate investments:
 
 ## Approval request
 
-Review the findings, confirm the Phase 0 decisions and owners, then approve or revise the roadmap. Until that approval is explicit, this document is a discovery deliverable only; no Phase 1 code, migration, production configuration, or deployment work should commence.
+Phase 1 implementation is approved within the recorded constraints. This approval does not authorize staging/production migrations, deployments, or production configuration changes. Review and resolve the remaining Phase 0 product and operational decisions before work that depends on them.

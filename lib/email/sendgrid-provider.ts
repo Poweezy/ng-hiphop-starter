@@ -7,10 +7,14 @@ export class SendGridProvider implements EmailProvider {
 
   constructor() {
     this.apiKey = process.env.SENDGRID_API_KEY || "";
-    this.defaultFrom = process.env.EMAIL_FROM || "noreply@ng-hiphop.com";
+    const configuredFrom = process.env.EMAIL_FROM?.trim();
+    this.defaultFrom = configuredFrom || "noreply@ng-hiphop.com";
 
     if (!this.apiKey) {
       throw new Error("Missing required environment variable: SENDGRID_API_KEY");
+    }
+    if (process.env.NODE_ENV === "production" && !configuredFrom) {
+      throw new Error("Missing required environment variable: EMAIL_FROM");
     }
   }
 

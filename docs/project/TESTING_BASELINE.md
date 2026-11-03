@@ -16,7 +16,13 @@
 
 After the separately authorized consent remediation, the full suite passed with **12 files and 68 tests**; type-check and production build passed, and lint remained at **0 errors / 43 warnings**. The baseline above preserves the pre-change result for comparison.
 
+After Phase 1 local seed, email, and upload changes, the full suite passed with **16 files and 85 tests**, and `npx tsc --noEmit` passed. Targeted ESLint reported no errors; seed console/no-explicit-any warnings remain. `npm run build` was blocked during `prisma generate` by a Windows `EPERM` rename of the generated query-engine DLL; `npx next build` using the existing generated Prisma client completed successfully. No real email, Supabase bucket, or production/staging integration was exercised.
+
 The build emitted warnings that Upstash Redis environment values were missing, so rate-limited endpoints would fail closed in production. The build used the local `.env` without reading or recording its contents. It regenerated `next-env.d.ts`; that generated-only change was restored after the check.
+
+## Phase 0 disposable migration test (2026-11-03)
+
+With explicit owner authorization for a local disposable database only, initialized a loopback-only PostgreSQL 18.6 cluster and ran `npx prisma migrate deploy` using an ephemeral `DATABASE_URL`. `20260729123554_init` applied; `20260819_best_lyrics_portal` failed with PostgreSQL `42P01` because `LyricCompetition` did not exist. No staging or production database was accessed. The disposable cluster directory and listener were removed. No migration changes were made.
 
 ## Existing test and CI coverage
 

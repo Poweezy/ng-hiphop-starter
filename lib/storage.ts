@@ -16,6 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export type S3StorageOptions = {
   bucket: string;
+  quarantineBucket?: string;
   region: string;
   // If true, we return a public URL. Otherwise we return a time-limited signed URL.
   // For simplicity, we default to public URL.
@@ -129,6 +130,10 @@ export class LocalStorageProvider implements StorageProvider {
     throw new Error('Presigned upload URLs are only supported with S3 storage');
   }
 
+  async downloadFile(_key: string): Promise<Buffer> {
+    throw new Error('Direct upload finalization is not supported with local storage');
+  }
+
   supportsPresign(): boolean {
     return false;
   }
@@ -137,16 +142,23 @@ export class LocalStorageProvider implements StorageProvider {
 export class S3StorageProvider implements StorageProvider {
   private s3: S3Client;
   private bucket: string;
+  private quarantineBucket: string;
   private region: string;
   private publicBaseUrl?: string;
   private signedUrlTtlSeconds: number;
+  private signedUploadUrlTtlSeconds: number;
 
   constructor(opts: S3StorageOptions) {
     const { bucket, region, publicBaseUrl } = opts;
     this.bucket = bucket;
+    this.quarantineBucket = opts.quarantineBucket || `${bucket}-quarantine`;
+    if (this.quarantineBucket === this.bucket) {
+      throw new Error('S3 quarantine storage must use a separate bucket');
+    }
     this.region = region;
     this.publicBaseUrl = publicBaseUrl;
     this.signedUrlTtlSeconds = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || '86400');
+    this.signedUploadUrlTtlSeconds = Number(process.env.S3_UPLOAD_URL_TTL_SECONDS || '600');
 
     if (!publicBaseUrl && process.env.NODE_ENV === 'production') {
       console.warn(
@@ -209,11 +221,26 @@ export class S3StorageProvider implements StorageProvider {
     const uniqueFilename = filename ? `${sanitizeSegment(filename)}-${uuidv4()}.${ext}` : `${uuidv4()}.${ext}`;
     const key = this.keyFor(folder, uniqueFilename);
 
-    const url = await getSignedUrl(this.s3, new PutObjectCommand({ Bucket: this.bucket, Key: key }), {
-      expiresIn: this.signedUrlTtlSeconds,
+    const bucket = folder === 'quarantine' ? this.quarantineBucket : this.bucket;
+    const url = await getSignedUrl(this.s3, new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType,
+    }), {
+      expiresIn: this.signedUploadUrlTtlSeconds,
     });
 
     return { url, key };
+  }
+
+  async downloadFile(key: string): Promise<Buffer> {
+    const bucket = key.startsWith('quarantine/') ? this.quarantineBucket : this.bucket;
+    const { Body } = await this.s3.send(new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    }));
+    if (!Body) throw new Error('S3 object download returned an empty body');
+    return Buffer.from(await Body.transformToByteArray());
   }
 
   supportsPresign(): boolean {
@@ -238,8 +265,9 @@ export class S3StorageProvider implements StorageProvider {
 
   async deleteByKey(key: string): Promise<void> {
     if (!key) return;
+    const bucket = key.startsWith('quarantine/') ? this.quarantineBucket : this.bucket;
     await this.s3.send(new DeleteObjectCommand({
-      Bucket: this.bucket,
+      Bucket: bucket,
       Key: key.split('?')[0],
     }));
   }
@@ -248,12 +276,17 @@ export class S3StorageProvider implements StorageProvider {
 export class SupabaseStorageProvider implements StorageProvider {
   private client: ReturnType<typeof createClient>;
   private bucket: string;
+  private quarantineBucket: string;
   private publicBaseUrl?: string;
 
   constructor() {
     const url = required('SUPABASE_URL', process.env.SUPABASE_URL);
     const serviceRoleKey = required('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY);
     this.bucket = process.env.SUPABASE_STORAGE_BUCKET || 'uploads';
+    this.quarantineBucket = process.env.SUPABASE_QUARANTINE_BUCKET || `${this.bucket}-quarantine`;
+    if (this.quarantineBucket === this.bucket) {
+      throw new Error('Supabase quarantine storage must use a separate bucket');
+    }
     this.publicBaseUrl = process.env.SUPABASE_STORAGE_PUBLIC_URL?.replace(/\/+$/g, '');
     this.client = createClient(url, serviceRoleKey);
   }
@@ -289,12 +322,22 @@ export class SupabaseStorageProvider implements StorageProvider {
     const uniqueFilename = filename ? `${sanitizeSegment(filename)}-${uuidv4()}.${ext}` : `${uuidv4()}.${ext}`;
     const key = this.pathFor(folder, uniqueFilename);
 
-    const { data, error } = await this.client.storage.from(this.bucket).createSignedUploadUrl(key);
+    const bucket = folder === 'quarantine' ? this.quarantineBucket : this.bucket;
+    const { data, error } = await this.client.storage.from(bucket).createSignedUploadUrl(key);
     if (error || !data) {
       throw new Error(`Supabase presign failed: ${error?.message || 'unknown error'}`);
     }
 
     return { url: data.signedUrl, key };
+  }
+
+  async downloadFile(key: string): Promise<Buffer> {
+    const bucket = key.startsWith('quarantine/') ? this.quarantineBucket : this.bucket;
+    const { data, error } = await this.client.storage.from(bucket).download(key);
+    if (error || !data) {
+      throw new Error(`Supabase download failed: ${error?.message || 'empty response'}`);
+    }
+    return Buffer.from(await data.arrayBuffer());
   }
 
   supportsPresign(): boolean {
@@ -309,9 +352,10 @@ export class SupabaseStorageProvider implements StorageProvider {
 
   async deleteByKey(key: string): Promise<void> {
     if (!key) return;
-    const { error } = await this.client.storage.from(this.bucket).remove([key]);
+    const bucket = key.startsWith('quarantine/') ? this.quarantineBucket : this.bucket;
+    const { error } = await this.client.storage.from(bucket).remove([key]);
     if (error) {
-      console.error(`Supabase delete failed for ${key}:`, error.message);
+      throw new Error(`Supabase delete failed for ${key}: ${error.message}`);
     }
   }
 
@@ -347,7 +391,8 @@ function makeStorage(): StorageProvider {
     const bucket = process.env.S3_BUCKET!;
     const region = process.env.AWS_REGION!;
     const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL;
-    return new S3StorageProvider({ bucket, region, publicBaseUrl });
+    const quarantineBucket = process.env.S3_QUARANTINE_BUCKET || `${bucket}-quarantine`;
+    return new S3StorageProvider({ bucket, quarantineBucket, region, publicBaseUrl });
   }
 
   if (process.env.NODE_ENV === 'production') {
@@ -377,4 +422,3 @@ export const storage: StorageProvider = new Proxy({} as StorageProvider, {
       : value;
   },
 });
-

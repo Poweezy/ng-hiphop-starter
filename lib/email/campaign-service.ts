@@ -3,8 +3,6 @@ import { getEmailProvider } from "./index";
 import type { EmailMessage } from "./provider";
 import { generateUnsubscribeToken } from "./unsubscribe";
 
-const provider = getEmailProvider();
-
 const DEFAULT_FROM = process.env.EMAIL_FROM || "noreply@ng-hiphop.com";
 const DEFAULT_REPLY_TO = process.env.EMAIL_REPLY_TO || "noreply@ng-hiphop.com";
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
@@ -132,11 +130,6 @@ export async function sendCampaignToSubscribers(
     return { success: false, sentCount: 0, error: "Campaign already sent" };
   }
 
-  await prisma.emailCampaign.update({
-    where: { id: campaignId },
-    data: { status: "sending" },
-  });
-
   // Consent re-check at send time: recipients may have unsubscribed or
   // withdrawn consent after the recipient list was resolved. This is the
   // last line of defense — the send route applies the same defaults when
@@ -168,6 +161,11 @@ export async function sendCampaignToSubscribers(
     replyTo: DEFAULT_REPLY_TO,
   }));
 
+  const provider = getEmailProvider();
+  await prisma.emailCampaign.update({
+    where: { id: campaignId },
+    data: { status: "sending" },
+  });
   const result = await provider.sendBatch(messages);
 
   const successfulIds = subscribers
@@ -235,7 +233,7 @@ export async function sendWelcomeEmail(subscriberId: string): Promise<{ success:
     </div>
   `;
 
-  const result = await provider.send({
+  const result = await getEmailProvider().send({
     to: subscriber.email,
     subject: `Welcome to Nerd Gauge - ${subscriber.competition.title}`,
     html,
@@ -339,7 +337,7 @@ export async function sendWinnerAnnouncement(
     };
   });
 
-  const result = await provider.sendBatch(messages);
+  const result = await getEmailProvider().sendBatch(messages);
 
   const successfulIds = subscribers
     .filter((_, index) => result.results[index]?.success)

@@ -32,7 +32,7 @@ Commands were run from the repository root on the local Windows environment. The
 | `npm run build` | Pass | Prisma Client generated and Next.js 16.4.2 production build completed. |
 | Node/npm runtime | Node 24.19.0 / npm 11.17.0 | CI uses Node 22; local and CI runtimes are not aligned. |
 | Dependency audit | Not rerun locally | CI defines `npm audit --omit=dev --audit-level=moderate`; this review does not certify the current dependency tree. |
-| Database migration | Not run | Explicitly excluded by the discovery-only mandate. |
+| Database migration (initial audit) | Not run | Excluded by the original discovery-only mandate; a later owner-authorized disposable local test is recorded below. |
 | Live deployment / browser QA | Not run | Hosting target, deployed configuration, and rendered behavior remain unverified. |
 
 During the production build, the application logged that Upstash Redis settings were missing and rate-limited endpoints would fail closed in production. This is safe from an abuse-control perspective but will block affected flows until production configuration is validated. The build regenerated the tracked `next-env.d.ts`; that generated-only change was restored. The source worktree was clean after verification.
@@ -41,12 +41,12 @@ During the production build, the application logged that Upstash Redis settings 
 
 | Priority | Finding | Business impact |
 |---|---|---|
-| High | The migration sequence appears inconsistent for a clean PostgreSQL database; the documented production command is `prisma migrate dev`. | Deployment can fail or create schema/data drift; release safety is unproven. |
+| High — confirmed | `prisma migrate deploy` fails on an empty PostgreSQL database: migration `20260819_best_lyrics_portal` references `LyricCompetition` before it is created by `20260820_create_lyric_competition`. The production guide also recommends `prisma migrate dev`. | Fresh-install migration is blocked; production migration safety remains unproven until deployed state and recovery are checked. |
 | High | Opt-in demo seeding can delete non-demo competition records and campaigns. | Potential irreversible loss of entrant, subscriber, winner, and campaign data. |
 | High | The public entrant UI gates entry behind an admin-branded login despite no public registration journey. | Competition participation and growth may be blocked for ordinary artists. |
 | High | Winner records can appear publicly without a clear publish step; the “notify” route does not establish that an email was sent. | Contest trust and promised subscriber communication are at risk. |
 | High | Database-backed queue work relies on an in-process polling lifecycle; song uploads pass large multipart files through an API route. | Vercel/serverless operation may leave jobs undelivered and uploads unusable. |
-| Medium | A public subscriber endpoint accepts caller-asserted consent/subscription status and is not rate-limited in the route. | Unverified addresses can become campaign-eligible, creating abuse and consent risk. |
+| Mitigated for new signups | Public subscriber intake previously trusted caller-asserted consent/status. A separately authorized follow-up now requires email confirmation and campaign delivery filters for verified consent; legacy records need owner-approved reconciliation. | Historical consent evidence and production email configuration still require review. |
 | Medium | Signed S3 playback URLs can be stored as canonical song URLs; browser CSP may not allow a custom storage/CDN host. | Tracks can stop playing after expiry or be blocked by browser policy. |
 | Medium | No browser journey tests, API integration baseline, coverage gate, or restore drill is evidenced. | Regressions and recovery failures can escape CI. |
 
@@ -54,9 +54,13 @@ See [TECHNICAL_DEBT.md](./TECHNICAL_DEBT.md), [SECURITY_ASSESSMENT.md](./SECURIT
 
 ## Scope limits and approval gate
 
-This assessment did not read the local database file or `.env`, execute migrations, modify application source, change production settings, or deploy. User experience findings are based on source and responsive/accessibility styles; no live browser review was possible. Production hosting, database state, proxy behavior, object-store policy, scanner availability, backups, and external workers must be confirmed by the owner/operators.
+This assessment did not read the local database file or `.env`, execute production/staging migrations, change production settings, or deploy. User experience findings are based on source and responsive/accessibility styles; no live browser review was possible. The owner has since confirmed Vercel hosting, Supabase PostgreSQL, and Supabase Storage. Production database state, proxy behavior, storage policy, scanner availability, backups, and external workers must still be confirmed by the owner/operators.
 
-The recommendations are for owner review. **No Phase 1 implementation should begin until the owner approves the target hosting/runtime, database recovery approach, public entrant model, competition rules/notification promises, and priority sequence.**
+On 2026-11-03, the owner confirmed **Vercel** hosting, **Supabase** PostgreSQL, and **Supabase Storage**, and approved Phase 1 implementation. A separate local disposable migration test was authorized; no staging or production migrations, deployments, or production configuration changes are authorized. Applied production migration history and backups/recovery remain unknown. Migration repair and product work requiring approval of the public entrant model, competition rules, or notification promises remain blocked pending those decisions.
+
+### Phase 0 disposable migration verification (2026-11-03)
+
+Ran `npx prisma migrate deploy` against a newly initialized, loopback-only PostgreSQL 18.6 database, not the configured Supabase instance. The initial migration applied; `20260819_best_lyrics_portal` failed with PostgreSQL `42P01` because relation `LyricCompetition` did not exist. The following migration, `20260820_create_lyric_competition`, creates that table, so the checked-in order is invalid for a clean database. The temporary database directory and server listener were removed. No migration correction was made; this is a confirmed release blocker requiring an owner-approved repair plan and comparison against deployed migration history.
 
 ## Authorized security follow-up
 
