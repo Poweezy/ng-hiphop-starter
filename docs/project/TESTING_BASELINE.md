@@ -40,6 +40,8 @@ After explicit owner approval, the repaired four migrations were applied to the 
 
 A read-only `SELECT 1` through Prisma succeeded using the current `.env`. A local homepage request returned HTTP 200, but the development server already running on port 3000 predates the corrected `DATABASE_URL`; its public slogan API returned HTTP 500 from the stale Prisma client configuration. A second Next.js dev server could not start because that existing process holds the `.next` dev lock, so it was left running. Restart the existing dev server to load the corrected environment, then repeat the homepage/API smoke check.
 
+After reviewing a local browser `CredentialsSignin` failure, the linked development database was checked and had zero admin accounts. With explicit owner approval, `npm run db:seed` ran against the verified development project, creating/updating the configured admin and default slogan; demo fixtures were explicitly disabled. Verification found exactly one admin, one default slogan, zero songs, and 16 application tables. `SEED_DEMO_DATA=false` is now set in the ignored local `.env`. No credentials were recorded in this report.
+
 ## Existing test and CI coverage
 
 - Vitest uses Node environment and V8 coverage reporters (`vitest.config.mts:10-23`); package scripts expose `npm test` and watch mode, but no coverage command or threshold is configured (`package.json:28-30`).
