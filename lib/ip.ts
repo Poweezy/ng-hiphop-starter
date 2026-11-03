@@ -5,9 +5,9 @@
  * We walk the chain from the right; any IP that is NOT a trusted proxy
  * is the origin client. This prevents spoofing of the leftmost entry.
  *
- * TRUSTED_PROXIES: comma-separated list of CIDR ranges or IPs for your
- * known reverse proxies (e.g. Vercel/Cloudflare edge). In production,
- * set this env var so client-supplied XFF can't be forged.
+ * On Vercel, use the platform-provided x-vercel-forwarded-for header.
+ * On other hosts, TRUSTED_PROXIES must list the forwarding proxy hops;
+ * otherwise client-controlled forwarding headers are ignored.
  */
 
 function parseTrustedProxies(): string[] {
@@ -44,28 +44,27 @@ function isIpInCidr(ip: string, cidr: string): boolean {
 }
 
 export function getClientIp(req: { headers: { get(name: string): string | null } }): string {
-  const real = req.headers.get('x-real-ip');
-  if (real) return real.trim();
+  if (process.env.VERCEL === '1') {
+    const vercelForwarded = req.headers.get('x-vercel-forwarded-for');
+    if (vercelForwarded?.trim()) return vercelForwarded.trim();
+  }
 
   const xff = req.headers.get('x-forwarded-for');
   if (xff) {
     const hops = xff.split(',').map((h) => h.trim());
     const trusted = parseTrustedProxies();
 
-    if (trusted.length === 0) {
-      const first = hops[0];
-      if (first) return first;
-    } else {
-      for (let i = hops.length - 1; i >= 0; i--) {
-        const hop = hops[i];
-        if (!hop || hop === 'unknown') continue;
-        const isTrusted = trusted.some((t) =>
-          t.includes('/') ? isIpInCidr(hop, t) : hop === t,
-        );
-        if (!isTrusted) return hop;
-      }
-      return hops[hops.length - 1] ?? 'unknown';
+    if (trusted.length === 0) return 'unknown';
+
+    for (let i = hops.length - 1; i >= 0; i--) {
+      const hop = hops[i];
+      if (!hop || hop === 'unknown') continue;
+      const isTrusted = trusted.some((t) =>
+        t.includes('/') ? isIpInCidr(hop, t) : hop === t,
+      );
+      if (!isTrusted) return hop;
     }
+    return hops[hops.length - 1] ?? 'unknown';
   }
 
   return 'unknown';

@@ -19,9 +19,10 @@
 | R-12 | Medium | Medium | Backups/restore, fleet-wide monitoring, and actionable alerting are not demonstrated in repository. | DevOps/SRE | Verify provider settings; conduct database/object restore drill; durable metrics and tested alerts; set RPO/RTO only afterward. |
 | R-13 | Medium | Medium | Submission/winner concurrent operations can leave inconsistent status/counters. | Database + Backend | Transactions, constraints, concurrency tests, reconciliation metrics. |
 | R-14 | Medium | Medium | CI/local runtime mismatch and limited tests leave end-to-end regressions undetected. | QA | Select supported Node version; route integration/browser tests; coverage baseline; repeatable CI gate. |
-| R-15 | Medium | Conditional | IP rate limits can be bypassed if deployed proxy accepts untrusted forwarding headers. | Security + DevOps | Validate proxy chain; test spoofed headers against actual host; ensure Redis configured. |
+| R-15 | Medium — hardened locally; host verification pending | Conditional | IP rate limits could trust spoofable forwarding headers outside a controlled proxy. | Security + DevOps | Vercel deployments use `x-vercel-forwarded-for`; other hosts require configured trusted proxy hops, otherwise the helper returns `unknown`. Verify deployed header behavior and rate-limit impact. |
 | R-16 | Medium | Conditional | Reusable reset secret or optional Sentry replay may not match recovery/privacy expectations if mismanaged. | Security + Product | Short-lived recovery flow, alerting, telemetry consent/retention policy and staging verification. |
 | R-17 | Low | High | Search, loading, and playback errors lack clear feedback; mobile player lacks progress/seek controls. | UX + Frontend | Add accessible states; validate keyboard/screen-reader/mobile behavior in browser tests. |
+| R-18 | Medium/Low — open | Medium | Production dependency scan reports 9 advisories (4 low, 5 moderate; 0 high/critical) after compatible updates. Remaining paths include SendGrid/deepmerge and Sentry glob/minimatch. | Security + DevOps | Avoid audit's breaking SendGrid downgrade and untested major overrides. Review compatible vendor updates, test, then rerun `npm audit --omit=dev` before release. |
 
 ## Immediate risk controls
 
@@ -31,7 +32,7 @@
 - Do not declare campaign success until the configured provider confirms acceptance and delivery state is tracked.
 - Do not provide security or availability sign-off based solely on a successful local build.
 
-The owner confirmed Vercel, Supabase PostgreSQL, and Supabase Storage on 2026-11-03 and approved Phase 1 implementation. A disposable local PostgreSQL test confirmed the clean-install migration failure; the test database was removed. Seed/email/upload safety changes are implemented locally, but no staging/production configuration or services were changed or tested. Production migration state, worker lifecycle, email delivery, and backup/restore status remain unconfirmed.
+The owner confirmed Vercel, Supabase PostgreSQL, and Supabase Storage on 2026-11-03 and approved Phase 1 implementation. A disposable local PostgreSQL test confirmed the clean-install migration failure; the test database was removed. Seed/email/upload safety changes are implemented locally, but no staging/production configuration or services were changed or tested. The separate `AUDIT_REPORT.md` is an earlier code/dependency snapshot: its public subscriber endpoint concern was addressed by consent confirmation and rate limiting before this phase. The latest production dependency scan and remaining advisories are documented in R-18 and [SECURITY_ASSESSMENT.md](./SECURITY_ASSESSMENT.md). Production migration state, worker lifecycle, email delivery, and backup/restore status remain unconfirmed.
 
 ## Authorized follow-up status
 

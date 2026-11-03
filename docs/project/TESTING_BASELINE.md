@@ -7,11 +7,11 @@
 
 | Command | Result | Detail |
 |---|---|---|
-| `npm test` | Pass | Vitest: 10 files, 60 tests passed. |
+| `npm test` | Pass | Original audit baseline: Vitest 10 files, 60 tests passed. |
 | `npx tsc --noEmit` | Pass | No diagnostics. |
 | `npm run lint` | Pass with warnings | 0 errors and 43 warnings. |
 | `npm run build` | Pass | Prisma Client generation and Next.js 16.4.2 production build succeeded. |
-| `npm audit --omit=dev` | Not rerun locally | Configured as a GitHub Actions security job; current dependency advisories are not asserted by this report. |
+| `npm audit --omit=dev` | Findings remain | 2026-11-03: 9 advisories (4 low, 5 moderate; 0 high/critical) after non-forced compatible updates; see [SECURITY_ASSESSMENT.md](./SECURITY_ASSESSMENT.md). |
 | Migration / live integration tests | Not run | No migration was executed and no live service was contacted. |
 
 After the separately authorized consent remediation, the full suite passed with **12 files and 68 tests**; type-check and production build passed, and lint remained at **0 errors / 43 warnings**. The baseline above preserves the pre-change result for comparison.
@@ -19,6 +19,14 @@ After the separately authorized consent remediation, the full suite passed with 
 After Phase 1 local seed, email, and upload changes, the full suite passed with **16 files and 85 tests**, and `npx tsc --noEmit` passed. Targeted ESLint reported no errors; seed console/no-explicit-any warnings remain. `npm run build` was blocked during `prisma generate` by a Windows `EPERM` rename of the generated query-engine DLL; `npx next build` using the existing generated Prisma client completed successfully. No real email, Supabase bucket, or production/staging integration was exercised.
 
 The build emitted warnings that Upstash Redis environment values were missing, so rate-limited endpoints would fail closed in production. The build used the local `.env` without reading or recording its contents. It regenerated `next-env.d.ts`; that generated-only change was restored after the check.
+
+## Verification after latest audit remediation (2026-11-03)
+
+- `npm test`: **17 files / 95 tests passed** after fixing a flaky tamper-test mutation.
+- `npx tsc --noEmit`: passed.
+- `npm run lint`: passed with 0 errors and the existing 43 warnings.
+- `npm run build`: passed; the build completed with local Upstash values absent, so rate-limited endpoints reported fail-closed behavior. No live integrations were exercised.
+- `npm audit --omit=dev`: 9 advisories (4 low, 5 moderate; 0 high/critical). The non-forced `npm audit fix` did not use breaking changes.
 
 ## Phase 0 disposable migration test (2026-11-03)
 

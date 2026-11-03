@@ -32,7 +32,7 @@ describe('unsubscribe tokens', () => {
 
   it('rejects a tampered signature', () => {
     const token = generateUnsubscribeToken('sub_123');
-    const tampered = `${token.slice(0, -2)}ff`;
+    const tampered = `${token.slice(0, -1)}${token.endsWith('f') ? 'e' : 'f'}`;
     expect(verifyUnsubscribeToken(tampered)).toBeNull();
   });
 

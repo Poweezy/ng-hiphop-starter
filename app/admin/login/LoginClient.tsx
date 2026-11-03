@@ -150,7 +150,7 @@ export default function LoginClient() {
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div className="admin-login-logo-wrap">
             <Image
-              src="/images/logo.png"
+              src="/images/logo.jpg"
               alt="Nerd Gauge Logo"
               width={90}
               height={90}

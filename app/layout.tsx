@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: '/favicon.ico',
-        apple: '/images/apple-touch-icon.png',
+        apple: '/images/apple-touch-icon.jpg',
     },
     description: 'The official platform for Nerd Gauge. Authentic hip-hop, community-driven, and legally distributed. Stream the latest releases and join the movement.',
     keywords: ['Nerd Gauge', 'NG Hip Hop', 'Eswatini Music', 'African Rap', 'Urban Culture', 'Music Platform'],
@@ -99,7 +99,7 @@ const organizationJsonLd = {
     name: 'Nerd Gauge',
     alternateName: ['NG', 'NG Hip Hop'],
     url: 'https://ng-hiphop.com',
-    logo: 'https://ng-hiphop.com/images/logo.png',
+    logo: 'https://ng-hiphop.com/images/logo.jpg',
     sameAs: ['https://x.com/nghiphop'],
     genre: 'Hip Hop',
 };
@@ -131,7 +131,7 @@ export default function RootLayout({
         >
             <head>
                 <link rel="icon" href="/favicon.ico" sizes="any" />
-                <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+                <link rel="apple-touch-icon" href="/images/apple-touch-icon.jpg" />
             </head>
             <body>
                 <script

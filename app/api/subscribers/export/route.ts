@@ -5,6 +5,7 @@ import { getRequestId, errorResponse } from '@/lib/api';
 import { recordRequest } from '@/lib/observability';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { getClientIp } from '@/lib/ip';
+import { escapeCsvCell } from '@/lib/csv';
 
 export async function GET(req: NextRequest) {
   const requestId = getRequestId(req);
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
       s.createdAt.toISOString(),
     ]);
 
-    const csv = [headers.join(','), ...rows.map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const csv = [headers.map(escapeCsvCell).join(','), ...rows.map((row) => row.map(escapeCsvCell).join(','))].join('\n');
 
     recordRequest('GET', '/api/subscribers/export', 200, performance.now() - start, requestId);
     return new NextResponse(csv, {
