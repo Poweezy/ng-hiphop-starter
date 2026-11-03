@@ -8,8 +8,8 @@
 - **Hosting target:** Vercel.
 - **Database provider:** Supabase (interpreting “superbase” in the owner response as Supabase).
 - **Object storage:** Supabase Storage.
-- **Migration authorization:** A migration test is authorized on a local disposable PostgreSQL database only. No staging or production migrations are authorized.
-- **Disposable migration test (2026-11-03):** `npx prisma migrate deploy` on local PostgreSQL 18.6 failed at `20260819_best_lyrics_portal` because relation `LyricCompetition` does not exist (`42P01`). The database directory and listener were removed after the test.
+- **Migration authorization:** Local disposable PostgreSQL migration tests and local edits to migrations confirmed unshipped are authorized. No staging or production migrations are authorized.
+- **Migration repair (2026-11-03):** Owner confirmed the checked-in migrations had never been applied outside development. The portal schema was consolidated into `20260819_best_lyrics_portal`, with `20260820_create_lyric_competition` retained as a no-op sequence marker. All four migrations applied to a disposable PostgreSQL 17 database; Prisma schema diff was empty. Linked development database had zero public tables and was not migrated. Production state remains unverified.
 - **Current production migration state, backup/restore readiness, and external worker:** Not confirmed.
 - **External worker:** Unknown / not confirmed.
 - **Entrant access, judging, and winner publication policy:** Unknown / owner decision pending.
@@ -29,7 +29,7 @@ These decisions narrow the validation target but do not establish access to, or 
 | Work item | Dependencies | Acceptance criteria |
 |---|---|---|
 | Confirmed: Vercel, Supabase PostgreSQL, and Supabase Storage. Still verify Node runtime, function/body limits, staging ownership, and whether an external worker exists. | Owner confirmation recorded; operator/environment evidence | A reviewed environment matrix identifies Development, CI, Staging, and Production configuration and documents any external worker. |
-| Establish the deployed Supabase PostgreSQL migration history, current schema state, backup/PITR configuration, and restore capability; resolve the confirmed clean-install migration failure. | Database/operations owner access; Phase 1 approval for any migration repair; production migrations remain unauthorized | No production data is changed; the applied migration state is recorded read-only; a sanitized staging copy and tested restore path are available before any repair proposal. |
+| Establish the deployed Supabase PostgreSQL migration history, backup/PITR configuration, and restore capability; validate the repaired history in representative staging. | Database/operations owner access; production migrations remain unauthorized | Production state is recorded read-only; a sanitized staging copy and tested restore path are available before any production migration proposal. |
 | Decide entrant identity/access model, judging method, public contest rules, and winner approval/publication. | Product owner; legal review for contest terms where required | Signed-off user journey and state transitions map to current API/schema; ambiguous promises are removed or scheduled. |
 | Confirm media visibility/rights, accepted audio formats/size, CDN domain, expected catalog/traffic, and whether advanced streaming is in scope. | Product/artist and operations | One supported media policy and hosting path are documented. |
 | Approve ranked risk list, scope, owners, rollback criteria, and complexity estimates. | Above decisions | Phase 1 implementation approved on 2026-11-03; open product and operational decisions remain tracked above. |
@@ -40,7 +40,7 @@ These decisions narrow the validation target but do not establish access to, or 
 
 | Work item | Dependencies | Acceptance criteria |
 |---|---|---|
-| Reconcile Prisma migration history and create a safe production migration/deploy procedure. | Phase 0 database state, backup/restore, owner approval | `prisma migrate deploy` succeeds on an empty disposable PostgreSQL database and representative staging state; no unexplained schema drift; recovery procedure is rehearsed. |
+| **Repaired locally:** Consolidate unshipped Prisma history and use a safe production migration/deploy procedure. | Production state, backup/restore verification, owner approval for any remote migration | `prisma migrate deploy` succeeds on an empty disposable PostgreSQL database and produces no Prisma schema diff; complete representative staging validation and rehearse recovery before production. |
 | **Completed locally:** Make demo seeding fixture-scoped and add production-target safeguards. | Phase 1 approval | Focused tests verify the fixed fixture scope and production rejection; admin campaigns are no longer targeted. No live/staging seed was run. |
 | Reconcile legacy subscriber records and verify consent evidence. | Phase 0 consent policy and data-retention decision | Legacy `granted` records remain excluded until consent is reverified or safely suppressed; unsubscribe/withdrawal prevents future sends; owner approves the treatment of historical records. |
 | **Implemented locally:** Require real production email provider and truthful delivery status. | Hosting secret matrix; email owner | Production requires SendGrid and an explicit sender; no console fallback. Configuration tests pass, but provider delivery/retries and production secrets are not verified. |

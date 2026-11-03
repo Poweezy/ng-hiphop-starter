@@ -22,15 +22,19 @@ The build emitted warnings that Upstash Redis environment values were missing, s
 
 ## Verification after latest audit remediation (2026-11-03)
 
-- `npm test`: **17 files / 95 tests passed** after fixing a flaky tamper-test mutation.
+- `npm test`: **18 files / 97 tests passed** after adding PostgreSQL URL validation coverage and fixing a flaky tamper-test mutation.
 - `npx tsc --noEmit`: passed.
 - `npm run lint`: passed with 0 errors and the existing 43 warnings.
 - `npm run build`: passed; the build completed with local Upstash values absent, so rate-limited endpoints reported fail-closed behavior. No live integrations were exercised.
 - `npm audit --omit=dev`: 9 advisories (4 low, 5 moderate; 0 high/critical). The non-forced `npm audit fix` did not use breaking changes.
 
-## Phase 0 disposable migration test (2026-11-03)
+## Phase 0 disposable migration tests (2026-11-03)
 
-With explicit owner authorization for a local disposable database only, initialized a loopback-only PostgreSQL 18.6 cluster and ran `npx prisma migrate deploy` using an ephemeral `DATABASE_URL`. `20260729123554_init` applied; `20260819_best_lyrics_portal` failed with PostgreSQL `42P01` because `LyricCompetition` did not exist. No staging or production database was accessed. The disposable cluster directory and listener were removed. No migration changes were made.
+The first authorized local disposable PostgreSQL 18.6 test exposed a clean-install failure: `20260729123554_init` applied, then `20260819_best_lyrics_portal` failed with `42P01` because `LyricCompetition` did not exist. Review also found the following migration duplicated the portal tables created by the prior migration.
+
+After the owner confirmed these migrations had never been applied outside development, the unshipped history was consolidated: `20260819_best_lyrics_portal` now creates the complete portal schema before the retained `20260820` no-op migration; the portal DDL was aligned with Prisma's declared defaults and indexes. Production deployment history remains unknown.
+
+A fresh PostgreSQL 17 disposable database then applied all **4 migrations** successfully with `npx prisma migrate deploy`. `npx prisma migrate status` reported the database up to date, and `prisma migrate diff --from-url ... --to-schema-datamodel prisma/schema.prisma --script` returned an empty migration. The linked Supabase development database was checked read-only and has no public tables; no remote migration was applied. A `migrate reset` test also applied all migrations, but Prisma Client generation afterward hit the known Windows `EPERM` rename issue; this did not affect migration execution or the clean schema-diff result.
 
 ## Existing test and CI coverage
 

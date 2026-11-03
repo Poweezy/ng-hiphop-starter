@@ -41,7 +41,7 @@ During the production build, the application logged that Upstash Redis settings 
 
 | Priority | Finding | Business impact |
 |---|---|---|
-| High — confirmed | `prisma migrate deploy` fails on an empty PostgreSQL database: migration `20260819_best_lyrics_portal` references `LyricCompetition` before it is created by `20260820_create_lyric_competition`. The production guide also recommends `prisma migrate dev`. | Fresh-install migration is blocked; production migration safety remains unproven until deployed state and recovery are checked. |
+| High — repaired locally; rollout not verified | The original migration chain failed on a clean PostgreSQL database and duplicated portal-table creation across the next migration. The deployment guide also recommended `prisma migrate dev`. | Unshipped migrations were consolidated and verified on a fresh disposable PostgreSQL database; the linked development database remains untouched. Production history, backup/recovery, and rollout remain unverified. |
 | High | Opt-in demo seeding can delete non-demo competition records and campaigns. | Potential irreversible loss of entrant, subscriber, winner, and campaign data. |
 | High | The public entrant UI gates entry behind an admin-branded login despite no public registration journey. | Competition participation and growth may be blocked for ordinary artists. |
 | High | Winner records can appear publicly without a clear publish step; the “notify” route does not establish that an email was sent. | Contest trust and promised subscriber communication are at risk. |
@@ -60,7 +60,9 @@ On 2026-11-03, the owner confirmed **Vercel** hosting, **Supabase** PostgreSQL, 
 
 ### Phase 0 disposable migration verification (2026-11-03)
 
-Ran `npx prisma migrate deploy` against a newly initialized, loopback-only PostgreSQL 18.6 database, not the configured Supabase instance. The initial migration applied; `20260819_best_lyrics_portal` failed with PostgreSQL `42P01` because relation `LyricCompetition` did not exist. The following migration, `20260820_create_lyric_competition`, creates that table, so the checked-in order is invalid for a clean database. The temporary database directory and server listener were removed. No migration correction was made; this is a confirmed release blocker requiring an owner-approved repair plan and comparison against deployed migration history.
+Initial test evidence: `npx prisma migrate deploy` against a newly initialized loopback-only PostgreSQL 18.6 database applied the initial migration then failed at `20260819_best_lyrics_portal` with `42P01` because relation `LyricCompetition` did not exist. Review also found that the next migration re-created tables already declared in the failed migration. No Supabase database was accessed during that test.
+
+Follow-up (2026-11-03): the owner confirmed these migrations had never been applied outside development. The unshipped portal DDL was consolidated into `20260819_best_lyrics_portal`; `20260820_create_lyric_competition` remains as an explicit no-op migration to preserve sequence identity. A fresh disposable PostgreSQL 17 run applied all four migrations, and Prisma's schema diff was empty. The linked development database was checked read-only (zero public tables) and not migrated. Production migration history and recovery readiness remain unverified.
 
 ## Authorized security follow-up
 

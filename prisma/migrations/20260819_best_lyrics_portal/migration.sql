@@ -1,50 +1,36 @@
--- Best Lyrics Portal — Competition Management System
--- Expands LyricCompetition, renames CompetitionSubscriber to Subscriber,
--- and adds full competition lifecycle models.
+-- Create the Best Lyrics portal schema after the initial platform migration.
 
 -- ============================================
--- 1. Expand LyricCompetition
+-- 1. Create LyricCompetition
 -- ============================================
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "description" TEXT;
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "type" TEXT NOT NULL DEFAULT 'monthly';
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT 'draft';
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "slug" TEXT;
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "submissionDeadline" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "bannerUrl" TEXT;
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "shortDescription" TEXT;
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "socialSharingText" TEXT;
-ALTER TABLE "LyricCompetition" ADD COLUMN IF NOT EXISTS "viewCount" INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE "LyricCompetition" DROP COLUMN IF EXISTS "winnerId";
-ALTER TABLE "LyricCompetition" DROP COLUMN IF EXISTS "period";
+CREATE TABLE "LyricCompetition" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "type" TEXT NOT NULL DEFAULT 'monthly',
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "slug" TEXT,
+    "startDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "endDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "submissionDeadline" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "bannerUrl" TEXT,
+    "shortDescription" TEXT,
+    "socialSharingText" TEXT,
+    "viewCount" INTEGER NOT NULL DEFAULT 0,
+    "is_active" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "LyricCompetition_pkey" PRIMARY KEY ("id")
+);
 
 CREATE UNIQUE INDEX IF NOT EXISTS "LyricCompetition_slug_key" ON "LyricCompetition"("slug");
 CREATE INDEX IF NOT EXISTS "LyricCompetition_status_is_active_idx" ON "LyricCompetition"("status", "is_active");
+CREATE INDEX IF NOT EXISTS "LyricCompetition_startDate_endDate_idx" ON "LyricCompetition"("startDate", "endDate");
+CREATE INDEX IF NOT EXISTS "LyricCompetition_createdAt_idx" ON "LyricCompetition"("createdAt");
 
 -- ============================================
--- 2. Rename CompetitionSubscriber -> Subscriber
--- ============================================
-ALTER TABLE "CompetitionSubscriber" RENAME TO "Subscriber";
-
--- ============================================
--- 3. Expand Subscriber
--- ============================================
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "name" TEXT;
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "source" TEXT NOT NULL DEFAULT '';
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "consentStatus" TEXT NOT NULL DEFAULT 'granted';
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "consentTimestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "subscriptionStatus" TEXT NOT NULL DEFAULT 'active';
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "unsubscribedAt" TIMESTAMP(3);
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "lastEmailSentAt" TIMESTAMP(3);
-ALTER TABLE "Subscriber" DROP COLUMN IF EXISTS "subscribedAt";
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
-CREATE INDEX IF NOT EXISTS "Subscriber_email_idx" ON "Subscriber"("email");
-CREATE INDEX IF NOT EXISTS "Subscriber_subscriptionStatus_idx" ON "Subscriber"("subscriptionStatus");
-CREATE INDEX IF NOT EXISTS "Subscriber_source_idx" ON "Subscriber"("source");
-
--- ============================================
--- 4. Create CompetitionRule
+-- 2. Create CompetitionRule
 -- ============================================
 CREATE TABLE "CompetitionRule" (
     "id" TEXT NOT NULL,
@@ -63,10 +49,11 @@ CREATE TABLE "CompetitionRule" (
     CONSTRAINT "CompetitionRule_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "CompetitionRule_competitionId_key" ON "CompetitionRule"("competitionId");
+CREATE UNIQUE INDEX IF NOT EXISTS "CompetitionRule_competitionId_key" ON "CompetitionRule"("competitionId");
+CREATE INDEX IF NOT EXISTS "CompetitionRule_competitionId_idx" ON "CompetitionRule"("competitionId");
 
 -- ============================================
--- 5. Create CompetitionPrize
+-- 3. Create CompetitionPrize
 -- ============================================
 CREATE TABLE "CompetitionPrize" (
     "id" TEXT NOT NULL,
@@ -81,11 +68,36 @@ CREATE TABLE "CompetitionPrize" (
     CONSTRAINT "CompetitionPrize_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "CompetitionPrize_competitionId_position_key" ON "CompetitionPrize"("competitionId", "position");
-CREATE INDEX "CompetitionPrize_competitionId_idx" ON "CompetitionPrize"("competitionId");
+CREATE UNIQUE INDEX IF NOT EXISTS "CompetitionPrize_competitionId_position_key" ON "CompetitionPrize"("competitionId", "position");
+CREATE INDEX IF NOT EXISTS "CompetitionPrize_competitionId_idx" ON "CompetitionPrize"("competitionId");
 
 -- ============================================
--- 6. Create LyricSubmission
+-- 4. Create Subscriber (formerly CompetitionSubscriber)
+-- ============================================
+CREATE TABLE "Subscriber" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "competitionId" TEXT NOT NULL,
+    "source" TEXT NOT NULL DEFAULT '',
+    "consentStatus" TEXT NOT NULL DEFAULT 'granted',
+    "consentTimestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "subscriptionStatus" TEXT NOT NULL DEFAULT 'active',
+    "unsubscribedAt" TIMESTAMP(3),
+    "lastEmailSentAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Subscriber_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Subscriber_competitionId_email_key" ON "Subscriber"("competitionId", "email");
+CREATE INDEX IF NOT EXISTS "Subscriber_email_idx" ON "Subscriber"("email");
+CREATE INDEX IF NOT EXISTS "Subscriber_subscriptionStatus_idx" ON "Subscriber"("subscriptionStatus");
+CREATE INDEX IF NOT EXISTS "Subscriber_source_idx" ON "Subscriber"("source");
+
+-- ============================================
+-- 5. Create LyricSubmission
 -- ============================================
 CREATE TABLE "LyricSubmission" (
     "id" TEXT NOT NULL,
@@ -111,12 +123,12 @@ CREATE TABLE "LyricSubmission" (
     CONSTRAINT "LyricSubmission_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX "LyricSubmission_competitionId_status_idx" ON "LyricSubmission"("competitionId", "status");
-CREATE INDEX "LyricSubmission_competitionId_createdAt_idx" ON "LyricSubmission"("competitionId", "createdAt");
-CREATE INDEX "LyricSubmission_userId_idx" ON "LyricSubmission"("userId");
+CREATE INDEX IF NOT EXISTS "LyricSubmission_competitionId_status_idx" ON "LyricSubmission"("competitionId", "status");
+CREATE INDEX IF NOT EXISTS "LyricSubmission_competitionId_createdAt_idx" ON "LyricSubmission"("competitionId", "createdAt");
+CREATE INDEX IF NOT EXISTS "LyricSubmission_userId_idx" ON "LyricSubmission"("userId");
 
 -- ============================================
--- 7. Create SubmissionModeration
+-- 6. Create SubmissionModeration
 -- ============================================
 CREATE TABLE "SubmissionModeration" (
     "id" TEXT NOT NULL,
@@ -130,10 +142,10 @@ CREATE TABLE "SubmissionModeration" (
     CONSTRAINT "SubmissionModeration_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX "SubmissionModeration_submissionId_idx" ON "SubmissionModeration"("submissionId");
+CREATE INDEX IF NOT EXISTS "SubmissionModeration_submissionId_idx" ON "SubmissionModeration"("submissionId");
 
 -- ============================================
--- 8. Create CompetitionParticipant
+-- 7. Create CompetitionParticipant
 -- ============================================
 CREATE TABLE "CompetitionParticipant" (
     "id" TEXT NOT NULL,
@@ -145,10 +157,10 @@ CREATE TABLE "CompetitionParticipant" (
     CONSTRAINT "CompetitionParticipant_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "CompetitionParticipant_competitionId_userId_key" ON "CompetitionParticipant"("competitionId", "userId");
+CREATE UNIQUE INDEX IF NOT EXISTS "CompetitionParticipant_competitionId_userId_key" ON "CompetitionParticipant"("competitionId", "userId");
 
 -- ============================================
--- 9. Create Winner
+-- 8. Create Winner
 -- ============================================
 CREATE TABLE "Winner" (
     "id" TEXT NOT NULL,
@@ -166,12 +178,13 @@ CREATE TABLE "Winner" (
     CONSTRAINT "Winner_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "Winner_competitionId_position_key" ON "Winner"("competitionId", "position");
-CREATE UNIQUE INDEX "Winner_submissionId_key" ON "Winner"("submissionId");
-CREATE INDEX "Winner_competitionId_idx" ON "Winner"("competitionId");
+CREATE UNIQUE INDEX IF NOT EXISTS "Winner_competitionId_position_key" ON "Winner"("competitionId", "position");
+CREATE UNIQUE INDEX IF NOT EXISTS "Winner_submissionId_key" ON "Winner"("submissionId");
+CREATE INDEX IF NOT EXISTS "Winner_competitionId_idx" ON "Winner"("competitionId");
+CREATE INDEX IF NOT EXISTS "Winner_submissionId_idx" ON "Winner"("submissionId");
 
 -- ============================================
--- 10. Create CompetitionAnalytics
+-- 9. Create CompetitionAnalytics
 -- ============================================
 CREATE TABLE "CompetitionAnalytics" (
     "id" TEXT NOT NULL,
@@ -190,10 +203,10 @@ CREATE TABLE "CompetitionAnalytics" (
     CONSTRAINT "CompetitionAnalytics_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "CompetitionAnalytics_competitionId_key" ON "CompetitionAnalytics"("competitionId");
+CREATE UNIQUE INDEX IF NOT EXISTS "CompetitionAnalytics_competitionId_key" ON "CompetitionAnalytics"("competitionId");
 
 -- ============================================
--- 11. Create EmailCampaign
+-- 10. Create EmailCampaign
 -- ============================================
 CREATE TABLE "EmailCampaign" (
     "id" TEXT NOT NULL,
@@ -213,10 +226,11 @@ CREATE TABLE "EmailCampaign" (
 );
 
 -- ============================================
--- 12. Foreign Keys
+-- 11. Foreign Keys
 -- ============================================
 ALTER TABLE "CompetitionRule" ADD CONSTRAINT "CompetitionRule_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "CompetitionPrize" ADD CONSTRAINT "CompetitionPrize_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Subscriber" ADD CONSTRAINT "Subscriber_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "LyricSubmission" ADD CONSTRAINT "LyricSubmission_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "SubmissionModeration" ADD CONSTRAINT "SubmissionModeration_submissionId_fkey" FOREIGN KEY ("submissionId") REFERENCES "LyricSubmission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "CompetitionParticipant" ADD CONSTRAINT "CompetitionParticipant_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -224,4 +238,21 @@ ALTER TABLE "Winner" ADD CONSTRAINT "Winner_competitionId_fkey" FOREIGN KEY ("co
 ALTER TABLE "Winner" ADD CONSTRAINT "Winner_prizeId_fkey" FOREIGN KEY ("prizeId") REFERENCES "CompetitionPrize"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "Winner" ADD CONSTRAINT "Winner_submissionId_fkey" FOREIGN KEY ("submissionId") REFERENCES "LyricSubmission"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "CompetitionAnalytics" ADD CONSTRAINT "CompetitionAnalytics_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "Subscriber" ADD CONSTRAINT "Subscriber_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "LyricCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Match Prisma's @updatedAt behavior and declared indexes.
+DROP INDEX "CompetitionRule_competitionId_idx";
+CREATE INDEX "LyricCompetition_slug_idx" ON "LyricCompetition"("slug");
+
+ALTER TABLE "CompetitionAnalytics" ALTER COLUMN "updatedAt" DROP DEFAULT;
+ALTER TABLE "CompetitionPrize" ALTER COLUMN "updatedAt" DROP DEFAULT;
+ALTER TABLE "CompetitionRule" ALTER COLUMN "updatedAt" DROP DEFAULT;
+ALTER TABLE "EmailCampaign" ALTER COLUMN "updatedAt" DROP DEFAULT;
+ALTER TABLE "LyricCompetition"
+    ALTER COLUMN "startDate" DROP DEFAULT,
+    ALTER COLUMN "endDate" DROP DEFAULT,
+    ALTER COLUMN "submissionDeadline" DROP DEFAULT,
+    ALTER COLUMN "updatedAt" DROP DEFAULT;
+ALTER TABLE "LyricSubmission" ALTER COLUMN "updatedAt" DROP DEFAULT;
+ALTER TABLE "Subscriber"
+    ALTER COLUMN "source" DROP DEFAULT,
+    ALTER COLUMN "updatedAt" DROP DEFAULT;

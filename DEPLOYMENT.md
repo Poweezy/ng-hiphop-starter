@@ -86,10 +86,10 @@ datasource db {
 }
 ```
 
-2. Run migrations:
+2. Apply checked-in migrations with Prisma's deploy command:
 ```bash
 npm run db:generate
-npm run db:migrate
+npx prisma migrate deploy
 npm run db:seed
 ```
 
@@ -164,7 +164,7 @@ Vercel Postgres is the recommended database for this project. It provides:
 **To add Vercel Postgres:**
 1. In the Vercel dashboard, go to your project → Storage → Postgres → Create Database
 2. Vercel automatically injects `DATABASE_URL` as an environment variable
-3. Run migrations: `npm run db:migrate`
+3. Apply checked-in migrations through the release process: `npx prisma migrate deploy`
 4. Seed the database: `npm run db:seed` (creates the slogan + admin user only; demo fixtures require `SEED_DEMO_DATA=true`)
 
 **Connection String Format:**
@@ -177,8 +177,11 @@ postgresql://user:password@host:port/database?sslmode=require
 # Generate Prisma client
 npm run db:generate
 
-# Create and apply migration
+# Development only: create a migration from schema changes
 npm run db:migrate
+
+# Deployment: apply checked-in migrations without creating new ones
+npx prisma migrate deploy
 
 # Seed initial data
 npm run db:seed

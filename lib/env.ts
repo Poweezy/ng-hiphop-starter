@@ -2,7 +2,12 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z
+    .string()
+    .url()
+    .refine((value) => /^postgres(?:ql)?:\/\//i.test(value), {
+      message: 'must use the postgresql:// or postgres:// protocol',
+    }),
   NEXTAUTH_SECRET: z.string().min(32),
   NEXTAUTH_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
