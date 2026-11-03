@@ -66,7 +66,7 @@ export default function SplashScreen() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             <Image
-              src="/images/logo.png"
+              src="/images/logo.jpg"
               alt="Nerd Gauge"
               width={200}
               height={200}

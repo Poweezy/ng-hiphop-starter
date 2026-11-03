@@ -76,7 +76,7 @@ export default function Navigation() {
         {/* Brand logo */}
         <Link href="/" className="nav-logo-link" aria-label="Nerd Gauge — go to homepage">
           <Image
-            src="/images/logo.png"
+            src="/images/logo.jpg"
             alt="Nerd Gauge"
             width={80}
             height={80}

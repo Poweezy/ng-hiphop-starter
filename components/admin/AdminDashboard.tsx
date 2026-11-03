@@ -155,7 +155,7 @@ export default function AdminDashboard({ initialSlogan, initialSongs, initialQuo
                         {sidebarOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
                     </button>
                     <Image
-                        src="/images/logo.png"
+                        src="/images/logo.jpg"
                         alt="Nerd Gauge Logo"
                         width={36}
                         height={36}
