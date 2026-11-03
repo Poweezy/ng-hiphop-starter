@@ -1,8 +1,14 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import type { User } from "next-auth";
 import { prisma } from "@/app/db";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { getClientIp } from "@/lib/ip";
+
+function redactValue(value: string): string {
+  const hash = crypto.createHash('sha256').update(value).digest('hex').slice(0, 12);
+  return `sha256:${hash}`;
+}
 
 // Credential verification logic, extracted from the NextAuth provider so it
 // can be unit-tested without booting the NextAuth runtime. Dependencies are
@@ -46,24 +52,30 @@ export async function verifyAdminCredentials(
     // generic CredentialsSignin error — the most common cause of a bare
     // CredentialsSignin is fail-closed rate limiting when Upstash env vars
     // are missing on the deployment host.
-    console.error('[auth] login denied: rate limit exceeded', { email, ip });
+    console.error('[auth] login denied: rate limit exceeded', {
+      emailHash: redactValue(email),
+      ipHash: redactValue(ip),
+    });
     return null;
   }
 
   const user = await deps.findUser(email);
 
   if (!user) {
-    console.error('[auth] login failed: no user row for email', { email });
+    console.error('[auth] login failed: no user row for email', { emailHash: redactValue(email) });
     return null;
   }
   if (user.role !== "ADMIN") {
-    console.error('[auth] login failed: non-admin role', { email, role: user.role });
+    console.error('[auth] login failed: non-admin role', {
+      emailHash: redactValue(email),
+      role: user.role,
+    });
     return null;
   }
 
   const isValid = await bcrypt.compare(password, user.password_hash);
   if (!isValid) {
-    console.error('[auth] login failed: invalid password', { email });
+    console.error('[auth] login failed: invalid password', { emailHash: redactValue(email) });
     return null;
   }
 

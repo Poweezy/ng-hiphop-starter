@@ -87,6 +87,27 @@ describe('verifyAdminCredentials', () => {
     expect(user).toBeNull();
   });
 
+  it('redacts email and ip values in auth failure logs', async () => {
+    const { deps, findUser, checkLimit } = makeDeps();
+    findUser.mockResolvedValue({
+      ...adminRow,
+      password_hash: await bcrypt.hash('correct-password', 4),
+    });
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await verifyAdminCredentials(
+      { email: 'admin@ng.com', password: 'wrong' },
+      req,
+      deps,
+    );
+
+    const logText = logSpy.mock.calls.map((args) => JSON.stringify(args)).join(' ');
+    expect(logText).not.toContain('admin@ng.com');
+    expect(logText).not.toContain('127.0.0.1');
+    expect(logText).toContain('emailHash');
+    logSpy.mockRestore();
+  });
+
   it('rejects when rate limited before touching the database', async () => {
     const { deps, findUser, checkLimit } = makeDeps();
     checkLimit.mockResolvedValue({ allowed: false });
