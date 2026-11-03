@@ -7,7 +7,7 @@ import { ToastProvider } from '@/components/ToastProvider';
 import CookieConsent from '@/components/CookieConsent';
 import MiniPlayer from '@/components/MiniPlayer';
 import BottomNavigation from '@/components/BottomNavigation';
-import { MailIcon, XLogoIcon } from './icons';
+import { MailIcon } from './icons';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -38,21 +38,10 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                     <a href="/terms">Terms</a>
                 </nav>
                 <div className="footer-social">
-                    <a
-                        href="https://x.com/nghiphop"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Nerd Gauge on X (Twitter)"
-                    >
-                        <XLogoIcon size={16} style={{ marginRight: '6px' }} /> Nerd Gauge
-                    </a>
                     {process.env.NEXT_PUBLIC_CONTACT_EMAIL && (
-                        <>
-                            <span className="footer-sep">·</span>
-                            <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} aria-label="Email Nerd Gauge">
-                                <MailIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Contact
-                            </a>
-                        </>
+                        <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} aria-label="Email Nerd Gauge">
+                            <MailIcon size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />Contact
+                        </a>
                     )}
                 </div>
                 <p className="footer-disclaimer">

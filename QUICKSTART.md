@@ -192,4 +192,4 @@ npm run build
 4. Verify environment variables
 
 ---
-**Real Bars. Real Beats. Real Eswatini.**
+**Built by Bars Raised by Beats**

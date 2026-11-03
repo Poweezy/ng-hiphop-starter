@@ -36,7 +36,7 @@ const dancingScript = Dancing_Script({
 
 export const metadata: Metadata = {
     title: {
-        default: 'Nerd Gauge — Real Bars. Real Beats. Real Eswatini.',
+        default: 'Nerd Gauge — Built by Bars Raised by Beats',
         template: '%s | Nerd Gauge'
     },
     icons: {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     metadataBase: new URL('https://ng-hiphop.com'),
     openGraph: {
         title: 'Nerd Gauge — Authentic Hip-Hop Platform',
-        description: 'Real Bars. Real Beats. Real Eswatini. Experience the sound of the streets.',
+        description: 'Built by Bars Raised by Beats. Experience the sound of the streets.',
         url: 'https://ng-hiphop.com',
         siteName: 'Nerd Gauge',
         images: [
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Nerd Gauge — Real Bars. Real Beats. Real Eswatini.',
+        title: 'Nerd Gauge — Built by Bars Raised by Beats',
         description: 'Authentic hip-hop, community-driven, and legally distributed.',
         creator: '@nghiphop',
         images: ['/twitter-image.jpg'],
@@ -100,7 +100,6 @@ const organizationJsonLd = {
     alternateName: ['NG', 'NG Hip Hop'],
     url: 'https://ng-hiphop.com',
     logo: 'https://ng-hiphop.com/images/logo.jpg',
-    sameAs: ['https://x.com/nghiphop'],
     genre: 'Hip Hop',
 };
 
