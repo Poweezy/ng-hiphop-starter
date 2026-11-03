@@ -9,7 +9,7 @@
 - **Database provider:** Supabase (interpreting “superbase” in the owner response as Supabase).
 - **Object storage:** Supabase Storage.
 - **Migration authorization:** Local disposable PostgreSQL migration tests and local edits to migrations confirmed unshipped are authorized. No staging or production migrations are authorized.
-- **Migration repair (2026-11-03):** Owner confirmed the checked-in migrations had never been applied outside development. The portal schema was consolidated into `20260819_best_lyrics_portal`, with `20260820_create_lyric_competition` retained as a no-op sequence marker. All four migrations applied to a disposable PostgreSQL 17 database; Prisma schema diff was empty. Linked development database had zero public tables and was not migrated. Production state remains unverified.
+- **Migration repair and development rollout (2026-11-03):** Owner confirmed the checked-in migrations had never been applied outside development. The portal schema was consolidated into `20260819_best_lyrics_portal`, with `20260820_create_lyric_competition` retained as a no-op sequence marker. All four migrations applied to a disposable PostgreSQL 17 database and, after explicit approval, the linked development database; both have an empty Prisma schema diff. No seed data was added. Production state remains unverified.
 - **Current production migration state, backup/restore readiness, and external worker:** Not confirmed.
 - **External worker:** Unknown / not confirmed.
 - **Entrant access, judging, and winner publication policy:** Unknown / owner decision pending.

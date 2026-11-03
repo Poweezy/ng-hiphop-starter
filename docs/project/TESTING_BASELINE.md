@@ -36,6 +36,10 @@ After the owner confirmed these migrations had never been applied outside develo
 
 A fresh PostgreSQL 17 disposable database then applied all **4 migrations** successfully with `npx prisma migrate deploy`. `npx prisma migrate status` reported the database up to date, and `prisma migrate diff --from-url ... --to-schema-datamodel prisma/schema.prisma --script` returned an empty migration. The linked Supabase development database was checked read-only and has no public tables; no remote migration was applied. A `migrate reset` test also applied all migrations, but Prisma Client generation afterward hit the known Windows `EPERM` rename issue; this did not affect migration execution or the clean schema-diff result.
 
+After explicit owner approval, the repaired four migrations were applied to the linked Supabase **development** database. `npx prisma migrate status` reports it up to date; `prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` returns an empty migration. The database now has 16 application tables. No seed data was written, and no staging or production database was accessed.
+
+A read-only `SELECT 1` through Prisma succeeded using the current `.env`. A local homepage request returned HTTP 200, but the development server already running on port 3000 predates the corrected `DATABASE_URL`; its public slogan API returned HTTP 500 from the stale Prisma client configuration. A second Next.js dev server could not start because that existing process holds the `.next` dev lock, so it was left running. Restart the existing dev server to load the corrected environment, then repeat the homepage/API smoke check.
+
 ## Existing test and CI coverage
 
 - Vitest uses Node environment and V8 coverage reporters (`vitest.config.mts:10-23`); package scripts expose `npm test` and watch mode, but no coverage command or threshold is configured (`package.json:28-30`).

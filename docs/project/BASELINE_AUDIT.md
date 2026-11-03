@@ -62,7 +62,7 @@ On 2026-11-03, the owner confirmed **Vercel** hosting, **Supabase** PostgreSQL, 
 
 Initial test evidence: `npx prisma migrate deploy` against a newly initialized loopback-only PostgreSQL 18.6 database applied the initial migration then failed at `20260819_best_lyrics_portal` with `42P01` because relation `LyricCompetition` did not exist. Review also found that the next migration re-created tables already declared in the failed migration. No Supabase database was accessed during that test.
 
-Follow-up (2026-11-03): the owner confirmed these migrations had never been applied outside development. The unshipped portal DDL was consolidated into `20260819_best_lyrics_portal`; `20260820_create_lyric_competition` remains as an explicit no-op migration to preserve sequence identity. A fresh disposable PostgreSQL 17 run applied all four migrations, and Prisma's schema diff was empty. The linked development database was checked read-only (zero public tables) and not migrated. Production migration history and recovery readiness remain unverified.
+Follow-up (2026-11-03): the owner confirmed these migrations had never been applied outside development. The unshipped portal DDL was consolidated into `20260819_best_lyrics_portal`; `20260820_create_lyric_competition` remains as an explicit no-op migration to preserve sequence identity. A fresh disposable PostgreSQL 17 run applied all four migrations, and Prisma's schema diff was empty. After separate explicit approval, all four migrations were applied to the linked development database; Prisma reports it up to date with an empty schema diff. No seed data was written. Production migration history and recovery readiness remain unverified.
 
 ## Authorized security follow-up
 
