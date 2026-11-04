@@ -2,8 +2,9 @@
  * Upload scanning hooks.
  *
  * Production is fail-closed: when the scanner is disabled or errors, uploads
- * are rejected rather than silently accepted. Unscanned audio can be explicitly
- * allowed with ALLOW_UNSCANNED_AUDIO=true. In development,
+ * are rejected rather than silently accepted. Unscanned song audio and cover
+ * images can be explicitly allowed with their respective ALLOW_UNSCANNED_*
+ * settings. In development,
  * VIRUS_SCANNER_FAIL_OPEN=true preserves the local testing option.
  *
  * Enable real scanning with VIRUS_SCANNER_ENABLED=true and one of:
@@ -24,7 +25,7 @@ type ScannerAdapter = {
 };
 
 type ScanOptions = {
-  allowUnscanned?: boolean;
+  allowUnscanned?: 'audio' | 'cover';
 };
 
 const CLAMAV_TIMEOUT_MS = Number(process.env.CLAMAV_TIMEOUT_MS || '30000');
@@ -147,7 +148,13 @@ const adapters: Record<string, ScannerAdapter> = {
 
 function canAcceptUnscanned(options: ScanOptions): boolean {
   if (process.env.NODE_ENV === 'production') {
-    return options.allowUnscanned === true && process.env.ALLOW_UNSCANNED_AUDIO === 'true';
+    if (options.allowUnscanned === 'audio') {
+      return process.env.ALLOW_UNSCANNED_AUDIO === 'true';
+    }
+    if (options.allowUnscanned === 'cover') {
+      return process.env.ALLOW_UNSCANNED_COVERS === 'true';
+    }
+    return false;
   }
   return process.env.VIRUS_SCANNER_FAIL_OPEN === 'true';
 }

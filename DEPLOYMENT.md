@@ -60,7 +60,8 @@ VIRUS_SCANNER="clamav" # or "webhook"
 CLAMAV_HOST="127.0.0.1"
 CLAMAV_PORT="3310"
 # SCAN_WEBHOOK_URL="https://scanner.example.com/scan"
-# ALLOW_UNSCANNED_AUDIO="true" # explicitly allow audio when scanning is disabled/unavailable (reduced protection)
+# ALLOW_UNSCANNED_AUDIO="true" # allow unscanned song audio (reduced protection)
+# ALLOW_UNSCANNED_COVERS="true" # allow unscanned song cover images (reduced protection)
 
 # Sentry Error Tracking (optional)
 SENTRY_DSN=""
@@ -405,7 +406,7 @@ CLAMAV_HOST=127.0.0.1
 CLAMAV_PORT=3310
 ```
 
-By default, production rejects uploads if scanning is disabled or unavailable. To explicitly accept **unscanned audio only**, set `ALLOW_UNSCANNED_AUDIO=true`. This bypasses scanning when it is disabled or fails; detected threats are still rejected. It does not bypass image scanning, file validation, or size limits. Use this only if you accept the increased malware risk.
+By default, production rejects uploads if scanning is disabled or unavailable. To explicitly accept unscanned song audio and/or song cover images, set `ALLOW_UNSCANNED_AUDIO=true` and/or `ALLOW_UNSCANNED_COVERS=true`. Each setting applies only to its named asset type in song uploads, and only bypasses disabled or failed scans; detected threats are still rejected. These settings do not bypass format validation or size limits. Use them only if you accept the increased malware risk.
 
 Or use webhook scanner:
 ```env

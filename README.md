@@ -107,7 +107,7 @@ Sign in at `/admin/login` with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` values fro
 ## Known limitations
 
 - Local file uploads are world-readable; use object storage in production
-- Virus scanning is opt-in; when disabled it fails closed in production. `ALLOW_UNSCANNED_AUDIO=true` explicitly permits unscanned audio only; use it only if you accept the malware risk. `VIRUS_SCANNER_FAIL_OPEN=true` is for local development only.
+- Virus scanning is opt-in; when disabled it fails closed in production. `ALLOW_UNSCANNED_AUDIO=true` and `ALLOW_UNSCANNED_COVERS=true` explicitly permit unscanned song audio and cover images, respectively; use them only if you accept the malware risk. `VIRUS_SCANNER_FAIL_OPEN=true` is for local development only.
 - The moderation queue is database-backed and survives restarts; notifications go to `MODERATION_WEBHOOK_URL` when set, console otherwise
 - Public graffiti uploads are scanned and optimized server-side at `/api/graffiti`; admin uploads use `/api/uploads/optimize`
 

@@ -61,8 +61,8 @@ async function finalizeDirectSongUpload(input: z.infer<typeof songDirectUploadSc
         }
 
         const [audioScan, coverScan] = await Promise.all([
-            scanBuffer(audioBuffer, input.audioFilename, { allowUnscanned: true }),
-            scanBuffer(coverBuffer, input.coverFilename),
+            scanBuffer(audioBuffer, input.audioFilename, { allowUnscanned: 'audio' }),
+            scanBuffer(coverBuffer, input.coverFilename, { allowUnscanned: 'cover' }),
         ]);
         if (!audioScan.clean) {
             throw new SongUploadError(`Audio rejected: ${audioScan.reason}`, 400, 'AUDIO_REJECTED');
@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
         }
 
         const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-        const audioScan = await scanBuffer(audioBuffer, audioFile.name, { allowUnscanned: true });
+        const audioScan = await scanBuffer(audioBuffer, audioFile.name, { allowUnscanned: 'audio' });
         if (!audioScan.clean) {
             recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse(`Audio rejected: ${audioScan.reason}`, 400, 'AUDIO_REJECTED');
@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
             }
 
             const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
-            const coverScan = await scanBuffer(coverBuffer, coverFile.name);
+            const coverScan = await scanBuffer(coverBuffer, coverFile.name, { allowUnscanned: 'cover' });
             if (!coverScan.clean) {
                 recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
                 return errorResponse(`Cover rejected: ${coverScan.reason}`, 400, 'COVER_REJECTED');
