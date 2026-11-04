@@ -60,6 +60,7 @@ VIRUS_SCANNER="clamav" # or "webhook"
 CLAMAV_HOST="127.0.0.1"
 CLAMAV_PORT="3310"
 # SCAN_WEBHOOK_URL="https://scanner.example.com/scan"
+# ALLOW_UNSCANNED_AUDIO="true" # explicitly allow audio when scanning is disabled/unavailable (reduced protection)
 
 # Sentry Error Tracking (optional)
 SENTRY_DSN=""
@@ -403,6 +404,8 @@ VIRUS_SCANNER=clamav
 CLAMAV_HOST=127.0.0.1
 CLAMAV_PORT=3310
 ```
+
+By default, production rejects uploads if scanning is disabled or unavailable. To explicitly accept **unscanned audio only**, set `ALLOW_UNSCANNED_AUDIO=true`. This bypasses scanning when it is disabled or fails; detected threats are still rejected. It does not bypass image scanning, file validation, or size limits. Use this only if you accept the increased malware risk.
 
 Or use webhook scanner:
 ```env

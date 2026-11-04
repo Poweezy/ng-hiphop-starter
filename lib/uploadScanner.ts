@@ -2,8 +2,9 @@
  * Upload scanning hooks.
  *
  * Production is fail-closed: when the scanner is disabled or errors, uploads
- * are rejected rather than silently accepted. To opt out in development only,
- * set VIRUS_SCANNER_FAIL_OPEN=true (never set this in production).
+ * are rejected rather than silently accepted. Unscanned audio can be explicitly
+ * allowed with ALLOW_UNSCANNED_AUDIO=true. In development,
+ * VIRUS_SCANNER_FAIL_OPEN=true preserves the local testing option.
  *
  * Enable real scanning with VIRUS_SCANNER_ENABLED=true and one of:
  * - VIRUS_SCANNER=clamav  + CLAMAV_HOST / CLAMAV_PORT
@@ -20,6 +21,10 @@ export type ScanResult = {
 type ScannerAdapter = {
   name: string;
   scan(buffer: Buffer, filename: string): Promise<ScanResult>;
+};
+
+type ScanOptions = {
+  allowUnscanned?: boolean;
 };
 
 const CLAMAV_TIMEOUT_MS = Number(process.env.CLAMAV_TIMEOUT_MS || '30000');
@@ -140,17 +145,28 @@ const adapters: Record<string, ScannerAdapter> = {
   webhook: webhookAdapter,
 };
 
-function failClosedByDefault(): boolean {
-  // Fail closed by default. The only opt-out is an explicit dev flag.
-  if (process.env.NODE_ENV === 'production') return true;
-  return process.env.VIRUS_SCANNER_FAIL_OPEN !== 'true';
+function canAcceptUnscanned(options: ScanOptions): boolean {
+  if (process.env.NODE_ENV === 'production') {
+    return options.allowUnscanned === true && process.env.ALLOW_UNSCANNED_AUDIO === 'true';
+  }
+  return process.env.VIRUS_SCANNER_FAIL_OPEN === 'true';
 }
 
-export async function scanBuffer(buffer: Buffer, filename: string): Promise<ScanResult> {
+function acceptUnscanned(reason: string): ScanResult {
+  console.warn(`Accepting unscanned upload: ${reason}`);
+  return { clean: true };
+}
+
+export async function scanBuffer(
+  buffer: Buffer,
+  filename: string,
+  options: ScanOptions = {},
+): Promise<ScanResult> {
+  const canFailOpen = canAcceptUnscanned(options);
   const enabled = process.env.VIRUS_SCANNER_ENABLED === 'true';
   if (!enabled) {
-    if (!failClosedByDefault()) {
-      return { clean: true };
+    if (canFailOpen) {
+      return acceptUnscanned('virus scanner is disabled');
     }
     return { clean: false, reason: 'Virus scanner is disabled' };
   }
@@ -160,6 +176,9 @@ export async function scanBuffer(buffer: Buffer, filename: string): Promise<Scan
 
   if (!adapter) {
     console.error(`Unknown virus scanner "${scanner}"`);
+    if (canFailOpen) {
+      return acceptUnscanned(`unknown virus scanner "${scanner}"`);
+    }
     return { clean: false, reason: `Unknown virus scanner "${scanner}"` };
   }
 
@@ -167,6 +186,9 @@ export async function scanBuffer(buffer: Buffer, filename: string): Promise<Scan
     return await adapter.scan(buffer, filename);
   } catch (error) {
     console.error('Virus scan failed:', error);
+    if (canFailOpen) {
+      return acceptUnscanned('virus scan failed');
+    }
     return { clean: false, reason: 'Virus scan error' };
   }
 }

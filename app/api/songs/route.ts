@@ -61,7 +61,7 @@ async function finalizeDirectSongUpload(input: z.infer<typeof songDirectUploadSc
         }
 
         const [audioScan, coverScan] = await Promise.all([
-            scanBuffer(audioBuffer, input.audioFilename),
+            scanBuffer(audioBuffer, input.audioFilename, { allowUnscanned: true }),
             scanBuffer(coverBuffer, input.coverFilename),
         ]);
         if (!audioScan.clean) {
@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
         }
 
         const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-        const audioScan = await scanBuffer(audioBuffer, audioFile.name);
+        const audioScan = await scanBuffer(audioBuffer, audioFile.name, { allowUnscanned: true });
         if (!audioScan.clean) {
             recordRequest('POST', '/api/songs', 400, performance.now() - start, requestId);
             return errorResponse(`Audio rejected: ${audioScan.reason}`, 400, 'AUDIO_REJECTED');
